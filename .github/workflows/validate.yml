@@ -24,6 +24,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run validate
+      - run: npm run test:copilot
+      - run: npm run evaluate:copilot
       - run: npm run check:links
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser

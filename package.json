@@ -2,7 +2,7 @@
   "name": "sk-spatial-intelligence-lab",
   "version": "0.1.0",
   "private": true,
-  "description": "Validation and release tooling for the SK Spatial Intelligence Lab static research site.",
+  "description": "Validation tooling for the static research site and local deterministic GeoImpact evidence prototype.",
   "engines": {
     "node": ">=22"
   },
@@ -12,9 +12,13 @@
     "check:links": "node scripts/check-links.mjs",
     "plan:space": "node scripts/space-plan.mjs",
     "test:browser": "node scripts/browser-check.mjs",
-    "test": "npm run validate && npm run check:links && npm run test:browser"
+    "copilot": "node geoimpact-copilot/cli.mjs",
+    "test:copilot": "node --test tests/geoimpact-copilot.test.mjs",
+    "evaluate:copilot": "node geoimpact-copilot/evaluate.mjs",
+    "test": "npm run validate && npm run test:copilot && npm run evaluate:copilot && npm run check:links && npm run test:browser"
   },
   "devDependencies": {
+    "ajv": "8.20.0",
     "css-tree": "3.2.1",
     "html-validate": "11.17.0",
     "playwright": "1.64.1",

@@ -16,3 +16,10 @@ Captured on 2026-10-24 against the imported source. No Hugging Face deployment w
 ## Limits
 
 HTTP checks confirm availability at test time, not the correctness of remote page content. The browser test covers representative viewport sizes and keyboard behavior, not a full screen-reader or color-contrast audit. The manual deployment workflow and the protected GitHub environment were not executed/configured here; no production write was made.
+
+## GeoImpact Evidence Copilot V0.1 validation — 2026-10-24
+
+- `npm ci` — passed with the pinned Ajv development dependency; 19 packages installed, 0 reported vulnerabilities.
+- `npm test` — passed with exit code 0. Static HTML and repository checks passed; all 13 Copilot unit tests passed; all 15 synthetic evaluation cases passed with resolved evidence citations and numeric fidelity checks; all 5 existing external project links returned HTTP 200; Chromium browser checks passed at 390×844, 768×1024, and 1440×900.
+- Static Space integrity — the unchanged deployment workflow still validated as manual-only, targeting the existing Static Space, using the protected environment, preserving deletion-disabled behavior, and retaining its narrow file allowlist. Baseline Space backup checksums passed.
+- Scope — no Hugging Face workflow was run, no production deployment was requested, and no existing Space files were modified. The Copilot fixtures are synthetic only; no real GeoImpact-CI report or third-party spatial data was evaluated.
