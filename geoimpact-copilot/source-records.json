@@ -30,7 +30,7 @@
     {
       "id": "copilot-report-schema-v4-v5",
       "label": "Local GeoImpact-CI V4/V5 input schema shipped with this prototype",
-      "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/main/geoimpact-copilot/schema/report-v4-v5.schema.json",
+      "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/feat%2Fgeoimpact-evidence-copilot-v0.1/geoimpact-copilot/schema/report-v4-v5.schema.json",
       "sections": ["properties", "additionalProperties", "provenance"],
       "facts": {
         "uncertainty": "The supported report fields do not include a calibrated uncertainty interval, confidence value, or source positional accuracy field.",
