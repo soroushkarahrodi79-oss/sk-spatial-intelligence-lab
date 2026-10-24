@@ -1,0 +1,61 @@
+{
+  "report_version": "5",
+  "provenance": {
+    "hash_algorithm": "sha256",
+    "inputs": {
+      "config": { "sha256": "1111111111111111111111111111111111111111111111111111111111111111", "size_bytes": 128 },
+      "primary": {
+        "base": { "dataset": "synthetic-zones", "sha256": "2222222222222222222222222222222222222222222222222222222222222222", "size_bytes": 512 },
+        "candidate": { "dataset": "synthetic-zones", "sha256": "3333333333333333333333333333333333333333333333333333333333333333", "size_bytes": 512 }
+      },
+      "dependencies": [
+        { "dataset": "synthetic-facilities", "sha256": "4444444444444444444444444444444444444444444444444444444444444444", "size_bytes": 256 }
+      ]
+    },
+    "engine": {
+      "geoimpact_ci": "synthetic-fixture",
+      "shapely": "synthetic-fixture",
+      "geos": "synthetic-fixture",
+      "pyproj": "synthetic-fixture",
+      "proj": "synthetic-fixture"
+    }
+  },
+  "analysis": {
+    "crs": "EPSG:25830",
+    "primary_dataset": "synthetic-zones",
+    "primary_id_field": "zone_id",
+    "dependencies": [
+      { "dataset": "synthetic-facilities", "id_field": "facility_id", "predicate": "within" }
+    ]
+  },
+  "primary_change": {
+    "feature_geometry_status": { "zone-east": "modified" },
+    "changed_feature_ids": ["zone-east"],
+    "added_feature_ids": [],
+    "removed_feature_ids": [],
+    "modified_feature_ids": ["zone-east"],
+    "changed_footprint_area_m2": 6.0,
+    "changed_footprint_geometry": { "type": "Polygon", "coordinates": [[[500010, 4500010], [500012, 4500010], [500012, 4500013], [500010, 4500013], [500010, 4500010]]] },
+    "max_boundary_displacement_m": 2.0
+  },
+  "relationships": [
+    {
+      "dependent_dataset": "synthetic-facilities",
+      "dependent_id": "facility-03",
+      "predicate": "within",
+      "before": ["zone-east"],
+      "after": ["zone-east"],
+      "change_type": "unchanged"
+    }
+  ],
+  "relationship_regressions": [],
+  "boundary_ambiguities": [],
+  "policy": {
+    "rule": "max_relationship_regressions",
+    "observed_value": 0,
+    "threshold": 0,
+    "evidence_ids": [],
+    "status": "PASS"
+  },
+  "verdict": "PASS"
+}

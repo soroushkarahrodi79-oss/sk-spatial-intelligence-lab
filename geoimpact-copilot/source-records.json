@@ -1,0 +1,43 @@
+{
+  "records": [
+    {
+      "id": "geoimpact-ci-readme-v1.2.0",
+      "label": "GeoImpact-CI README, current public contract inspected 2026-10-24",
+      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/v1.2.0/README.md",
+      "sections": ["Run and interpret", "Evidence and numerical contract", "Limitations and future work"],
+      "facts": {
+        "PASS": "The configured relationship-regression policy was not exceeded; PASS is not a claim that source data are correct.",
+        "BLOCK": "The analysis completed and the configured policy threshold was exceeded; BLOCK is not an operational failure.",
+        "ERROR": "An operational, configuration, or input error prevented a policy verdict; no report verdict is produced.",
+        "limitations": "Spatial membership does not establish source correctness, legal status, causality, access, service use, or socioeconomic effects.",
+        "uncertainty": "The documented 1e-6 m grids are computational representation/robustness choices, not source positional accuracy.",
+        "provenance": "SHA-256 hashes identify raw input bytes but do not embed source files or identify who supplied them; the report has no source-license field."
+      }
+    },
+    {
+      "id": "geoimpact-ci-architecture-v1",
+      "label": "GeoImpact-CI ARCHITECTURE_V1.md, current V1 contract",
+      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/v1.2.0/docs/ARCHITECTURE_V1.md",
+      "sections": ["Primary feature changes", "Relationship engine", "Report and compatibility", "Out of scope"],
+      "facts": {
+        "relationships": "Dependent Point relationships use exact WITHIN predicates; boundary touches are reported separately and do not count as within.",
+        "changes": "Primary feature IDs are classified as unchanged, modified, added, or removed; no rename or identity is inferred across IDs.",
+        "displacement": "Maximum boundary displacement is computed only for modified shared IDs present in both snapshots; additions and removals have no counterpart.",
+        "v4_v5": "V4 includes the complete primary ID change section; V5 adds input-byte SHA-256 identities and engine versions without changing scientific semantics.",
+        "error": "ERROR means no policy verdict was produced."
+      }
+    },
+    {
+      "id": "copilot-report-schema-v4-v5",
+      "label": "Local GeoImpact-CI V4/V5 input schema shipped with this prototype",
+      "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/feat%2Fgeoimpact-evidence-copilot-v0.1/geoimpact-copilot/schema/report-v4-v5.schema.json",
+      "sections": ["properties", "additionalProperties", "provenance"],
+      "facts": {
+        "uncertainty": "The supported report fields do not include a calibrated uncertainty interval, confidence value, or source positional accuracy field.",
+        "rights": "The supported report fields do not include source license or data-rights metadata.",
+        "source_locations": "The supported report fields do not include source URLs or local input paths.",
+        "scope": "This prototype validates GeoImpact-CI report versions 4 and 5 only; V5 requires the provenance object and V4 omits it."
+      }
+    }
+  ]
+}

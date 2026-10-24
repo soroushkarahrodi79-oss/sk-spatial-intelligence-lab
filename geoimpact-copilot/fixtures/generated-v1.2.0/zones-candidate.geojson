@@ -1,0 +1,71 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "district_id": "zone-west"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -3.705,
+              40.415
+            ],
+            [
+              -3.702,
+              40.415
+            ],
+            [
+              -3.702,
+              40.42
+            ],
+            [
+              -3.705,
+              40.42
+            ],
+            [
+              -3.705,
+              40.415
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district_id": "zone-east"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -3.7,
+              40.415
+            ],
+            [
+              -3.695,
+              40.415
+            ],
+            [
+              -3.695,
+              40.42
+            ],
+            [
+              -3.7,
+              40.42
+            ],
+            [
+              -3.7,
+              40.415
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

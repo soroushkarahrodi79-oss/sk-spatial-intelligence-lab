@@ -1,0 +1,144 @@
+{
+  "analysis": {
+    "crs": "EPSG:25830",
+    "dependencies": [
+      {
+        "dataset": "synthetic-facilities",
+        "id_field": "facility_id",
+        "predicate": "within"
+      }
+    ],
+    "primary_dataset": "synthetic-districts",
+    "primary_id_field": "district_id"
+  },
+  "boundary_ambiguities": [],
+  "policy": {
+    "evidence_ids": [
+      "relationship-regression-2b751aa0388e48dd5c0d62080a347571d1f86597b956e37ba31d4478f9858f48"
+    ],
+    "observed_value": 1,
+    "rule": "max_relationship_regressions",
+    "status": "BLOCK",
+    "threshold": 0
+  },
+  "primary_change": {
+    "added_feature_ids": [],
+    "changed_feature_ids": [
+      "zone-west"
+    ],
+    "changed_footprint_area_m2": 94177.15132422363,
+    "changed_footprint_geometry": {
+      "coordinates": [
+        [
+          [
+            [
+              440191.484539,
+              4474613.392214
+            ],
+            [
+              440615.661827,
+              4474610.019912
+            ],
+            [
+              440611.265401,
+              4474055.021976
+            ],
+            [
+              440441.581955,
+              4474056.370858
+            ],
+            [
+              440445.990921,
+              4474611.365952
+            ],
+            [
+              440191.484539,
+              4474613.392214
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              440187.056707,
+              4474058.394182
+            ],
+            [
+              440441.581955,
+              4474056.370858
+            ],
+            [
+              440441.581933,
+              4474056.367978
+            ],
+            [
+              440187.056707,
+              4474058.394182
+            ]
+          ]
+        ]
+      ],
+      "type": "MultiPolygon"
+    },
+    "feature_geometry_status": {
+      "zone-east": "unchanged",
+      "zone-west": "modified"
+    },
+    "max_boundary_displacement_m": 169.68880643675107,
+    "modified_feature_ids": [
+      "zone-west"
+    ],
+    "removed_feature_ids": []
+  },
+  "relationship_regressions": [
+    {
+      "after": [],
+      "before": [
+        "zone-west"
+      ],
+      "change_type": "assignment_lost",
+      "dependent_dataset": "synthetic-facilities",
+      "dependent_id": "facility-01",
+      "evidence_geometry": {
+        "coordinates": [
+          440486.205668,
+          4474333.53004
+        ],
+        "type": "Point"
+      },
+      "evidence_geometry_crs": "EPSG:25830",
+      "evidence_id": "relationship-regression-2b751aa0388e48dd5c0d62080a347571d1f86597b956e37ba31d4478f9858f48",
+      "predicate": "within",
+      "primary_dataset": "synthetic-districts",
+      "primary_feature_ids": [
+        "zone-west"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "after": [],
+      "before": [
+        "zone-west"
+      ],
+      "change_type": "assignment_lost",
+      "dependent_dataset": "synthetic-facilities",
+      "dependent_id": "facility-01",
+      "predicate": "within"
+    },
+    {
+      "after": [
+        "zone-east"
+      ],
+      "before": [
+        "zone-east"
+      ],
+      "change_type": "unchanged",
+      "dependent_dataset": "synthetic-facilities",
+      "dependent_id": "facility-02",
+      "predicate": "within"
+    }
+  ],
+  "report_version": "4",
+  "verdict": "BLOCK"
+}

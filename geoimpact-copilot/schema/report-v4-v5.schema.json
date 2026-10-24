@@ -1,0 +1,217 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sk-spatial-intelligence-lab.invalid/schemas/geoimpact-report-v4-v5.schema.json",
+  "title": "GeoImpact-CI report V4/V5 local copilot input",
+  "description": "A strict, read-only input subset for canonical GeoImpact-CI report V4 and V5 documents. V5 requires provenance; V4 must not contain it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_version",
+    "analysis",
+    "primary_change",
+    "relationships",
+    "relationship_regressions",
+    "boundary_ambiguities",
+    "policy",
+    "verdict"
+  ],
+  "properties": {
+    "report_version": { "enum": ["4", "5"] },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "analysis": { "$ref": "#/$defs/analysis" },
+    "primary_change": { "$ref": "#/$defs/primaryChange" },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relationship" }
+    },
+    "relationship_regressions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/regression" }
+    },
+    "boundary_ambiguities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/boundaryAmbiguity" }
+    },
+    "policy": { "$ref": "#/$defs/policy" },
+    "verdict": { "enum": ["PASS", "BLOCK"] }
+  },
+  "oneOf": [
+    {
+      "properties": { "report_version": { "const": "5" }, "provenance": { "$ref": "#/$defs/provenance" } },
+      "required": ["provenance"]
+    },
+    {
+      "properties": { "report_version": { "const": "4" }, "provenance": {} },
+      "not": { "required": ["provenance"] }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringList": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" }, "uniqueItems": true },
+    "position": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+    "lineCoordinates": { "type": "array", "items": { "$ref": "#/$defs/position" }, "minItems": 2 },
+    "ringCoordinates": { "type": "array", "items": { "$ref": "#/$defs/position" }, "minItems": 4 },
+    "geometry": {
+      "oneOf": [
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "Point" }, "coordinates": { "$ref": "#/$defs/position" } }, "additionalProperties": false },
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "MultiPoint" }, "coordinates": { "type": "array", "items": { "$ref": "#/$defs/position" }, "minItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "LineString" }, "coordinates": { "$ref": "#/$defs/lineCoordinates" } }, "additionalProperties": false },
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "MultiLineString" }, "coordinates": { "type": "array", "items": { "$ref": "#/$defs/lineCoordinates" }, "minItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "Polygon" }, "coordinates": { "type": "array", "items": { "$ref": "#/$defs/ringCoordinates" }, "minItems": 1 } }, "additionalProperties": false },
+        { "type": "object", "required": ["type", "coordinates"], "properties": { "type": { "const": "MultiPolygon" }, "coordinates": { "type": "array", "items": { "type": "array", "items": { "$ref": "#/$defs/ringCoordinates" }, "minItems": 1 }, "minItems": 1 } }, "additionalProperties": false }
+      ]
+    },
+    "contentIdentity": {
+      "type": "object",
+      "required": ["sha256", "size_bytes"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "datasetIdentity": {
+      "type": "object",
+      "required": ["dataset", "sha256", "size_bytes"],
+      "properties": {
+        "dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["hash_algorithm", "inputs", "engine"],
+      "properties": {
+        "hash_algorithm": { "const": "sha256" },
+        "inputs": {
+          "type": "object",
+          "required": ["config", "primary", "dependencies"],
+          "properties": {
+            "config": { "$ref": "#/$defs/contentIdentity" },
+            "primary": {
+              "type": "object",
+              "required": ["base", "candidate"],
+              "properties": {
+                "base": { "$ref": "#/$defs/datasetIdentity" },
+                "candidate": { "$ref": "#/$defs/datasetIdentity" }
+              },
+              "additionalProperties": false
+            },
+            "dependencies": { "type": "array", "items": { "$ref": "#/$defs/datasetIdentity" } }
+          },
+          "additionalProperties": false
+        },
+        "engine": {
+          "type": "object",
+          "required": ["geoimpact_ci", "shapely", "geos", "pyproj", "proj"],
+          "properties": {
+            "geoimpact_ci": { "$ref": "#/$defs/nonEmptyString" },
+            "shapely": { "$ref": "#/$defs/nonEmptyString" },
+            "geos": { "$ref": "#/$defs/nonEmptyString" },
+            "pyproj": { "$ref": "#/$defs/nonEmptyString" },
+            "proj": { "$ref": "#/$defs/nonEmptyString" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "analysis": {
+      "type": "object",
+      "required": ["crs", "primary_dataset", "primary_id_field", "dependencies"],
+      "properties": {
+        "crs": { "const": "EPSG:25830" },
+        "primary_dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "primary_id_field": { "$ref": "#/$defs/nonEmptyString" },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dataset", "id_field", "predicate"],
+            "properties": {
+              "dataset": { "$ref": "#/$defs/nonEmptyString" },
+              "id_field": { "$ref": "#/$defs/nonEmptyString" },
+              "predicate": { "const": "within" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "primaryChange": {
+      "type": "object",
+      "required": ["feature_geometry_status", "changed_feature_ids", "added_feature_ids", "removed_feature_ids", "modified_feature_ids", "changed_footprint_area_m2", "changed_footprint_geometry", "max_boundary_displacement_m"],
+      "properties": {
+        "feature_geometry_status": {
+          "type": "object",
+          "additionalProperties": { "enum": ["unchanged", "modified", "added", "removed"] }
+        },
+        "changed_feature_ids": { "$ref": "#/$defs/stringList" },
+        "added_feature_ids": { "$ref": "#/$defs/stringList" },
+        "removed_feature_ids": { "$ref": "#/$defs/stringList" },
+        "modified_feature_ids": { "$ref": "#/$defs/stringList" },
+        "changed_footprint_area_m2": { "type": "number", "minimum": 0 },
+        "changed_footprint_geometry": { "anyOf": [{ "$ref": "#/$defs/geometry" }, { "type": "null" }] },
+        "max_boundary_displacement_m": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "relationship": {
+      "type": "object",
+      "required": ["dependent_dataset", "dependent_id", "predicate", "before", "after", "change_type"],
+      "properties": {
+        "dependent_dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "dependent_id": { "$ref": "#/$defs/nonEmptyString" },
+        "predicate": { "const": "within" },
+        "before": { "$ref": "#/$defs/stringList" },
+        "after": { "$ref": "#/$defs/stringList" },
+        "change_type": { "enum": ["unchanged", "assignment_changed", "assignment_lost", "assignment_gained"] }
+      },
+      "additionalProperties": false
+    },
+    "regression": {
+      "type": "object",
+      "required": ["evidence_id", "primary_dataset", "primary_feature_ids", "dependent_dataset", "dependent_id", "predicate", "before", "after", "change_type", "evidence_geometry_crs", "evidence_geometry"],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/nonEmptyString" },
+        "primary_dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "primary_feature_ids": { "$ref": "#/$defs/stringList" },
+        "dependent_dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "dependent_id": { "$ref": "#/$defs/nonEmptyString" },
+        "predicate": { "const": "within" },
+        "before": { "$ref": "#/$defs/stringList" },
+        "after": { "$ref": "#/$defs/stringList" },
+        "change_type": { "enum": ["assignment_changed", "assignment_lost", "assignment_gained"] },
+        "evidence_geometry_crs": { "const": "EPSG:25830" },
+        "evidence_geometry": { "$ref": "#/$defs/geometry" }
+      },
+      "additionalProperties": false
+    },
+    "boundaryAmbiguity": {
+      "type": "object",
+      "required": ["dependent_dataset", "dependent_id", "before_boundary_primary_ids", "after_boundary_primary_ids"],
+      "properties": {
+        "dependent_dataset": { "$ref": "#/$defs/nonEmptyString" },
+        "dependent_id": { "$ref": "#/$defs/nonEmptyString" },
+        "before_boundary_primary_ids": { "$ref": "#/$defs/stringList" },
+        "after_boundary_primary_ids": { "$ref": "#/$defs/stringList" }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": ["rule", "observed_value", "threshold", "evidence_ids", "status"],
+      "properties": {
+        "rule": { "const": "max_relationship_regressions" },
+        "observed_value": { "type": "integer", "minimum": 0 },
+        "threshold": { "type": "integer", "minimum": 0 },
+        "evidence_ids": { "$ref": "#/$defs/stringList" },
+        "status": { "enum": ["PASS", "BLOCK"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

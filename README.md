@@ -10,6 +10,7 @@ An evidence-first geospatial research platform. The current public application i
 - `.github/workflows/validate.yml` — validation on pushes and pull requests.
 - `.github/workflows/deploy-space.yml` — manual-only Hugging Face deployment. It requires a previewed inventory, an explicit approval input, and a protected GitHub environment.
 - `backups/huggingface-space/da10c68f/` — exact snapshot of the four files at the currently deployed Hugging Face commit.
+- `geoimpact-copilot/` — local deterministic report parser and evidence-linked question-answering prototype. It is not an operating LLM or hosted service.
 
 Only `space/README.md`, `space/index.html`, and `space/style.css` are in the deployment allowlist. The action excludes `.gitattributes`; the workflow disables deletion so that the existing destination copy is retained. Unexpected destination files or metadata drift stop preflight.
 
@@ -20,12 +21,26 @@ Requires Node.js 22 or newer. Dependencies are development-only and pinned in `p
 ```sh
 npm ci
 npm run validate
+npm run test:copilot
+npm run evaluate:copilot
 npm run check:links
 npx playwright install chromium
 npm run test:browser
 ```
 
-`npm test` runs all four checks after Chromium is installed. CI runs these checks on GitHub Actions; no build step or runtime package is needed to serve the site.
+`npm test` runs all validation, copilot, link, and browser checks after Chromium is installed. CI runs these checks on GitHub Actions; no build step or runtime package is needed to serve the static site.
+
+## GeoImpact Evidence Copilot V0.1
+
+The local deterministic prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, ties quantities to typed report paths, binds versions and digit-bearing identifiers to exact cited strings, and abstains when the report cannot support a question. Hand-authored fixtures and generated CLI reports use synthetic inputs; none are research observations.
+
+```sh
+npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question "Why did this report BLOCK?"
+npm run test:copilot
+npm run evaluate:copilot
+```
+
+The default path is deterministic. No LLM client, model credentials, API, or user interface is included. A server-side adapter boundary is documented and fail-closed; it may only select pre-authorized claim IDs, while the application renders all factual text and numbers. See [the V0.1 architecture, threat model, evaluation, limitations, and recommendation](docs/geoimpact-evidence-copilot-v0.1.md).
 
 ## Deployment
 
