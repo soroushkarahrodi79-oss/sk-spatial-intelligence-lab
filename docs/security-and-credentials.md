@@ -15,7 +15,7 @@ The official `hub-sync` v0.3.0 release is pinned by commit SHA, and the Hugging 
 
 ## Deployment approval
 
-Create a GitHub environment named `huggingface-production` and require an owner/reviewer approval. The deployment workflow uses that environment. Keep the `workflow_dispatch` trigger, preview mode, explicit `approve_inventory` input, branch protection/review policy, and `delete_removed: false` setting.
+The repository's `huggingface-production` environment is configured with the repository owner as required reviewer, a `main`-only deployment branch rule, and administrator bypass disabled. The workflow also requires a manual `workflow_dispatch` run with `approve_inventory: true`; the preview plan and deployment use the same reviewed digest. Self-review is allowed because the owner is the only configured reviewer. For two-person approval later, add a second trusted reviewer and enable GitHub's prevent-self-review setting.
 
 Grant GitHub Actions only `contents: read`; the deployment job does not need a GitHub write token. The HF credential is not passed to the preflight or validation jobs.
 

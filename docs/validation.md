@@ -11,6 +11,7 @@ Captured on 2026-10-24 against the imported source. No Hugging Face deployment w
 - `npm test` — passed with all validation, link, and browser checks.
 - `npm run plan:space -- --out-dir work/predeployment-plan` — passed read-only against Space main commit `da10c68fda4f83e88f249f9d7c415f5b570183eb`. Plan digest: `0AB57028623BDCA475E1CC6EF7A89C9B8CF65D1089219F15C77072223FF9D6DA`. The comparison found 0 additions, 2 replacements (`README.md`, `index.html`), 1 unchanged upload (`style.css`), 1 protected file outside the upload set (`.gitattributes`), and 0 actual deletions. With default mirroring, `.gitattributes` would be removed; the workflow explicitly disables deletion and preflight verifies that file matches the captured baseline.
 - Repository credential-pattern scan — passed with no token-shaped strings found.
+- GitHub Actions run [`Validate static lab` #1](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/runs/40124544175) on commit `824827c55379193106ef7c87346962da0651cdeb` — completed successfully. All eight job steps passed, including dependency install, static checks, external links, Chromium install, and responsive browser tests.
 
 ## Limits
 

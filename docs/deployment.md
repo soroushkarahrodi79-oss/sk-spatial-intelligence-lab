@@ -17,7 +17,7 @@ The official action mirrors files and can delete destination files when `delete_
 ## First deployment procedure
 
 1. Create the fine-grained Hugging Face write token described in [security and credentials](security-and-credentials.md), then save it as the GitHub **repository secret** `HF_TOKEN`.
-2. In the repository settings, create the `huggingface-production` environment and add the repository owner as a required reviewer. Do this before the first deploy; the workflow references this environment so GitHub can pause the deploy job for approval.
+2. The `huggingface-production` environment is already configured with the repository owner as a required reviewer, `main` as its only allowed branch, and administrator bypass disabled. The owner must approve the deployment job before it can run.
 3. Run **Actions → Deploy Hugging Face Space → Run workflow** with mode `plan`. Download and review the `space-deployment-plan` artifact. It must show the expected path-level comparison and no unapproved deletion.
 4. Start a new manual run with mode `deploy` and `approve_inventory` set to `true`. The preflight runs again. Review the plan job artifact and approve the pending `huggingface-production` deployment.
 5. After sync, inspect the Space's Files and App views. Confirm its SDK is still Static, the bilingual switch works, project links open, and the policy/status text is accurate.
