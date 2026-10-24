@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add a local deterministic GeoImpact Evidence Copilot V0.1 with strict V4/V5 report parsing, evidence-linked answers, numerical gating, explicit abstention, synthetic fixtures, and evaluation coverage. No LLM provider or Hugging Face deployment was added.
+- Fix V5 software-version provenance being tokenized as a measurement; bind versions and digit-bearing identifiers to exact report strings, narrow numeric evidence to measured paths, and add real CLI-generated synthetic V4/V5 contract fixtures plus adversarial fidelity coverage.
 
 ## 0.1.0 — 2026-10-24
 

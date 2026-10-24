@@ -32,7 +32,7 @@ npm run test:browser
 
 ## GeoImpact Evidence Copilot V0.1
 
-The local prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, cites JSON Pointers or named source records for each claim, and abstains when the report cannot support the question. The fixtures are explicitly synthetic and are not research observations.
+The local deterministic prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, ties quantities to typed report paths, binds versions and digit-bearing identifiers to exact cited strings, and abstains when the report cannot support a question. Hand-authored fixtures and generated CLI reports use synthetic inputs; none are research observations.
 
 ```sh
 npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question "Why did this report BLOCK?"

@@ -1,0 +1,21 @@
+version: 1
+
+analysis:
+  crs: EPSG:25830
+
+primary:
+  dataset: synthetic-districts
+  base: zones-base.geojson
+  candidate: zones-candidate.geojson
+  id_field: district_id
+
+dependencies:
+  - dataset: synthetic-facilities
+    path: facilities.geojson
+    id_field: facility_id
+    predicate: within
+
+policy:
+  max_relationship_regressions:
+    threshold: 1
+    severity: block

@@ -3,7 +3,7 @@
     {
       "id": "geoimpact-ci-readme-v1.2.0",
       "label": "GeoImpact-CI README, current public contract inspected 2026-10-24",
-      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/main/README.md",
+      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/v1.2.0/README.md",
       "sections": ["Run and interpret", "Evidence and numerical contract", "Limitations and future work"],
       "facts": {
         "PASS": "The configured relationship-regression policy was not exceeded; PASS is not a claim that source data are correct.",
@@ -17,7 +17,7 @@
     {
       "id": "geoimpact-ci-architecture-v1",
       "label": "GeoImpact-CI ARCHITECTURE_V1.md, current V1 contract",
-      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/main/docs/ARCHITECTURE_V1.md",
+      "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/v1.2.0/docs/ARCHITECTURE_V1.md",
       "sections": ["Primary feature changes", "Relationship engine", "Report and compatibility", "Out of scope"],
       "facts": {
         "relationships": "Dependent Point relationships use exact WITHIN predicates; boundary touches are reported separately and do not count as within.",

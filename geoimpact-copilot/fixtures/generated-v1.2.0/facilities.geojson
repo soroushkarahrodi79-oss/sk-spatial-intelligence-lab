@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "facility-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -3.7015,
+          40.4175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "facility-02"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -3.697,
+          40.4175
+        ]
+      }
+    }
+  ]
+}

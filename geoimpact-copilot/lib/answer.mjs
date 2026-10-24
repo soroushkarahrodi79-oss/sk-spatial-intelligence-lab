@@ -1,4 +1,4 @@
-import { derivedCountReference, jsonReference, sourceReference, verifyAnswerEvidence } from "./evidence.mjs";
+import { derivedCountReference, jsonReference, jsonStringListReference, jsonStringReference, sourceReference, verifyAnswerEvidence } from "./evidence.mjs";
 
 const contractSource = "geoimpact-ci-readme-v1.2.0";
 const architectureSource = "geoimpact-ci-architecture-v1";
@@ -69,13 +69,13 @@ function relationshipAnswer(report) {
       claims.push(createClaim(
         `relationship-${index}`,
         `${quoted(record.dependent_dataset)} / ${quoted(record.dependent_id)}: before ${quotedList(record.before)}; after ${quotedList(record.after)} (${record.change_type}). Evidence ID ${quoted(record.evidence_id)} links the change to primary feature IDs ${quotedList(record.primary_feature_ids)}.`,
-        jsonReference(report, `#/relationship_regressions/${index}/dependent_dataset`),
-        jsonReference(report, `#/relationship_regressions/${index}/dependent_id`),
-        jsonReference(report, `#/relationship_regressions/${index}/before`),
-        jsonReference(report, `#/relationship_regressions/${index}/after`),
-        jsonReference(report, `#/relationship_regressions/${index}/change_type`),
-        jsonReference(report, `#/relationship_regressions/${index}/evidence_id`),
-        jsonReference(report, `#/relationship_regressions/${index}/primary_feature_ids`),
+        jsonStringReference(report, `#/relationship_regressions/${index}/dependent_dataset`, "identifier"),
+        jsonStringReference(report, `#/relationship_regressions/${index}/dependent_id`, "identifier"),
+        jsonStringListReference(report, `#/relationship_regressions/${index}/before`),
+        jsonStringListReference(report, `#/relationship_regressions/${index}/after`),
+        jsonStringReference(report, `#/relationship_regressions/${index}/change_type`, "identifier"),
+        jsonStringReference(report, `#/relationship_regressions/${index}/evidence_id`, "identifier"),
+        jsonStringListReference(report, `#/relationship_regressions/${index}/primary_feature_ids`),
         sourceReference(architectureSource, "relationships")
       ));
     }
@@ -95,10 +95,10 @@ function changeAnswer(report) {
     createClaim(
       "primary-feature-changes",
       `Changed feature IDs: ${quotedList(change.changed_feature_ids)}. Added: ${quotedList(change.added_feature_ids)}. Removed: ${quotedList(change.removed_feature_ids)}. Modified: ${quotedList(change.modified_feature_ids)}.`,
-      jsonReference(report, "#/primary_change/changed_feature_ids"),
-      jsonReference(report, "#/primary_change/added_feature_ids"),
-      jsonReference(report, "#/primary_change/removed_feature_ids"),
-      jsonReference(report, "#/primary_change/modified_feature_ids"),
+      jsonStringListReference(report, "#/primary_change/changed_feature_ids"),
+      jsonStringListReference(report, "#/primary_change/added_feature_ids"),
+      jsonStringListReference(report, "#/primary_change/removed_feature_ids"),
+      jsonStringListReference(report, "#/primary_change/modified_feature_ids"),
       jsonReference(report, "#/primary_change/feature_geometry_status"),
       sourceReference(architectureSource, "changes")
     ),
@@ -121,25 +121,32 @@ function changeAnswer(report) {
 }
 
 function provenanceAnswer(report) {
+  const dependencyDatasetReferences = report.analysis.dependencies.map((_, index) =>
+    jsonStringReference(report, `#/analysis/dependencies/${index}/dataset`, "identifier"));
   const datasetClaims = [
     createClaim("provenance-datasets", `Logical datasets named: primary ${quoted(report.analysis.primary_dataset)}; dependencies ${quotedList(report.analysis.dependencies.map((dependency) => dependency.dataset))}.`,
-      jsonReference(report, "#/analysis/primary_dataset"), jsonReference(report, "#/analysis/dependencies")),
+      jsonStringReference(report, "#/analysis/primary_dataset", "identifier"), ...dependencyDatasetReferences,
+      jsonReference(report, "#/analysis/dependencies")),
     createClaim("provenance-source-limits", "These are logical dataset names; the report does not include source URLs or data-license rights.",
       jsonReference(report, "#/analysis/dependencies"), sourceReference(schemaSource, "source_locations"), sourceReference(schemaSource, "rights"))
   ];
   if (report.report_version === "4") {
     return [...datasetClaims,
       createClaim("provenance-absent-v4", "This V4 report has no provenance object. V5 adds input-byte SHA-256 identities and engine versions without changing the spatial semantics.",
-        jsonReference(report, "#/report_version"), sourceReference(architectureSource, "v4_v5"))
+        jsonStringReference(report, "#/report_version", "report_version"), sourceReference(architectureSource, "v4_v5"))
     ];
   }
   const engine = report.provenance.engine;
+  const engineReferences = Object.keys(engine).map((key) =>
+    jsonStringReference(report, `#/provenance/engine/${key}`, "software_version"));
   return [
     ...datasetClaims,
-    createClaim("provenance-version", `Report version ${report.report_version}; analysis CRS ${report.analysis.crs}; hash algorithm ${report.provenance.hash_algorithm}.`,
-      jsonReference(report, "#/report_version"), jsonReference(report, "#/analysis/crs"), jsonReference(report, "#/provenance/hash_algorithm")),
+    createClaim("provenance-version", `Report version V${report.report_version}; analysis CRS ${report.analysis.crs}; hash algorithm ${report.provenance.hash_algorithm}.`,
+      jsonStringReference(report, "#/report_version", "report_version"),
+      jsonStringReference(report, "#/analysis/crs", "identifier"),
+      jsonStringReference(report, "#/provenance/hash_algorithm", "identifier")),
     createClaim("provenance-engine", `Engine values listed: GeoImpact-CI ${engine.geoimpact_ci}; Shapely ${engine.shapely}; GEOS ${engine.geos}; PyProj ${engine.pyproj}; PROJ ${engine.proj}.`,
-      jsonReference(report, "#/provenance/engine")),
+      jsonReference(report, "#/provenance/engine"), ...engineReferences),
     createClaim("provenance-limit", "Hashes identify the report's declared raw input bytes but do not identify who supplied them or establish their license rights.",
       jsonReference(report, "#/provenance/inputs"), sourceReference(contractSource, "provenance"), sourceReference(schemaSource, "rights"))
   ];

@@ -48,6 +48,8 @@ try {
         process.stdout.write(`- ${claim.id}\n`);
         for (const reference of claim.references) {
           if (reference.type === "json_pointer") process.stdout.write(`  ${reference.path}\n`);
+          else if (reference.type === "json_string_literal") process.stdout.write(`  ${reference.path} = ${JSON.stringify(reference.value)} [exact ${reference.role}]\n`);
+          else if (reference.type === "json_string_list_literal") process.stdout.write(`  ${reference.path} = ${JSON.stringify(reference.value)} [exact identifiers]\n`);
           else if (reference.type === "derived") process.stdout.write(`  ${reference.operation}(${reference.source_path}) = ${reference.value}\n`);
           else process.stdout.write(`  source:${reference.source_id}#${reference.fact_key} (${reference.url})\n`);
         }
