@@ -1,0 +1,87 @@
+name: Deploy Hugging Face Space
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preview the change inventory, or deploy after review
+        required: true
+        type: choice
+        options:
+          - plan
+          - deploy
+        default: plan
+      approve_inventory:
+        description: I reviewed the plan artifact and approve this production sync
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huggingface-space-production
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.inventory.outputs.digest }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: inventory
+        name: Read-only destination comparison
+        run: npm run plan:space -- --out-dir work/predeployment-plan
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: space-deployment-plan
+          path: work/predeployment-plan/
+          if-no-files-found: warn
+          retention-days: 30
+
+  deploy:
+    if: inputs.mode == 'deploy' && inputs.approve_inventory == true
+    needs: plan
+    runs-on: ubuntu-latest
+    environment:
+      name: huggingface-production
+      url: https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Recheck reviewed inventory after environment approval
+        env:
+          EXPECTED_PLAN_DIGEST: ${{ needs.plan.outputs.digest }}
+        run: npm run plan:space -- --out-dir work/approved-plan --expected-digest "$EXPECTED_PLAN_DIGEST"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: approved-space-deployment-plan
+          path: work/approved-plan/
+          retention-days: 30
+      - uses: huggingface/hub-sync@fdffea8e04104d0bd4e3181c5feb3025f0433ff5 # v0.3.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: soroushkararodi/sk-spatial-intelligence-lab
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: static
+          subdirectory: space
+          include: |
+            README.md
+            index.html
+            style.css
+          delete_removed: false
+          hf_version: 2.3.0

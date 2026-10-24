@@ -1,0 +1,16 @@
+{
+  "source": "https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab",
+  "revision": "da10c68fda4f83e88f249f9d7c415f5b570183eb",
+  "branch": "main",
+  "commit_message": "Upload 2 files",
+  "author": "Soroush Karahrodi <soroushkararodi@users.noreply.huggingface.co>",
+  "committed_at": "2026-10-24T18:41:58Z",
+  "sdk": "static",
+  "files": {
+    ".gitattributes": "11AD7EFA24975EE4B0C3C3A38ED18737F0658A5F75A0A96787B576A78A023361",
+    "README.md": "06A541592535B4B21567A9C12471F0CDBDD1C054C5D4933813E17B7C9CEFF5B9",
+    "index.html": "017F3DF3C95D31E920607A68979C63D9311CA99CADF86617713FB78BB31B12F8",
+    "style.css": "789BFD541C9F06658AC410D968E9C39FA8C63A48A08643B36071B984C699A9F4"
+  },
+  "checksum_algorithm": "SHA-256"
+}

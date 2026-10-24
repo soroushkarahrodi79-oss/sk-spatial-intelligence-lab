@@ -1,0 +1,8 @@
+/work/
+/outputs/
+/node_modules/
+/.playwright/
+/playwright-report/
+/test-results/
+*.log
+.DS_Store

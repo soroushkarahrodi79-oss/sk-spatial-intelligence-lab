@@ -1,0 +1,23 @@
+{
+  "name": "sk-spatial-intelligence-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validation and release tooling for the SK Spatial Intelligence Lab static research site.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "validate": "npm run validate:html && node scripts/validate.mjs",
+    "validate:html": "html-validate space/index.html",
+    "check:links": "node scripts/check-links.mjs",
+    "plan:space": "node scripts/space-plan.mjs",
+    "test:browser": "node scripts/browser-check.mjs",
+    "test": "npm run validate && npm run check:links && npm run test:browser"
+  },
+  "devDependencies": {
+    "css-tree": "3.2.1",
+    "html-validate": "11.17.0",
+    "playwright": "1.64.1",
+    "yaml": "2.9.1"
+  }
+}
