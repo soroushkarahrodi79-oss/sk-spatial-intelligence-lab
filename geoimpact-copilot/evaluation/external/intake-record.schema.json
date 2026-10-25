@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sk-spatial-intelligence-lab.invalid/schemas/report-intake-record.schema.json",
+  "title": "Rights and provenance intake record for one genuine GeoImpact-CI V4/V5 report",
+  "description": "Written by a person, beside NAME.report.json as NAME.intake.json, before the report is used for anything. It is separate from NAME.meta.json (labels and review status). No script fills it in. A report is admitted only when every verification below names a person and a date, the report was really produced by a GeoImpact-CI run on real input data, and the report is not one of the repository's synthetic reports.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_file", "report_sha256", "status", "origin", "rights", "verification", "diversity"],
+  "properties": {
+    "schema": { "const": "geoimpact-report-intake/1" },
+    "report_file": { "type": "string", "pattern": "^[A-Za-z0-9._-]+\\.report\\.json$" },
+    "report_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "enum": ["candidate", "admitted", "rejected"] },
+    "rejection_reason": { "type": "string" },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "real_input_data", "geoimpact_ci_version", "run_date", "run_by", "run_description", "input_hashes_match_report"],
+      "properties": {
+        "kind": { "enum": ["genuine_geoimpact_ci_run", "synthetic", "hand_written", "model_generated", "unknown"] },
+        "real_input_data": { "type": "boolean" },
+        "geoimpact_ci_version": { "type": "string", "minLength": 1 },
+        "geoimpact_ci_commit_or_tag": { "type": "string", "minLength": 1 },
+        "run_date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "run_by": { "type": "string", "minLength": 1 },
+        "run_description": { "type": "string", "minLength": 1 },
+        "run_record_url": { "type": "string", "pattern": "^https://" },
+        "input_hashes_match_report": { "type": "boolean" }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rights_holder", "license", "evidence_url", "evidence_retrieved_on", "redistribution_allowed", "contains_personal_data", "contains_sensitive_locations", "may_be_sent_to_third_party_model"],
+      "properties": {
+        "rights_holder": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 },
+        "evidence_url": { "type": "string", "pattern": "^https://" },
+        "evidence_retrieved_on": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "redistribution_allowed": { "const": true },
+        "contains_personal_data": { "const": false },
+        "contains_sensitive_locations": { "const": false },
+        "may_be_sent_to_third_party_model": { "type": "boolean" },
+        "scope_notes": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rights", "provenance"],
+      "properties": {
+        "rights": { "$ref": "#/definitions/check" },
+        "provenance": { "$ref": "#/definitions/check" }
+      }
+    },
+    "diversity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_version", "verdict", "size_class", "region_description", "dependency_count_class"],
+      "properties": {
+        "report_version": { "enum": ["4", "5"] },
+        "verdict": { "enum": ["PASS", "BLOCK"] },
+        "size_class": { "enum": ["small", "medium", "large"] },
+        "dependency_count_class": { "enum": ["none", "one", "several"] },
+        "region_description": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["unverified", "verified"] },
+        "verified_by": { "type": "string" },
+        "verified_on": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "method": { "type": "string" }
+      }
+    }
+  }
+}

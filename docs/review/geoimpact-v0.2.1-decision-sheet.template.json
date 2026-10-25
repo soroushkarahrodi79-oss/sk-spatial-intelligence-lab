@@ -1,0 +1,376 @@
+{
+  "schema": "geoimpact-review-decision-sheet/1",
+  "status": "blank_template",
+  "note": "A blank worksheet. It is not a review record and is never read by any check. A person copies decisions into geoimpact-copilot/semantic/review-record.json by hand.",
+  "content_digest": "3038cf448ed0ae3b438757d28f0fcb477b43f0014bc55684862986c230c8824f",
+  "contract_version": "geoimpact-claim-binding/1",
+  "reviewer": null,
+  "reviewed_on": null,
+  "relationship_to_author": null,
+  "entries": [
+    {
+      "packet_id": "A01",
+      "entry_id": "bc24130ab138",
+      "claim": "metric-limits",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A02",
+      "entry_id": "897f65be47e1",
+      "claim": "provenance-absent-v*",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A03",
+      "entry_id": "7912dd7dd663",
+      "claim": "provenance-limit",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A04",
+      "entry_id": "f88e856b840d",
+      "claim": "provenance-source-limits",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A05",
+      "entry_id": "101d6cb6141f",
+      "claim": "unsupported-claim",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A06",
+      "entry_id": "2fbf44a20569",
+      "claim": "unsupported-temporal-geographic",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A07",
+      "entry_id": "88540797a9f2",
+      "claim": "policy-comparison",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A08",
+      "entry_id": "a7215bdf5944",
+      "claim": "policy-meaning",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A09",
+      "entry_id": "d7aaaed7b0b1",
+      "claim": "primary-change-metrics",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A10",
+      "entry_id": "e5ec8b8f82ad",
+      "claim": "relationship-*",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A11",
+      "entry_id": "18cfd6592d88",
+      "claim": "error-semantics",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A12",
+      "entry_id": "b704d710e668",
+      "claim": "relationship-limits",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A13",
+      "entry_id": "f9caea0f7970",
+      "claim": "policy-verdict",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A14",
+      "entry_id": "de5596dbe6ea",
+      "claim": "policy-verdict",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A15",
+      "entry_id": "beab422afdd2",
+      "claim": "primary-feature-changes",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A16",
+      "entry_id": "c3e5cf79d6f2",
+      "claim": "provenance-datasets",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A17",
+      "entry_id": "468c12a0a83e",
+      "claim": "provenance-datasets",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A18",
+      "entry_id": "907d88256bf9",
+      "claim": "provenance-engine",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A19",
+      "entry_id": "c3b91cd190f8",
+      "claim": "provenance-version",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "A20",
+      "entry_id": "7eaf9513ecdb",
+      "claim": "relationship-count",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "B01",
+      "entry_id": "d48bc25d3950",
+      "claim": "policy-meaning",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "B02",
+      "entry_id": "a2701a252bc0",
+      "claim": "relationship-limits",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "B03",
+      "entry_id": "af194498142e",
+      "claim": "relationship-limits",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "C01",
+      "entry_id": "35fea9dd1a4d",
+      "claim": "uncertainty-missing",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "C02",
+      "entry_id": "9518134a9b90",
+      "claim": "empty-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "C03",
+      "entry_id": "1e74387dce64",
+      "claim": "no-supported-intent",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D01",
+      "entry_id": "50d02f80df45",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D02",
+      "entry_id": "5d23f463102e",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D03",
+      "entry_id": "00e3ae6d5d52",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D04",
+      "entry_id": "1e22b68a4fb2",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D05",
+      "entry_id": "b7938587b624",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D06",
+      "entry_id": "0e52139a0cf3",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D07",
+      "entry_id": "ca820f1cec7b",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D08",
+      "entry_id": "703c1e6d77f1",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D09",
+      "entry_id": "2d517ba0597d",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D10",
+      "entry_id": "7ab933dc5ffe",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D11",
+      "entry_id": "565320ffbaad",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D12",
+      "entry_id": "d8dc9f8117bd",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D13",
+      "entry_id": "d54192c052ef",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D14",
+      "entry_id": "3d59bad18718",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D15",
+      "entry_id": "15920451438b",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D16",
+      "entry_id": "387682271f22",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D17",
+      "entry_id": "59a43d23781b",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D18",
+      "entry_id": "529d93f909c7",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D19",
+      "entry_id": "40fc248e1c17",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D20",
+      "entry_id": "99d80c1cd325",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D21",
+      "entry_id": "687044c77cab",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D22",
+      "entry_id": "33ac651f803f",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D23",
+      "entry_id": "b914bc8e6ef0",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D24",
+      "entry_id": "28b708ed6670",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D25",
+      "entry_id": "ee1a30443426",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    },
+    {
+      "packet_id": "D26",
+      "entry_id": "96a81d007210",
+      "claim": "ambiguous-question",
+      "decision": null,
+      "notes": null
+    }
+  ]
+}

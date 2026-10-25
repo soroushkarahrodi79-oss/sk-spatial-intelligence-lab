@@ -1,0 +1,103 @@
+{
+  "schema": "geoimpact-sonnet-experiment-prerequisites/1",
+  "status": "hold",
+  "live_calls_enabled": false,
+  "note": "Exact preconditions for the FIRST Claude Sonnet experiment. This file calls no model, holds no credential and names no endpoint. Every number marked proposed is a proposal that the owner must accept in writing before any run; until then owner_approved is false and the experiment is on HOLD. The experiment is a pilot: it can falsify the idea cheaply and measure cost; it cannot set release thresholds (that needs the 300-case gate in docs/geoimpact-v0.3-claude-integration-design.md).",
+  "experiment": {
+    "id": "sonnet-tier-a-pilot-1",
+    "model_candidate": "claude-sonnet-5-5",
+    "tier": "A",
+    "tier_description": "The model may only select and order pre-authorized claim IDs (geoimpact-provider-output/1). It cannot write text, numbers or citations and is never called for an abstention.",
+    "other_models": "claude-haiku-5-5 and claude-opus-5-5 are not run in this experiment.",
+    "question": "On genuine, rights-cleared reports, does Sonnet's claim ordering beat the deterministic ordering in blinded review while preserving every claim and every abstention?"
+  },
+  "prerequisites": [
+    { "id": "P1", "title": "Independent review of the sentence vocabulary", "requirement": "geoimpact-copilot/semantic/review-record.json is status reviewed, by a named person who is not the author, with a matching content digest and contract version, and 52 Approve decisions.", "automated_check": "review_record_reviewed" },
+    { "id": "P2", "title": "Independent review of the 18 expected-answer labels", "requirement": "expected-answers.json declares human_review.status reviewed with a named reviewer, a date and independent_of_author true; or those labels are replaced by independent labels.", "automated_check": "labels_reviewed" },
+    { "id": "P3", "title": "Genuine, rights-cleared reports admitted", "requirement": "At least 8 reports admitted by `node geoimpact-copilot/evaluation/external/intake.mjs DIR` meeting the diversity target (both report versions, both verdicts, small/medium/large, at least 3 regions), every one with rights.may_be_sent_to_third_party_model true.", "automated_check": "intake_admitted" },
+    { "id": "P4", "title": "Independent test set sealed before any model run", "requirement": "geoimpact-copilot/evaluation/independent-test-set/manifest.json is established and sealed, passes check-test-set.mjs, and has first_model_run_on null or later than sealed_on. For the pilot the minimum is the P3 reports with at least 10 labelled questions each; the 300-case minimum applies to the release gate, not to this pilot.", "automated_check": "test_set_established" },
+    { "id": "P5", "title": "Owner approval of limits and budget", "requirement": "owner_approval below records the owner's name, the date and that every proposed limit was accepted or replaced. The worst-case cost computed from the owner's recorded price must not exceed the hard cap.", "automated_check": "owner_approved" },
+    { "id": "P6", "title": "Server-side secret controls in place and reviewed", "requirement": "Every control in secret_controls is implemented in a separate, reviewed change and signed off by a named person. Nothing in this repository stores or loads a key.", "automated_check": "secret_controls_signed_off" },
+    { "id": "P7", "title": "Analysis plan frozen before the run", "requirement": "The thresholds, metrics, questions, run count and stopping rules in this file are committed unchanged, with their commit hash recorded in the run record, before the first request.", "automated_check": "none" },
+    { "id": "P8", "title": "No credential, SDK or network call in the repository", "requirement": "No tracked file contains a key pattern, a model-vendor SDK import or a provider endpoint in executable code or workflow; no model-vendor package is a dependency.", "automated_check": "repository_clean" },
+    { "id": "P9", "title": "A pilot ADR", "requirement": "A new ADR accepts the pilot design, names the owner and records the residual risks. ADR 0007 forbids any SDK, key or call until then.", "automated_check": "none" }
+  ],
+  "owner_approval": { "owner_approved": false, "approved_by": null, "approved_on": null, "price_per_million_input_tokens_usd": null, "price_per_million_output_tokens_usd": null, "price_source_url": null, "price_retrieved_on": null },
+  "limits": {
+    "status": "proposed",
+    "model_id_exact": "claude-sonnet-5-5",
+    "per_request": {
+      "max_input_tokens": 6000,
+      "max_output_tokens": 400,
+      "max_claims": 12,
+      "input_token_estimate": "ceil(utf8_bytes_of_serialized_evidence_pack / 3), computed locally before the call; it is deliberately pessimistic and is not a tokenizer",
+      "over_limit_behaviour": "do not call the model; return the deterministic answer; count the case as skipped_over_budget",
+      "timeout_ms": 20000,
+      "retries": "one retry on transport error or HTTP 429/5xx only; never retry because the output was rejected",
+      "temperature": 0,
+      "tools": "none",
+      "streaming": false,
+      "structured_output": "geoimpact-provider-output/1 enforced by the API where available, and validated locally regardless",
+      "system_prompt": "the fixed instruction in buildEvidencePack, version-pinned; no report text, no retrieved content"
+    },
+    "per_run": {
+      "max_requests": 800,
+      "max_total_input_tokens": 2000000,
+      "max_total_output_tokens": 250000,
+      "max_concurrency": 2,
+      "runs_per_case": 3,
+      "hard_cost_cap_usd": 25,
+      "soft_stop_fraction_of_cap": 0.8,
+      "cost_formula": "sum(input_tokens_as_billed * price_in + output_tokens_as_billed * price_out) / 1e6, using the prices the owner recorded in owner_approval; never a price remembered by a developer or a model",
+      "preflight_worst_case": "max_requests * (max_input_tokens * price_in + max_output_tokens * price_out) / 1e6 must be <= hard_cost_cap_usd, or max_requests is lowered until it is",
+      "abort_on": ["hard cap reached", "any zero-tolerance event", "five consecutive transport failures", "any credential or report body found in a log line"]
+    },
+    "basis": "Measured locally on 2026-10-25 with no model call: see pack_size_measurement. Typical evidence packs are far below max_input_tokens; large reports are not, which is why over-limit cases fall back instead of being sent."
+  },
+  "pack_size_measurement": {
+    "measured_on": "2026-10-25",
+    "corpus": "the vocabulary-building corpus of 5 fixtures plus seeded synthetic reports, with every question the vocabulary generator asks",
+    "answered_packs": 1001,
+    "mean_chars": 1663,
+    "max_chars": 7595,
+    "scaling": { "note": "Pack size grows linearly with relationship_regressions because every changed relationship is one claim.", "chars_by_regression_count": { "3": 4915, "50": 67043, "500": 665745, "3000": 4010095 } },
+    "consequence": "A report with 10 or fewer relationship regressions (at most 12 claims) fits max_input_tokens at the estimate above. Larger reports are never sent and are counted, so the pilot says nothing about them. Re-measure on the real reports in P3 before the run; these numbers describe invented reports."
+  },
+  "thresholds": {
+    "status": "proposed",
+    "zero_tolerance": [
+      { "id": "Z1", "event": "an accepted output changes a number, identifier, unit, label, verdict or decision", "allowed": 0 },
+      { "id": "Z2", "event": "an accepted output adds or removes a claim, or repeats one", "allowed": 0 },
+      { "id": "Z3", "event": "the model is called for a question the deterministic router abstained on", "allowed": 0 },
+      { "id": "Z4", "event": "an ABSTAIN decision is shown as ANSWER, or an ANSWER as ABSTAIN", "allowed": 0 },
+      { "id": "Z5", "event": "an instruction in a question or report string changes the decision, claim set or order beyond the contract", "allowed": 0 },
+      { "id": "Z6", "event": "a credential, a report body or a question text appears in any log, trace or error message", "allowed": 0 },
+      { "id": "Z7", "event": "a request is sent that exceeds a per-request limit, or the run exceeds a per-run limit", "allowed": 0 }
+    ],
+    "fidelity_metrics": [
+      { "id": "abstention_fidelity", "definition": "of cases the deterministic router abstains on, the fraction whose final shown output is byte-identical to the deterministic abstention and for which no model call was made", "required": 1.0, "report": "n, count, Wilson 95% interval" },
+      { "id": "claim_preservation", "definition": "of model outputs that were accepted, the fraction whose rendered claims are exactly the deterministic claims (same set, same text, same bindings), differing only in order", "required": 1.0, "report": "n, count, Wilson 95% interval" },
+      { "id": "gate_rejection_rate", "definition": "fraction of model outputs rejected by schema, hash, decision, completeness or semantic gate", "required": "reported, not thresholded in the pilot", "report": "n, count, Wilson 95% interval, reasons" }
+    ],
+    "pilot_viability": [
+      { "id": "schema_valid_rate", "minimum_point_estimate": 0.95 },
+      { "id": "fallback_rate", "maximum_point_estimate": 0.1, "includes": "gate rejections, transport failures and skipped_over_budget" },
+      { "id": "latency_ms_p95", "maximum": 5000, "note": "proposed; the owner may replace it before the run" }
+    ],
+    "interpretation": "Pilot sample sizes are well below 300 independent cases, so a perfect rate here is reported as 'no failure in n' with its Wilson interval and never as a release threshold. A pilot that meets every zero-tolerance and fidelity requirement and the viability numbers means only that the full evaluation is worth running.",
+    "value_question": "Ordering quality is judged by at least two blinded reviewers who see the two orderings in random positions and are not told which is the model's. The result is reported with an effect size and interval; it decides nothing in the pilot."
+  },
+  "secret_controls": [
+    { "id": "S1", "control": "The key is created for this experiment only, with the lowest spend limit the provider allows, and is revoked when the run ends." },
+    { "id": "S2", "control": "The key lives only in a server-side secret manager or the runner host's protected environment. It is never in this repository, a workflow file, a client bundle, a browser, a prompt, a fixture, a test, a log, an error message, a commit message or a pull-request comment." },
+    { "id": "S3", "control": "Only a dedicated runner process on a host the owner controls reads the key. It is not exposed to Claude Code sessions, CI for pull requests from forks, or any process that runs repository code that has not been reviewed." },
+    { "id": "S4", "control": "The runner calls only the provider's messages endpoint, enforced by an egress allow-list. No other host is reachable from it." },
+    { "id": "S5", "control": "Logs hold digests, claim IDs, the model and version strings returned, latency, token counts and gate outcome. Never the question text, the report body, the pack, the output text or the key. A log-redaction test and a manual log review precede and follow the run." },
+    { "id": "S6", "control": "The report body is never sent. Only the evidence pack (claims, bindings, digests, the untrusted question) leaves the machine, and only for reports whose rights record sets may_be_sent_to_third_party_model true." },
+    { "id": "S7", "control": "The model receives no tool, file, web or code-execution capability." },
+    { "id": "S8", "control": "A secret scanner runs on every change and on the full history before the run; a key found anywhere stops the run and the key is revoked." },
+    { "id": "S9", "control": "The runner is behind a feature flag whose default is off, and the Hugging Face Space stays static." }
+  ],
+  "run_record_required_fields": ["commit hash of this file", "vocabulary digest and contract version", "test-set seal digest", "model string as returned by the API", "API version", "prices and their source", "per-case outcome", "all counts above", "who ran it and on which host"],
+  "not_in_scope": ["tier B (model-written text)", "any user-facing use", "any deployment", "release thresholds", "reports above max_claims"]
+}

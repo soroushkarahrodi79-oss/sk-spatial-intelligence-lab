@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -349,8 +349,13 @@ test("the offline evaluation passes its own gate and reports sample sizes with i
 
 test("external reports require rights, provenance, a matching hash and independent labels; unreviewed ones are not aggregated", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "geoimpact-external-"));
-  const spec = makeSpec(31, { report_version: "5", regression_count: 1, threshold: 0 });
-  const reportText = `${JSON.stringify(buildReport(spec), null, 2)}\n`;
+  // A seed outside every synthetic range, with realistic engine labels, so only the paperwork decides admission. Still a unit-test stand-in, not a real report.
+  const spec = makeSpec(970031, { report_version: "5", regression_count: 1, threshold: 0 });
+  const standIn = buildReport(spec);
+  standIn.provenance.engine = { geoimpact_ci: "1.2.0", shapely: "2.1.0", geos: "3.13.0", pyproj: "3.7.0", proj: "9.5.0" };
+  const reportText = `${JSON.stringify(standIn, null, 2)}\n`;
+  const person = { status: "verified", verified_by: "Dana Whitfield", verified_on: "2026-10-20", method: "Compared the licence text with the dataset terms." };
+  const intake = { schema: "geoimpact-report-intake/1", report_file: "case-a.report.json", report_sha256: createHash("sha256").update(reportText).digest("hex"), status: "admitted", origin: { kind: "genuine_geoimpact_ci_run", real_input_data: true, geoimpact_ci_version: "1.2.0", run_date: "2026-10-01", run_by: "Example Office", run_description: "Unit-test stand-in.", input_hashes_match_report: true }, rights: { rights_holder: "Example Office", license: "CC0-1.0", evidence_url: "https://example.org/licence", evidence_retrieved_on: "2026-10-19", redistribution_allowed: true, contains_personal_data: false, contains_sensitive_locations: false, may_be_sent_to_third_party_model: true }, verification: { rights: person, provenance: { ...person, verified_by: "Priya Raman" } }, diversity: { report_version: "5", verdict: standIn.verdict, size_class: "small", region_description: "Region A", dependency_count_class: "one" } };
   const meta = (overrides = {}) => ({
     report_file: "case-a.report.json",
     report_sha256: createHash("sha256").update(reportText).digest("hex"),
@@ -371,7 +376,16 @@ test("external reports require rights, provenance, a matching hash and independe
 
   await writeFile(path.join(directory, "case-a.meta.json"), JSON.stringify(meta({ human_review: { status: "reviewed", reviewer_roles: ["domain_expert"], reviewed_on: "2026-10-24", second_reviewer_agreement: "not_applicable" } })));
   result = await runEvaluation({ performance: false, external: directory });
+  assert.deepEqual(result.external_reports.reviewed_label_agreement_by_split, {}, "reviewed labels without a verified origin are not aggregated");
+  assert.equal(result.external_reports.origin_unverified.length, 1);
+  await writeFile(path.join(directory, "case-a.intake.json"), JSON.stringify(intake));
+  result = await runEvaluation({ performance: false, external: directory });
   assert.equal(result.external_reports.reviewed_label_agreement_by_split.held_out.n, 1);
+  assert.equal(result.external_reports.origin_unverified.length, 0);
+  await writeFile(path.join(directory, "case-a.intake.json"), JSON.stringify({ ...intake, origin: { ...intake.origin, kind: "synthetic" } }));
+  result = await runEvaluation({ performance: false, external: directory });
+  assert.deepEqual(result.external_reports.reviewed_label_agreement_by_split, {}, "an intake record that admits nothing does not unlock the aggregate");
+  await rm(path.join(directory, "case-a.intake.json"));
 
   for (const [name, broken] of Object.entries({
     "missing rights": meta({ dataset_rights: undefined }),
@@ -458,15 +472,16 @@ test("regression counts agree in number with their noun, and a wrong plural is r
   assert.match(zero.answer, /observed 0 relationship regressions against a threshold of 0/);
 });
 
-test("generated vocabulary, hand-written labels and the oracle are recorded as unreviewed, and the checklist is an unfilled worksheet", async () => {
+test("generated vocabulary, hand-written labels and the oracle report their true review state, and the checklist is an unfilled worksheet", async () => {
   const registry = JSON.parse(await readFile(new URL("../geoimpact-copilot/semantic/approved-skeletons.json", import.meta.url), "utf8"));
   const labels = JSON.parse(await readFile(new URL("../geoimpact-copilot/evaluation/expected-answers.json", import.meta.url), "utf8"));
   assert.equal(registry.review, undefined, "the generated vocabulary carries no review state");
   const record = JSON.parse(await readFile(new URL("../geoimpact-copilot/semantic/review-record.json", import.meta.url), "utf8"));
-  assert.equal(record.status, "unreviewed");
-  assert.notEqual(evaluateReview(record, registry).state, "invalid");
-  assert.ok(labels.cases.every((item) => item.human_review_status === "unreviewed"), "labels are unreviewed until a person changes them");
-  assert.match(labels.review_status, /^UNREVIEWED/);
+  const recordState = evaluateReview(record, registry).state;
+  assert.notEqual(recordState, "invalid");
+  const labelState = labels.cases.every((item) => item.human_review_status === "reviewed") ? "reviewed" : "unreviewed";
+  assert.ok(labels.cases.every((item) => item.human_review_status === labelState), "labels are all reviewed or all unreviewed");
+  if (labelState === "unreviewed") assert.match(labels.review_status, /^UNREVIEWED/);
   const checklist = await readFile(new URL("../docs/geoimpact-v0.2-human-review-checklist.md", import.meta.url), "utf8");
   const entries = Object.values(registry.claims).flat().length;
   assert.equal([...checklist.matchAll(/^### R[0-9]+ /gm)].length, entries, "one checklist entry per allowed sentence and condition");
@@ -474,8 +489,8 @@ test("generated vocabulary, hand-written labels and the oracle are recorded as u
   assert.match(checklist, /Review status: UNREVIEWED/);
   for (const flag of ["geographic", "temporal", "causal", "legal", "scientific"]) assert.ok(checklist.includes(flag), flag);
   const result = await runEvaluation({ performance: false });
-  assert.equal(result.review_status.skeleton_vocabulary, "unreviewed");
-  assert.equal(result.review_status.expected_answer_labels, "unreviewed");
+  assert.equal(result.review_status.skeleton_vocabulary, recordState);
+  if (labelState === "unreviewed") assert.equal(result.review_status.expected_answer_labels, "unreviewed");
 });
 
 test("the Claude evaluation specification is specification-only and contains no credentials or live endpoints", async () => {

@@ -1,0 +1,19 @@
+{
+  "schema": "geoimpact-independent-test-set/1",
+  "status": "not_established",
+  "purpose": null,
+  "note": "No independent test set exists. This file records that fact and holds the structure a real one must fill. Nothing in it was invented: there are no reports, no labels, no labeller, and no reviewer. Reports and their label sheets live OUTSIDE this repository; this manifest holds only their digests once a person has sealed the set. Protocol: docs/geoimpact-v0.2.1-independent-test-set-protocol.md",
+  "sealed": false,
+  "sealed_on": null,
+  "sealed_by": null,
+  "seal_digest": null,
+  "first_model_run_on": null,
+  "minimum_cases_for_model_gate": 300,
+  "human_review": {
+    "status": "not_started",
+    "reviewers": [],
+    "second_reviewer_sample_fraction": null,
+    "disagreement_rate": null
+  },
+  "cases": []
+}

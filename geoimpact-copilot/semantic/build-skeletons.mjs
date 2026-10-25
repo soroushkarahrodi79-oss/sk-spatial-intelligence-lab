@@ -16,7 +16,7 @@ import { questions } from "../evaluation/oracle.mjs";
 
 const here = new URL("./", import.meta.url);
 const registryUrl = new URL("./approved-skeletons.json", here);
-const fixtureNames = [
+export const fixtureNames = [
   "block-v5.json",
   "pass-v5.json",
   "generated-v1.2.0/report-v4-block.json",
