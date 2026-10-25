@@ -49,7 +49,7 @@ try {
   ];
   for (const url of expectedLinks) assert.equal(await page.locator(`a[href="${url}"]`).count(), 1, `Missing project link: ${url}`);
 
-  for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+  for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1280, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
     const layout = await page.evaluate(() => ({
       width: window.innerWidth,
@@ -69,10 +69,35 @@ try {
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "es");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Investigación y sistemas" }).count(), 1);
-  assert.equal(await page.getByRole("navigation").getAttribute("aria-label"), "Navegación principal");
+  assert.equal(await page.locator("#primaryMenu").getAttribute("aria-label"), "Navegación principal");
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Research & systems" }).count(), 1);
+
+  // P0: accessible mobile navigation (disclosure menu keeps Projects and Roadmap discoverable)
+  await page.setViewportSize({ width: 360, height: 800 });
+  const toggle = page.locator("#navToggle");
+  const menu = page.locator("#primaryMenu");
+  assert.ok(await toggle.isVisible(), "Mobile menu toggle must be visible on small screens");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Mobile menu must start collapsed");
+  assert.equal(await menu.locator("a[href='#projects']").isVisible(), false, "Nav links stay hidden until the menu opens");
+  const toggleBox = await toggle.boundingBox();
+  assert.ok(toggleBox.width >= 44 && toggleBox.height >= 44, `Toggle touch target too small: ${toggleBox.width}x${toggleBox.height}`);
+  await toggle.click();
+  assert.equal(await toggle.getAttribute("aria-expanded"), "true", "Toggle must set aria-expanded=true when opened");
+  assert.ok(await menu.locator("a[href='#projects']").isVisible(), "Projects link must be reachable when the menu is open");
+  assert.ok(await menu.locator("a[href='#roadmap']").isVisible(), "Roadmap link must be reachable when the menu is open");
+  await page.keyboard.press("Escape");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Escape must close the menu");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "navToggle", "Focus must return to the toggle after Escape");
+  await toggle.click();
+  await menu.locator("a[href='#projects']").click();
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Selecting a menu link must close the menu");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  assert.equal(await toggle.isVisible(), false, "Toggle must be hidden on desktop");
+  assert.ok(await menu.locator("a[href='#methods']").isVisible(), "Nav links must be inline on desktop");
+  console.log("PASS accessible mobile navigation: toggle, aria-expanded, Escape, focus return, desktop inline");
+
   assert.deepEqual(pageErrors, [], `Browser errors: ${pageErrors.join("; ")}`);
   console.log("PASS keyboard skip link, bilingual switch, landmark label, title, cards, and project links");
 } finally {
