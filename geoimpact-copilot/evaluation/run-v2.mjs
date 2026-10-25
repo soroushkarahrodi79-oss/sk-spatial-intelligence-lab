@@ -129,12 +129,12 @@ function evaluateMutations(entries) {
       id: mutation.id,
       risk: mutation.risk,
       applicable,
-      rejected_by_v0_1_gate: wilson(v01Rejected, applicable),
+      rejected_by_reference_verifier: wilson(v01Rejected, applicable),
       rejected_by_v0_2_gate: wilson(v02Rejected, applicable),
       accepted_by_v0_2_seeds: accepted.slice(0, 5)
     });
   }
-  return { per_mutation: perMutation, by_risk_v0_1: riskV01.toObject(), by_risk_v0_2: riskV02.toObject() };
+  return { per_mutation: perMutation, by_risk_reference_verifier: riskV01.toObject(), by_risk_v0_2: riskV02.toObject() };
 }
 
 // Input-boundary cases: each must be rejected before any answer is produced.
@@ -345,6 +345,8 @@ async function loadExternal(directory) {
 }
 
 export async function runEvaluation({ external = null, performance: withPerformance = true } = {}) {
+  const registryReview = JSON.parse(await readFile(new URL("../semantic/approved-skeletons.json", here), "utf8")).review;
+  const expectedAnswerSpec = JSON.parse(await readFile(new URL("./expected-answers.json", here), "utf8"));
   const manifest = JSON.parse(await readFile(manifestUrl, "utf8"));
   const development = splitReports(manifest, "development");
   const heldOut = splitReports(manifest, "held_out");
@@ -355,10 +357,17 @@ export async function runEvaluation({ external = null, performance: withPerforma
   const result = {
     evaluation_version: "0.2.0",
     scope_notice: "SYNTHETIC reports only. These figures measure software behaviour on invented, schema-valid inputs; they are not scientific accuracy on real GeoImpact-CI output and must not be quoted as such.",
+    review_status: {
+      note: "Nothing in this repository is human-reviewed. These fields report the status recorded in the files; they are not self-certification.",
+      skeleton_vocabulary: registryReview.status,
+      expected_answer_labels: expectedAnswerSpec.cases.every((item) => item.human_review_status === "unreviewed") ? "unreviewed" : "mixed_or_reviewed: inspect expected-answers.json",
+      oracle_expectations: "unreviewed (author-written)",
+      checklist: "docs/geoimpact-v0.2-human-review-checklist.md"
+    },
     reproducibility: { generator_version: manifest.generator_version, expected_sha256: manifest.sha256, actual_sha256: digests, reproduced: reproducible },
     splits: {
       development: { purpose: "gate and vocabulary development; may be inspected and tuned against", ...evaluateSplit(development) },
-      held_out: { purpose: "final check; the semantic gate and approved vocabulary were built without it", ...evaluateSplit(heldOut) }
+      held_out: { purpose: "final check; the semantic gate and sentence vocabulary were built without it", ...evaluateSplit(heldOut) }
     },
     adversarial_mutations: { reports: heldOut.length, ...evaluateMutations(heldOut) },
     committed_fixture_expected_answers: await evaluateExpectedAnswers(),

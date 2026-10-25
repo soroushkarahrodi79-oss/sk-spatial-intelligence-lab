@@ -15,10 +15,11 @@
     "copilot": "node geoimpact-copilot/cli.mjs",
     "test:copilot": "node --test tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs",
     "evaluate:copilot": "node geoimpact-copilot/evaluate.mjs",
-    "test": "npm run validate && npm run test:copilot && npm run check:skeletons && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
+    "test": "npm run validate && npm run test:copilot && npm run check:skeletons && npm run check:review-checklist && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
     "evaluate:copilot:v2": "node geoimpact-copilot/evaluation/run-v2.mjs",
     "check:skeletons": "node geoimpact-copilot/semantic/build-skeletons.mjs --check",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=geoimpact-copilot/lib/** --test-coverage-include=geoimpact-copilot/provider-contract/** tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs"
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=geoimpact-copilot/lib/** --test-coverage-include=geoimpact-copilot/provider-contract/** tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs",
+    "check:review-checklist": "node geoimpact-copilot/semantic/build-review-checklist.mjs --check"
   },
   "devDependencies": {
     "ajv": "8.20.0",

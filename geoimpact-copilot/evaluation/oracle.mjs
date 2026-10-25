@@ -48,7 +48,7 @@ export function expectations(question, report) {
   const other = status === "PASS" ? "BLOCK" : "PASS";
   const policy = report.policy;
   const base = { decision: "ANSWER", reason: null, mustContain: [], mustNotContain: [], facts: [], allowed: [] };
-  const policySentence = `observed ${policy.observed_value} relationship regressions against a threshold of ${policy.threshold}`;
+  const policySentence = `observed ${policy.observed_value} relationship regression${policy.observed_value === 1 ? "" : "s"} against a threshold of ${policy.threshold}`;
   const policyFacts = [{ path: "#/policy/observed_value", value: policy.observed_value }, { path: "#/policy/threshold", value: policy.threshold }];
   switch (question.id) {
     case "policy-verdict":

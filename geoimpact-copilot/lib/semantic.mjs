@@ -11,7 +11,7 @@ import { unicodeNotes } from "./unicode.mjs";
 // field's registered label, the value and (for measurements) the unit. A claim is accepted
 // only if (1) each span's value equals the value at the field's report path, (2) every cited
 // exact-string field appears under its own label, (3) the text left after removing all spans
-// matches a reviewed, closed set of narrative skeletons, and (4) verdict words agree with the
+// matches a closed set of recorded narrative skeletons (generated, and unreviewed until a person completes the review checklist), and (4) verdict words agree with the
 // report. Citation presence alone never satisfies any of these.
 
 export const SEMANTIC_CONTRACT_VERSION = "geoimpact-claim-binding/1";
@@ -25,7 +25,7 @@ const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const numberToken = String.raw`(?:[-−]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|[-−]?\.\d+)(?:[eE][-+]?\d+)?`;
 
 export const numericContracts = [
-  { id: "policy.observed_value", type: "json_pointer", path: "#/policy/observed_value", unit: "relationship regressions", lead: "observed ", trail: () => " relationship regressions", trailPattern: " relationship regressions", read: (report) => report.policy.observed_value },
+  { id: "policy.observed_value", type: "json_pointer", path: "#/policy/observed_value", unit: "relationship regressions", lead: "observed ", trail: (n) => ` relationship regression${n === 1 ? "" : "s"}`, trailPattern: " relationship regressions?", read: (report) => report.policy.observed_value },
   { id: "policy.threshold", type: "json_pointer", path: "#/policy/threshold", unit: "relationship regressions", lead: "threshold of ", trail: () => "", trailPattern: "", read: (report) => report.policy.threshold },
   { id: "relationship_regressions.count", type: "derived", operation: "count", source_path: "#/relationship_regressions", unit: "changed dependent relationship records", lead: "lists ", trail: (n) => ` changed dependent relationship record${n === 1 ? "" : "s"}`, trailPattern: " changed dependent relationship records?", read: (report) => report.relationship_regressions.length },
   // The derived count_non_unchanged(#/relationships) operation is intentionally unbound: it has no
@@ -164,12 +164,16 @@ export function analyzeClaim(claim, report) {
 
   for (const contract of numericContracts) {
     const cited = references.some((reference) => referenceMatches(contract, reference));
-    const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(contract.lead)}(${numberToken})${contract.trailPattern}(?![\\p{L}\\p{N}_])`, "gu");
+    const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(contract.lead)}(${numberToken})(${contract.trailPattern})(?![\\p{L}\\p{N}_])`, "gu");
     const expected = contract.read(report);
     for (const match of text.matchAll(pattern)) {
       const value = parseNumber(match[1]);
       const span = { start: match.index, end: match.index + match[0].length, contract, kind: "number", value: expected, rendered: match[0] };
       spans.push(span);
+      if (match[2] !== contract.trail(value)) {
+        errors.push(`number/unit agreement: ${JSON.stringify(match[1] + match[2])} must read ${JSON.stringify(match[1] + contract.trail(value))}`);
+        continue;
+      }
       if (!cited) {
         errors.push(`field ${contract.id} is stated (${JSON.stringify(match[0])}) without citing ${contract.path ?? contract.source_path}`);
       } else if (value !== expected) {
@@ -253,7 +257,7 @@ function narrativeDiagnostic(skeleton) {
   const reasons = [];
   if (/\p{N}/u.test(skeleton)) reasons.push("unbound numeric or digit character");
   if (skeleton.includes('"')) reasons.push("unbound quoted string");
-  return reasons.length ? reasons.join("; ") : "narrative text outside the reviewed claim vocabulary";
+  return reasons.length ? reasons.join("; ") : "narrative text outside the recorded claim vocabulary";
 }
 
 export function verifySemanticBindings(answer, report, { registry = true, analyses = null } = {}) {

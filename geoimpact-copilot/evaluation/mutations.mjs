@@ -44,7 +44,7 @@ const digitShift = (offset) => (text) => text.replace(new RegExp(`(Changed footp
 
 export const mutations = [
   { id: "swap-observed-and-threshold", risk: "numerical_swap_between_valid_fields", question: q.policy, claim: "policy-comparison",
-    apply: swapGroups(`observed (${NUM}) relationship regressions against a threshold of (${NUM})`) },
+    apply: swapGroups(`observed (${NUM}) relationship regressions? against a threshold of (${NUM})`) },
   { id: "swap-area-and-displacement", risk: "numerical_swap_between_valid_fields", question: q.metrics, claim: "primary-change-metrics",
     apply: swapGroups(`Changed footprint area: (${NUM}) m². Maximum boundary displacement: (${NUM}) m\\.`) },
   { id: "area-reported-in-metres", risk: "wrong_unit_or_meaning", question: q.metrics, claim: "primary-change-metrics",

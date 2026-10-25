@@ -6,9 +6,11 @@ V0.1 (merged) answers questions about a GeoImpact-CI V4/V5 report with determini
 
 ## What was wrong in V0.1 (measured, not assumed)
 
+**Comparison basis.** "V0.1 checks" below means the repository's current reference verifier (citation, typed-literal and numeric checks) run with the semantic gate disabled (`verifyAnswerEvidence(..., { semantic: false })`). It is *not* a rerun of the historical V0.1 executable: it already includes this PR's identifier-masking and escaped-literal fixes. It isolates what the semantic gate adds; it does not measure the shipped V0.1 byte for byte. The V0.1 numeric-gate behaviour on the original suites is covered separately by the unchanged 18 V0.1 tests and 27 V0.1 cases.
+
 The V0.1 gate checks membership: a number is accepted if it equals some number in some cited field. Running a catalogue of meaning-changing edits against the V0.1 checks alone (`verifyAnswerEvidence(..., { semantic: false })`) showed:
 
-| Edit that keeps every number, identifier and citation individually valid | Accepted by V0.1 checks |
+| Edit that keeps every number, identifier and citation individually valid | Accepted with semantic gate disabled |
 | --- | --- |
 | Swap observed regression count and policy threshold | yes |
 | Swap changed footprint area and boundary displacement | yes |
@@ -20,7 +22,7 @@ The V0.1 gate checks membership: a number is accepted if it equals some number i
 | Append a causal, geographic or instruction-like sentence with no digits | yes |
 | A threshold stated without citing it, when its value equals a cited count | yes |
 
-Of 2,731 mutated claims over the 120 held-out reports, the V0.1 checks rejected 576 (21%); every one it rejected was a number or identifier that did not exist in the evidence at all. The V0.2 gate rejected all 2,731.
+Of 2,731 mutated claims over the 120 held-out reports, the gate-disabled verifier rejected 576 (21%); every one it rejected was a number or identifier that did not exist in the evidence at all. The V0.2 gate rejected all 2,731.
 
 Three further V0.1 defects surfaced from evaluation and were fixed (these are the documented exceptions to "preserve V0.1 behaviour"):
 
@@ -45,10 +47,10 @@ Every measurement and exact identifier is one **span**: the field's registered l
 
 Each emitted claim also carries a `bindings` array (field, path, reference ID, label, unit, value, rendered span, and Unicode notes for non-ASCII identifiers) so a reader or a downstream system can see exactly what was bound. The verifier recomputes it; a forged binding fails.
 
-Examples (real output of `verifyAnswerEvidence`; V0.1 accepted all of these):
+Examples (real output of `verifyAnswerEvidence`; the gate-disabled verifier accepted all of these):
 
 ```text
-observed 1 relationship regressions against a threshold of 0  ->  observed 0 ... threshold of 1
+observed 1 relationship regression against a threshold of 0  ->  observed 0 ... threshold of 1
   rejected: field binding mismatch: policy.observed_value is 1 relationship regressions in the
   report but the claim states "0" (the value of policy.threshold)
 
@@ -66,7 +68,7 @@ before "zone-west"; after none  ->  before none; after "zone-west"
 4.5 m²  ->  4.5 m           rejected: unbound numeric or digit character
 4.5 m²  ->  ٤.٥ m²          rejected: unbound numeric or digit character
 ... accuracy.  ->  ... accuracy. This change caused harm to nearby residents.
-  rejected: narrative text outside the reviewed claim vocabulary
+  rejected: narrative text outside the recorded claim vocabulary
 ```
 
 Rendering changes in answers (documented because they alter V0.1 text): relationship claims now read `Dependent dataset "d"; dependent ID "i": before …; after … (change type t). Evidence ID "e" links the change to primary feature IDs …` (labels added where V0.1 printed `"d" / "i"`), and dataset claims read `primary dataset "p"; dependency dataset "a"`. The unlabelled forms allowed a dataset/ID swap to pass.
@@ -77,8 +79,8 @@ Known strictness: the verifier accepts only registered phrasings. A reworded but
 
 Run `npm run evaluate:copilot:v2` (exits non-zero on any gate failure; `--out FILE`, `--skip-performance`, `--external DIR`). Layers, provenance and reading guidance are in [`geoimpact-copilot/evaluation/README.md`](../geoimpact-copilot/evaluation/README.md).
 
-* **Deterministic unit tests**: 28 new tests in `tests/geoimpact-semantic.test.mjs` plus the 18 V0.1 tests (46 total, all passing).
-* **Independent expected answers**: 18 hand-typed cases on the committed fixtures (`evaluation/expected-answers.json`). Labelled by the author; **human review status: unreviewed**. Reported separately from any reviewed set.
+* **Deterministic unit tests**: 30 new tests in `tests/geoimpact-semantic.test.mjs` plus the 18 V0.1 tests (48 total, all passing).
+* **Independent expected answers**: 18 hand-typed cases on the committed fixtures (`evaluation/expected-answers.json`). Labelled by the author; **human review status: unreviewed** (each case carries `human_review_status`). Reported separately from any reviewed set.
 * **Generated oracle**: a seeded generator ([`synthetic/generator.mjs`](../geoimpact-copilot/evaluation/synthetic/generator.mjs)) builds schema-valid V4/V5 reports with measurement styles including integers, long doubles, `1e-7` and `1.5e+21`, 1–3 dependency datasets, 0–5 regressions, and PASS/BLOCK. An oracle ([`oracle.mjs`](../geoimpact-copilot/evaluation/oracle.mjs)) states expected strings and field values from the report data without importing the code under test. 16 questions cover 11 categories.
 * **Adversarial catalogue**: 28 mutations in 9 risk groups ([`mutations.mjs`](../geoimpact-copilot/evaluation/mutations.mjs)), plus 21 input-boundary cases (version drift, unknown metadata, contradictory verdict, hidden Unicode, non-finite numbers, duplicate keys, BOM, truncation, over 10 MiB), 5 report-field injection payloads, and a mixed-script identifier flag check.
 * **Splits**: `development` (180 reports) and `held_out` (120 reports), fixed seed ranges with SHA-256 digests in `synthetic/manifest.json`; regeneration is checked. The first held-out draft drove fixes and was folded into development; `held_out` was drawn afterward. The approved-sentence vocabulary is built from development only.
@@ -109,7 +111,7 @@ Held-out split, 120 reports × 16 questions = 1,920 report–question pairs (dev
 * **Numeric and semantic fidelity**: covered by the numeric_fidelity, policy_verdict and mutation rows; mutation detail below.
 * **Unsupported-claim rejection** (held-out, 2,731 mutated claims, 28 mutations):
 
-| Risk group | Mutated claims | Rejected by V0.1 checks alone | Rejected by V0.2 gate |
+| Risk group | Mutated claims | Rejected with semantic gate disabled | Rejected by V0.2 gate |
 | --- | ---: | ---: | ---: |
 | Numerical swaps between valid fields | 548 | 0 | 548 |
 | Wrong unit or meaning | 480 | 0 | 480 |
@@ -154,15 +156,26 @@ Held-out split, 120 reports × 16 questions = 1,920 report–question pairs (dev
 * The report is the evidence. Nothing is recomputed from geometry, and input-byte hashes in V5 are recorded but not re-verified (the CLI does not receive the raw inputs).
 * The report schema has no uncertainty, positional accuracy, timestamp, place name or source-rights field; the copilot abstains on all of them. Computational grids are not source accuracy.
 * Intent routing is English-only, lexical and brittle. Temporal/geographic and causal guards are word lists, not classifiers; paraphrases will be missed and will fall through to the "unsupported question" abstention or, rarely, to an unrelated topic.
-* The approved vocabulary is reviewed by one person. Its security value depends on review discipline when `check:skeletons` reports a diff.
+* The sentence vocabulary is generated from the answer builder and is **unreviewed**. No person has confirmed any sentence; a worksheet exists ([human-review checklist](geoimpact-v0.2-human-review-checklist.md), 52 entries, all undecided). Until it is completed the gate enforces the recorded sentences but does not vouch that they are scientifically appropriate.
 * Performance numbers are one machine, one run of three; memory is peak RSS of a process, not an allocation profile.
 * A semantically wrong but vocabulary-conforming selection (for example choosing the PASS skeleton for a PASS report when the question asked about BLOCK) is not detected as *irrelevant*; the gate checks truth against the report, not relevance to the question.
+
+## Review status
+
+| Artifact | Status |
+| --- | --- |
+| `semantic/approved-skeletons.json` (sentence vocabulary) | UNREVIEWED, generated |
+| `evaluation/expected-answers.json` (hand-typed labels) | UNREVIEWED, author-written |
+| `evaluation/oracle.mjs` expectations | UNREVIEWED, author-written |
+| Review worksheet | [`geoimpact-v0.2-human-review-checklist.md`](geoimpact-v0.2-human-review-checklist.md), generated, all boxes unchecked; flags each sentence as affirmative or disclaimer and marks geographic, temporal, causal, legal or scientific wording |
+
+The evaluation output prints these statuses (`review_status`). Tests fail if any artifact claims `reviewed` without a named reviewer and date. Nothing here is self-certified.
 
 ## Reproduction
 
 ```sh
 npm ci
-npm test                          # validate, 46 unit tests, skeleton check, V0.1 and V0.2 evaluations, links, browser
+npm test                          # validate, unit tests, skeleton and checklist checks, V0.1 and V0.2 evaluations, links, browser
 npm run evaluate:copilot:v2 -- --out work/v02.json
 npm run test:coverage
 node geoimpact-copilot/semantic/build-skeletons.mjs        # regenerate the vocabulary; review the diff
@@ -175,6 +188,6 @@ No provider, SDK, key, account, network call or paid inference is added. The off
 
 ## Recommendation
 
-**GO** (V0.2 hardening and evaluation framework, local engineering baseline). The semantic gate closes a demonstrated class of silent errors, all 46 tests and both evaluation suites pass, the Space is untouched, and CI steps were added without changing the deployment workflow.
+**GO** (V0.2 hardening and evaluation framework, local engineering baseline). The semantic gate closes a demonstrated class of silent errors, all 48 tests and both evaluation suites pass, the Space is untouched, and CI steps were added without changing the deployment workflow.
 
 **HOLD** on any real LLM integration. The evidence that would justify one does not exist: no rights-cleared real reports, no independently reviewed labels, no measurement that any model improves on deterministic ordering, and no latency or cost data. The V0.3 gate defines the minimum to lift the hold.
