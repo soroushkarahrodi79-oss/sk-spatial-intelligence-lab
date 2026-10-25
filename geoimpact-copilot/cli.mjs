@@ -4,7 +4,7 @@ import { loadReportFile } from "./lib/report.mjs";
 
 function usage() {
   return [
-    "GeoImpact Evidence Copilot V0.1 — deterministic local prototype",
+    "GeoImpact Evidence Copilot V0.2 — deterministic local prototype",
     "",
     "Usage:",
     "  node geoimpact-copilot/cli.mjs --report PATH --question TEXT [--json]",

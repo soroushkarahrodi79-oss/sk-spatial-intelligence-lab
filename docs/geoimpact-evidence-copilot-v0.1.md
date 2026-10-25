@@ -1,5 +1,7 @@
 # GeoImpact Evidence Copilot V0.1
 
+> V0.2 (draft) supersedes parts of this document: answer text now labels identifiers, the evidence gate adds semantic field binding, and ambiguous, time and place questions abstain. See [V0.2](geoimpact-evidence-copilot-v0.2.md). The counts below describe V0.1 as merged.
+
 **Status:** local deterministic prototype, audited update 2026-10-24. **GO** for local compatibility evaluation with synthetic or rights-cleared reports; **HOLD** for a hosted LLM, research conclusions, or production use.
 
 ## Scope and source contract

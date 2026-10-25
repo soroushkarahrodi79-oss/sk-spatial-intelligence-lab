@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sk-spatial-intelligence-lab.invalid/schemas/geoimpact-provider-output.schema.json",
+  "title": "GeoImpact evidence-first provider output, tier A (select and order)",
+  "description": "The only shape a future language-model provider may return. It selects and orders pre-authorized claim IDs. It cannot carry prose, numbers, citations or a decision of its own.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_sha256", "question_sha256", "decision", "claim_ids"],
+  "properties": {
+    "schema": { "const": "geoimpact-provider-output/1" },
+    "report_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "question_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "decision": { "enum": ["ANSWER", "ABSTAIN"] },
+    "claim_ids": {
+      "type": "array",
+      "maxItems": 4096,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" }
+    }
+  }
+}

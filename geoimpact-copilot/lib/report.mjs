@@ -1,5 +1,6 @@
 import Ajv from "ajv";
 import { readFile } from "node:fs/promises";
+import { findUnsafeStrings } from "./unicode.mjs";
 
 const schemaUrl = new URL("../schema/report-v4-v5.schema.json", import.meta.url);
 const ajv = new Ajv({ allErrors: true, strict: true });
@@ -167,9 +168,13 @@ function semanticIssues(report) {
     }
   }
 
+  const firstRelationship = new Map();
+  for (const item of report.relationships) {
+    const key = JSON.stringify([item.dependent_dataset, item.dependent_id]);
+    if (!firstRelationship.has(key)) firstRelationship.set(key, item);
+  }
   for (const [index, regression] of regressions.entries()) {
-    const match = report.relationships.find((item) =>
-      item.dependent_dataset === regression.dependent_dataset && item.dependent_id === regression.dependent_id);
+    const match = firstRelationship.get(JSON.stringify([regression.dependent_dataset, regression.dependent_id]));
     if (!match) {
       add(`/relationship_regressions/${index}`, "must correspond to a relationship record.");
       continue;
@@ -224,7 +229,7 @@ export function validateReportObject(report) {
     const issues = validateSchema.errors.map((error) => `${error.instancePath || "/"} ${error.message}`);
     throw new ReportValidationError("Report does not match the GeoImpact-CI V4/V5 input schema.", issues);
   }
-  const issues = [...semanticIssues(report), ...geometryIssues(report)];
+  const issues = [...semanticIssues(report), ...geometryIssues(report), ...findUnsafeStrings(report)];
   if (issues.length) throw new ReportValidationError("Report failed GeoImpact-CI semantic consistency checks.", issues);
   return deepFreeze(report);
 }

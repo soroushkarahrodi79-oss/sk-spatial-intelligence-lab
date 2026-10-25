@@ -36,7 +36,8 @@
         "uncertainty": "The supported report fields do not include a calibrated uncertainty interval, confidence value, or source positional accuracy field.",
         "rights": "The supported report fields do not include source license or data-rights metadata.",
         "source_locations": "The supported report fields do not include source URLs or local input paths.",
-        "scope": "This prototype validates GeoImpact-CI report versions 4 and 5 only; V5 requires the provenance object and V4 omits it."
+        "scope": "This prototype validates GeoImpact-CI report versions 4 and 5 only; V5 requires the provenance object and V4 omits it.",
+        "temporal_geographic": "The supported report fields do not include timestamps, acquisition dates, place names, or administrative geography; coordinates are in the analysis CRS only."
       }
     }
   ]
