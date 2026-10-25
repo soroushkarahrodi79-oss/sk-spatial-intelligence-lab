@@ -41,6 +41,20 @@ try {
   assert.equal(await page.locator("main").count(), 1);
   assert.equal(await page.locator(".card").count(), 3);
 
+  // Fix 1: each hero proof chip deep-links to its own project card (stable, language-independent IDs)
+  for (const [chip, cardId] of [[1, "madrid"], [2, "geoimpact"], [3, "salmas"]]) {
+    assert.equal(await page.locator(`.proof a[href="#${cardId}"]`).count(), 1, `Proof chip ${chip} must link to #${cardId}`);
+    assert.equal(await page.locator(`article.card#${cardId}`).count(), 1, `Project card #${cardId} must exist`);
+  }
+  // Fix 2: proof chip interactive target must be at least 44px tall
+  for (const height of await page.locator(".proof a").evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))) {
+    assert.ok(height >= 44, `Proof chip target too short: ${height}px`);
+  }
+  // Fix 3: Methods stage markers are language-neutral numerics
+  assert.deepEqual((await page.locator(".stage .num").allTextContents()).map((text) => text.trim()), ["01", "02", "03", "04", "05"], "Methods stage markers must be language-neutral numerics");
+  assert.deepEqual(await page.locator(".stage h3").allTextContents(), ["Source", "Validate", "Compute", "Evaluate", "Interpret"], "Methods headings must be English in EN");
+  console.log("PASS hero proof chips deep-link to cards, 44px targets, and language-neutral Methods markers (EN)");
+
   const expectedLinks = [
     "https://soroushkarahrodi79-oss.github.io/madrid-tourism-intelligence-lens/",
     "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens",
@@ -49,7 +63,7 @@ try {
   ];
   for (const url of expectedLinks) assert.equal(await page.locator(`a[href="${url}"]`).count(), 1, `Missing project link: ${url}`);
 
-  for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+  for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1280, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
     const layout = await page.evaluate(() => ({
       width: window.innerWidth,
@@ -69,10 +83,39 @@ try {
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "es");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Investigación y sistemas" }).count(), 1);
-  assert.equal(await page.getByRole("navigation").getAttribute("aria-label"), "Navegación principal");
+  assert.equal(await page.locator("#primaryMenu").getAttribute("aria-label"), "Navegación principal");
+  assert.deepEqual(await page.locator(".stage h3").allTextContents(), ["Fuente", "Validar", "Calcular", "Evaluar", "Interpretar"], "Methods headings must be Spanish in ES");
+  assert.deepEqual((await page.locator(".stage .num").allTextContents()).map((text) => text.trim()), ["01", "02", "03", "04", "05"], "Methods stage markers stay numeric in ES");
+  for (const cardId of ["madrid", "geoimpact", "salmas"]) assert.equal(await page.locator(`.proof a[href="#${cardId}"]`).count(), 1, `Proof chip link to #${cardId} must persist in ES`);
+  console.log("PASS Spanish Methods headings, numeric markers, and persistent proof-chip deep-links (ES)");
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Research & systems" }).count(), 1);
+
+  // P0: accessible mobile navigation (disclosure menu keeps Projects and Roadmap discoverable)
+  await page.setViewportSize({ width: 360, height: 800 });
+  const toggle = page.locator("#navToggle");
+  const menu = page.locator("#primaryMenu");
+  assert.ok(await toggle.isVisible(), "Mobile menu toggle must be visible on small screens");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Mobile menu must start collapsed");
+  assert.equal(await menu.locator("a[href='#projects']").isVisible(), false, "Nav links stay hidden until the menu opens");
+  const toggleBox = await toggle.boundingBox();
+  assert.ok(toggleBox.width >= 44 && toggleBox.height >= 44, `Toggle touch target too small: ${toggleBox.width}x${toggleBox.height}`);
+  await toggle.click();
+  assert.equal(await toggle.getAttribute("aria-expanded"), "true", "Toggle must set aria-expanded=true when opened");
+  assert.ok(await menu.locator("a[href='#projects']").isVisible(), "Projects link must be reachable when the menu is open");
+  assert.ok(await menu.locator("a[href='#roadmap']").isVisible(), "Roadmap link must be reachable when the menu is open");
+  await page.keyboard.press("Escape");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Escape must close the menu");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "navToggle", "Focus must return to the toggle after Escape");
+  await toggle.click();
+  await menu.locator("a[href='#projects']").click();
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false", "Selecting a menu link must close the menu");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  assert.equal(await toggle.isVisible(), false, "Toggle must be hidden on desktop");
+  assert.ok(await menu.locator("a[href='#methods']").isVisible(), "Nav links must be inline on desktop");
+  console.log("PASS accessible mobile navigation: toggle, aria-expanded, Escape, focus return, desktop inline");
+
   assert.deepEqual(pageErrors, [], `Browser errors: ${pageErrors.join("; ")}`);
   console.log("PASS keyboard skip link, bilingual switch, landmark label, title, cards, and project links");
 } finally {
