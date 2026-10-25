@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolveReportPointer } from "./report.mjs";
+import { analyzeClaim, verifySemanticBindings } from "./semantic.mjs";
 
 const sourceRecordsUrl = new URL("../source-records.json", import.meta.url);
 export const sourceRegistry = JSON.parse(await readFile(sourceRecordsUrl, "utf8"));
@@ -137,7 +138,23 @@ function literalSupportsToken(reference, token) {
     (reference.type === "json_string_literal" && reference.role === "report_version" && token === `V${reference.value}`);
 }
 
-export function verifyAnswerEvidence(answer, report) {
+// Claims render identifiers JSON-quoted, so a value containing a quote or backslash appears escaped.
+function containsLiteral(text, value) {
+  return text.includes(value) || text.includes(JSON.stringify(value).slice(1, -1));
+}
+
+function withoutBoundStrings(claim, spans) {
+  let masked = "";
+  let cursor = 0;
+  for (const span of spans) {
+    if (span.kind !== "string") continue;
+    masked += claim.text.slice(cursor, span.start) + " ".repeat(span.end - span.start);
+    cursor = span.end;
+  }
+  return masked + claim.text.slice(cursor);
+}
+
+export function verifyAnswerEvidence(answer, report, options = {}) {
   if (!Array.isArray(answer.claims)) throw new Error("Answer must contain a claims array.");
   if (answer.answer !== answer.claims.map((claim) => claim.text).join(" ")) {
     throw new Error("Rendered answer text must be composed only of its evidence-checked claims.");
@@ -148,6 +165,7 @@ export function verifyAnswerEvidence(answer, report) {
   if (new Set(answer.claims.map((claim) => claim.id)).size !== answer.claims.length) {
     throw new Error("Answer claim IDs must be unique.");
   }
+  const analyses = [];
   for (const claim of answer.claims) {
     if (!claim.text || !Array.isArray(claim.references) || claim.references.length === 0) {
       throw new Error(`Claim ${claim.id ?? "(unnamed)"} must have text and at least one evidence reference.`);
@@ -175,7 +193,7 @@ export function verifyAnswerEvidence(answer, report) {
         if (actual !== reference.value || typeof actual !== "string" || reference.id !== `literal:${reference.path}` || !supportsExactStringRole(reference.path, reference.role)) {
           throw new Error(`Claim ${claim.id} contains an altered exact string reference: ${reference.path}`);
         }
-        if (!claim.text.includes(reference.value)) {
+        if (!containsLiteral(claim.text, reference.value)) {
           throw new Error(`Claim ${claim.id} omits or alters the exact source string at ${reference.path}.`);
         }
       } else if (reference.type === "json_string_list_literal") {
@@ -184,7 +202,7 @@ export function verifyAnswerEvidence(answer, report) {
           throw new Error(`Claim ${claim.id} contains an altered exact string-list reference: ${reference.path}`);
         }
         for (const literal of reference.value) {
-          if (!claim.text.includes(literal)) throw new Error(`Claim ${claim.id} omits or alters an exact source identifier at ${reference.path}.`);
+          if (!containsLiteral(claim.text, literal)) throw new Error(`Claim ${claim.id} omits or alters an exact source identifier at ${reference.path}.`);
         }
       } else {
         throw new Error(`Claim ${claim.id} has an unsupported reference type.`);
@@ -192,16 +210,23 @@ export function verifyAnswerEvidence(answer, report) {
       allowedNumbers.push(...referenceNumbers(reference));
       exactStringReferences.push(reference);
     }
-    for (const token of digitBearingLiterals(claim.text)) {
+    // Digits inside a labelled identifier span (for example "Zone 12") are data, not quantities.
+    const analysis = analyzeClaim(claim, report);
+    analyses.push(analysis);
+    const unboundText = withoutBoundStrings(claim, analysis.spans);
+    for (const token of digitBearingLiterals(unboundText)) {
       if (!exactStringReferences.some((reference) => literalSupportsToken(reference, token))) {
         throw new Error(`Claim ${claim.id} includes unsupported identifier or version literal ${JSON.stringify(token)}.`);
       }
     }
-    for (const token of numericTokens(claim.text)) {
+    for (const token of numericTokens(unboundText)) {
       if (!allowedNumbers.some((value) => Object.is(value, token) || value === token)) {
         throw new Error(`Claim ${claim.id} includes unsupported numeric value ${token}.`);
       }
     }
   }
+  // V0.2: values must also be bound to the right field, label and unit. Citation
+  // presence and value membership above are necessary, never sufficient.
+  if (options.semantic !== false) verifySemanticBindings(answer, report, { ...options, analyses });
   return true;
 }

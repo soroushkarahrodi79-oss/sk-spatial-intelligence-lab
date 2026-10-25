@@ -1,0 +1,96 @@
+{
+  "generator_version": 1,
+  "note": "Splits are fixed seed ranges for generator.mjs. 'development' is every seed that was inspected or used while the gate, the generator and the approved vocabulary were written, including the first held-out draft (seeds 1001-5010), whose failures drove two fixes and which was therefore folded in. 'held_out' (seeds 10001-15010) was generated after those fixes and is run for the recorded result. If a held-out failure ever drives a code change, fold those seeds into development and draw new ones. Digests are computed by run-v2.mjs --write-manifest.",
+  "splits": {
+    "development": {
+      "groups": [
+        {
+          "first": 1,
+          "count": 60
+        },
+        {
+          "first": 1001,
+          "count": 80
+        },
+        {
+          "first": 2001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 0,
+            "primary_changed": true
+          }
+        },
+        {
+          "first": 3001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 0,
+            "primary_changed": false
+          }
+        },
+        {
+          "first": 4001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 1,
+            "threshold": 1
+          }
+        },
+        {
+          "first": 5001,
+          "count": 10,
+          "overrides": {
+            "report_version": "4",
+            "regression_count": 2,
+            "threshold": 0
+          }
+        }
+      ]
+    },
+    "held_out": {
+      "groups": [
+        {
+          "first": 10001,
+          "count": 80
+        },
+        {
+          "first": 12001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 0,
+            "primary_changed": true
+          }
+        },
+        {
+          "first": 13001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 0,
+            "primary_changed": false
+          }
+        },
+        {
+          "first": 14001,
+          "count": 10,
+          "overrides": {
+            "regression_count": 1,
+            "threshold": 1
+          }
+        },
+        {
+          "first": 15001,
+          "count": 10,
+          "overrides": {
+            "report_version": "4",
+            "regression_count": 2,
+            "threshold": 0
+          }
+        }
+      ]
+    }
+  },
+  "sha256": {
+    "development": "601933acee2b3427b2a10cac818dbaeb2ffd69787f84ba490e538db87b7d0782",
+    "held_out": "228b2fa2b9a461623acd01526b8cea193ee4d453ab51ebdb6ad3bc8de9661983"
+  }
+}

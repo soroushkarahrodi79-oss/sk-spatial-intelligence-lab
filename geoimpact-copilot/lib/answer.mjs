@@ -1,33 +1,32 @@
 import { derivedCountReference, jsonReference, jsonStringListReference, jsonStringReference, sourceReference, verifyAnswerEvidence } from "./evidence.mjs";
+import { SEMANTIC_CONTRACT_VERSION, describeBindings, fieldSpan, measureSpan } from "./semantic.mjs";
 
 const contractSource = "geoimpact-ci-readme-v1.2.0";
 const architectureSource = "geoimpact-ci-architecture-v1";
 const schemaSource = "copilot-report-schema-v4-v5";
 
-function quoted(value) {
-  return JSON.stringify(value);
-}
-
-function quotedList(values) {
-  return values.length ? values.map(quoted).join(", ") : "none";
-}
+// Set only by the skeleton-registry build script, which has to run before a registry exists.
+let verifyOptions = {};
 
 function createClaim(id, text, ...references) {
   return { id, text, references };
 }
 
-function finish(report, intent, claims, decision = "ANSWER", reason = null) {
+function finish(report, intent, claims, decision = "ANSWER", reason = null, options = {}) {
+  for (const claim of claims) claim.bindings = describeBindings(claim, report);
   const answer = {
     decision,
     mode: "deterministic",
+    semantic_contract: SEMANTIC_CONTRACT_VERSION,
     intent,
     report_version: report.report_version,
     report_version_reference: jsonReference(report, "#/report_version"),
     answer: claims.map((claim) => claim.text).join(" "),
     claims,
-    reason
+    reason,
+    ...options
   };
-  verifyAnswerEvidence(answer, report);
+  verifyAnswerEvidence(answer, report, verifyOptions);
   return answer;
 }
 
@@ -40,8 +39,8 @@ function policyAnswer(report) {
     : "The configured relationship-regression policy was not exceeded; PASS is not a claim that source data are correct.";
   return [
     createClaim("policy-verdict", `Report verdict: ${status}.`, jsonReference(report, "#/verdict"), jsonReference(report, "#/policy/status")),
-    createClaim("policy-comparison", `The configured rule observed ${policy.observed_value} relationship regressions against a threshold of ${policy.threshold}.`, jsonReference(report, "#/policy/rule"), jsonReference(report, "#/policy/observed_value"), jsonReference(report, "#/policy/threshold")),
-    createClaim("policy-meaning", consequence, meaning)
+    createClaim("policy-comparison", `The configured rule ${measureSpan(report, "policy.observed_value")} against a ${measureSpan(report, "policy.threshold")}.`, jsonReference(report, "#/policy/rule"), jsonReference(report, "#/policy/observed_value"), jsonReference(report, "#/policy/threshold")),
+    createClaim("policy-meaning", consequence, jsonReference(report, "#/policy/status"), meaning)
   ];
 }
 
@@ -50,7 +49,7 @@ function relationshipAnswer(report) {
   const countRef = derivedCountReference(report, "#/relationship_regressions", "count");
   const claims = [createClaim(
     "relationship-count",
-    `The report lists ${countRef.value} changed dependent relationship record${countRef.value === 1 ? "" : "s"}.`,
+    `The report ${measureSpan(report, "relationship_regressions.count")}.`,
     countRef
   )];
   if (changed.length === 0) {
@@ -65,17 +64,18 @@ function relationshipAnswer(report) {
       sourceReference(contractSource, "limitations")
     ));
   } else {
-    for (const { record, index } of changed) {
+    for (const { index } of changed) {
+      const path = (field) => `#/relationship_regressions/${index}/${field}`;
       claims.push(createClaim(
         `relationship-${index}`,
-        `${quoted(record.dependent_dataset)} / ${quoted(record.dependent_id)}: before ${quotedList(record.before)}; after ${quotedList(record.after)} (${record.change_type}). Evidence ID ${quoted(record.evidence_id)} links the change to primary feature IDs ${quotedList(record.primary_feature_ids)}.`,
-        jsonStringReference(report, `#/relationship_regressions/${index}/dependent_dataset`, "identifier"),
-        jsonStringReference(report, `#/relationship_regressions/${index}/dependent_id`, "identifier"),
-        jsonStringListReference(report, `#/relationship_regressions/${index}/before`),
-        jsonStringListReference(report, `#/relationship_regressions/${index}/after`),
-        jsonStringReference(report, `#/relationship_regressions/${index}/change_type`, "identifier"),
-        jsonStringReference(report, `#/relationship_regressions/${index}/evidence_id`, "identifier"),
-        jsonStringListReference(report, `#/relationship_regressions/${index}/primary_feature_ids`),
+        `${fieldSpan(report, path("dependent_dataset"))}; ${fieldSpan(report, path("dependent_id"))}: ${fieldSpan(report, path("before"))}; ${fieldSpan(report, path("after"))} (${fieldSpan(report, path("change_type"))}). ${fieldSpan(report, path("evidence_id"))} links the change to ${fieldSpan(report, path("primary_feature_ids"))}.`,
+        jsonStringReference(report, path("dependent_dataset"), "identifier"),
+        jsonStringReference(report, path("dependent_id"), "identifier"),
+        jsonStringListReference(report, path("before")),
+        jsonStringListReference(report, path("after")),
+        jsonStringReference(report, path("change_type"), "identifier"),
+        jsonStringReference(report, path("evidence_id"), "identifier"),
+        jsonStringListReference(report, path("primary_feature_ids")),
         sourceReference(architectureSource, "relationships")
       ));
     }
@@ -91,10 +91,11 @@ function relationshipAnswer(report) {
 
 function changeAnswer(report) {
   const change = report.primary_change;
+  const list = (field) => fieldSpan(report, `#/primary_change/${field}`);
   return [
     createClaim(
       "primary-feature-changes",
-      `Changed feature IDs: ${quotedList(change.changed_feature_ids)}. Added: ${quotedList(change.added_feature_ids)}. Removed: ${quotedList(change.removed_feature_ids)}. Modified: ${quotedList(change.modified_feature_ids)}.`,
+      `${list("changed_feature_ids")}. ${list("added_feature_ids")}. ${list("removed_feature_ids")}. ${list("modified_feature_ids")}.`,
       jsonStringListReference(report, "#/primary_change/changed_feature_ids"),
       jsonStringListReference(report, "#/primary_change/added_feature_ids"),
       jsonStringListReference(report, "#/primary_change/removed_feature_ids"),
@@ -104,7 +105,7 @@ function changeAnswer(report) {
     ),
     createClaim(
       "primary-change-metrics",
-      `Changed footprint area: ${change.changed_footprint_area_m2} m². Maximum boundary displacement: ${change.max_boundary_displacement_m} m.`,
+      `${measureSpan(report, "primary_change.changed_footprint_area_m2")}. ${measureSpan(report, "primary_change.max_boundary_displacement_m")}.`,
       jsonReference(report, "#/primary_change/changed_footprint_area_m2"),
       jsonReference(report, "#/primary_change/max_boundary_displacement_m"),
       sourceReference(architectureSource, "changes")
@@ -121,32 +122,34 @@ function changeAnswer(report) {
 }
 
 function provenanceAnswer(report) {
-  const dependencyDatasetReferences = report.analysis.dependencies.map((_, index) =>
-    jsonStringReference(report, `#/analysis/dependencies/${index}/dataset`, "identifier"));
+  const dependencyPaths = report.analysis.dependencies.map((_, index) => `#/analysis/dependencies/${index}/dataset`);
+  const dependencyText = dependencyPaths.length
+    ? dependencyPaths.map((path) => fieldSpan(report, path)).join("; ")
+    : "no dependency datasets";
   const datasetClaims = [
-    createClaim("provenance-datasets", `Logical datasets named: primary ${quoted(report.analysis.primary_dataset)}; dependencies ${quotedList(report.analysis.dependencies.map((dependency) => dependency.dataset))}.`,
-      jsonStringReference(report, "#/analysis/primary_dataset", "identifier"), ...dependencyDatasetReferences,
+    createClaim("provenance-datasets", `Logical datasets named: ${fieldSpan(report, "#/analysis/primary_dataset")}; ${dependencyText}.`,
+      jsonStringReference(report, "#/analysis/primary_dataset", "identifier"),
+      ...dependencyPaths.map((path) => jsonStringReference(report, path, "identifier")),
       jsonReference(report, "#/analysis/dependencies")),
     createClaim("provenance-source-limits", "These are logical dataset names; the report does not include source URLs or data-license rights.",
       jsonReference(report, "#/analysis/dependencies"), sourceReference(schemaSource, "source_locations"), sourceReference(schemaSource, "rights"))
   ];
   if (report.report_version === "4") {
     return [...datasetClaims,
-      createClaim("provenance-absent-v4", "This V4 report has no provenance object. V5 adds input-byte SHA-256 identities and engine versions without changing the spatial semantics.",
+      createClaim("provenance-absent-v4", `This V4 report has no provenance object. V5 adds input-byte SHA-256 identities and engine versions without changing the spatial semantics.`,
         jsonStringReference(report, "#/report_version", "report_version"), sourceReference(architectureSource, "v4_v5"))
     ];
   }
-  const engine = report.provenance.engine;
-  const engineReferences = Object.keys(engine).map((key) =>
-    jsonStringReference(report, `#/provenance/engine/${key}`, "software_version"));
+  const engineKeys = ["geoimpact_ci", "shapely", "geos", "pyproj", "proj"];
+  const enginePaths = engineKeys.map((key) => `#/provenance/engine/${key}`);
   return [
     ...datasetClaims,
-    createClaim("provenance-version", `Report version V${report.report_version}; analysis CRS ${report.analysis.crs}; hash algorithm ${report.provenance.hash_algorithm}.`,
+    createClaim("provenance-version", `${fieldSpan(report, "#/report_version")}; ${fieldSpan(report, "#/analysis/crs")}; ${fieldSpan(report, "#/provenance/hash_algorithm")}.`,
       jsonStringReference(report, "#/report_version", "report_version"),
       jsonStringReference(report, "#/analysis/crs", "identifier"),
       jsonStringReference(report, "#/provenance/hash_algorithm", "identifier")),
-    createClaim("provenance-engine", `Engine values listed: GeoImpact-CI ${engine.geoimpact_ci}; Shapely ${engine.shapely}; GEOS ${engine.geos}; PyProj ${engine.pyproj}; PROJ ${engine.proj}.`,
-      jsonReference(report, "#/provenance/engine"), ...engineReferences),
+    createClaim("provenance-engine", `Engine values listed: ${enginePaths.map((path) => fieldSpan(report, path)).join("; ")}.`,
+      jsonReference(report, "#/provenance/engine"), ...enginePaths.map((path) => jsonStringReference(report, path, "software_version"))),
     createClaim("provenance-limit", "Hashes identify the report's declared raw input bytes but do not identify who supplied them or establish their license rights.",
       jsonReference(report, "#/provenance/inputs"), sourceReference(contractSource, "provenance"), sourceReference(schemaSource, "rights"))
   ];
@@ -180,6 +183,15 @@ function unsupportedAnswer(report) {
   )];
 }
 
+function temporalGeographicAnswer(report) {
+  return [createClaim(
+    "unsupported-temporal-geographic",
+    "ABSTAIN: the report has no timestamp, acquisition date, place name, or administrative geography field, so it cannot support a temporal or geographic interpretation. Coordinates are expressed only in the analysis CRS.",
+    sourceReference(schemaSource, "temporal_geographic"),
+    jsonReference(report, "#/analysis/crs")
+  )];
+}
+
 function noMatchAnswer(report) {
   return [createClaim(
     "no-supported-intent",
@@ -188,7 +200,49 @@ function noMatchAnswer(report) {
   )];
 }
 
-export function answerQuestion(report, question) {
+const topicLabels = {
+  provenance: "provenance",
+  relationships: "relationship changes",
+  primary_metrics: "primary metrics",
+  primary_changes: "primary feature changes",
+  policy: "policy verdict"
+};
+
+function ambiguousAnswer(report, topics) {
+  return [createClaim(
+    "ambiguous-question",
+    `ABSTAIN: this question matches more than one supported report topic (${topics.map((topic) => topicLabels[topic]).join("; ")}). Ask about one topic at a time.`,
+    sourceReference(schemaSource, "scope")
+  )];
+}
+
+// Topic detectors for the answerable intents. A question that matches several is not
+// answered with the first match: that would silently drop part of what was asked.
+// "changed"/"change" alone is deliberately weak because it is a common verb inside
+// questions about relationships and metrics.
+const topicPatterns = [
+  ["provenance", /\b(provenance|hash(?:es)?|engine versions?|sources?|datasets?|input bytes|crs|coordinate reference system)\b/],
+  ["relationships", /\b(relationships?|assignments?|facilit(?:y|ies)|dependents?|regressions?|regressed|within)\b/],
+  ["primary_metrics", /\b(area|footprint|displacement|distance|metric|square metres|square meters)\b/],
+  ["primary_changes", /\b(features?|added|removed|modified|spatial)\b/],
+  ["policy", /\b(verdict|status|pass|block|policy|threshold)\b/]
+];
+
+// Lexical guards, not a classifier: they route obvious time and place questions to an
+// abstention instead of letting a shared word such as "change" select a feature answer.
+const temporalPattern = /\b(when|during|date[sd]?|years?|timestamp|timeline|temporal|recently|happen(?:ed)?|survey|(?:19|20)\d\d)\b/;
+const geographicPattern = /\b(where|located|location|latitude|longitude|city|country|region|neighbou?rhood|address|madrid|(?:northern|southern|eastern|western) (?:district|area|zone|region|part|side))\b/;
+
+export function answerQuestion(report, question, options = {}) {
+  verifyOptions = { registry: options.registry !== false };
+  try {
+    return route(report, question);
+  } finally {
+    verifyOptions = {};
+  }
+}
+
+function route(report, question) {
   if (typeof question !== "string" || question.trim().length === 0) {
     return finish(report, "unsupported", [createClaim("empty-question", "ABSTAIN: provide a non-empty question.", sourceReference(schemaSource, "scope"))], "ABSTAIN", "empty_question");
   }
@@ -200,23 +254,22 @@ export function answerQuestion(report, question) {
   if (/\b(cause|caused|causal|harm|harmed|injur(?:y|ies|ed|ing)?|damage|real[- ]world|legal effect|resident|health outcome|service use)\b/.test(normalized)) {
     return finish(report, "unsupported_real_world_claim", unsupportedAnswer(report), "ABSTAIN", "unsupported_real_world_claim");
   }
+  if (temporalPattern.test(normalized) || geographicPattern.test(normalized)) {
+    return finish(report, "unsupported_temporal_or_geographic_claim", temporalGeographicAnswer(report), "ABSTAIN", "unsupported_temporal_or_geographic_claim");
+  }
   if (/\b(uncertainty|confidence|accuracy|p[- ]?value|confidence interval|source positional)\b/.test(normalized)) {
     return finish(report, "uncertainty_or_missing_evidence", uncertaintyAnswer(report), "ABSTAIN", "field_not_supported_by_report_contract");
   }
-  if (/\b(provenance|hash|engine version|sources?|dataset|input bytes|crs|coordinate reference system)\b/.test(normalized)) {
-    return finish(report, "provenance", provenanceAnswer(report));
+
+  const topics = topicPatterns.filter(([, pattern]) => pattern.test(normalized)).map(([name]) => name);
+  if (topics.length > 1) {
+    return finish(report, "ambiguous", ambiguousAnswer(report, topics), "ABSTAIN", "ambiguous_question");
   }
-  if (/\b(relationship|assignment|facility|dependent|regression|regressed|within)\b/.test(normalized)) {
-    return finish(report, "relationships", relationshipAnswer(report));
-  }
-  if (/\b(area|footprint|displacement|distance|metric|square metres|square meters)\b/.test(normalized)) {
-    return finish(report, "primary_metrics", changeAnswer(report));
-  }
-  if (/\b(changed|change|feature|added|removed|modified|spatial)\b/.test(normalized)) {
-    return finish(report, "primary_changes", changeAnswer(report));
-  }
-  if (/\b(verdict|status|pass|block|policy|threshold)\b/.test(normalized)) {
-    return finish(report, "policy", policyAnswer(report));
-  }
+  if (topics[0] === "provenance") return finish(report, "provenance", provenanceAnswer(report));
+  if (topics[0] === "relationships") return finish(report, "relationships", relationshipAnswer(report));
+  if (topics[0] === "primary_metrics") return finish(report, "primary_metrics", changeAnswer(report));
+  if (topics[0] === "primary_changes") return finish(report, "primary_changes", changeAnswer(report));
+  if (/\b(changed|change)\b/.test(normalized)) return finish(report, "primary_changes", changeAnswer(report));
+  if (topics[0] === "policy") return finish(report, "policy", policyAnswer(report));
   return finish(report, "unsupported", noMatchAnswer(report), "ABSTAIN", "unsupported_question");
 }

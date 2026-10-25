@@ -30,7 +30,7 @@ npm run test:browser
 
 `npm test` runs all validation, copilot, link, and browser checks after Chromium is installed. CI runs these checks on GitHub Actions; no build step or runtime package is needed to serve the static site.
 
-## GeoImpact Evidence Copilot V0.1
+## GeoImpact Evidence Copilot V0.1 and V0.2 hardening
 
 The local deterministic prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, ties quantities to typed report paths, binds versions and digit-bearing identifiers to exact cited strings, and abstains when the report cannot support a question. Hand-authored fixtures and generated CLI reports use synthetic inputs; none are research observations.
 
@@ -41,6 +41,8 @@ npm run evaluate:copilot
 ```
 
 The default path is deterministic. No LLM client, model credentials, API, or user interface is included. A server-side adapter boundary is documented and fail-closed; it may only select pre-authorized claim IDs, while the application renders all factual text and numbers. See [the V0.1 architecture, threat model, evaluation, limitations, and recommendation](docs/geoimpact-evidence-copilot-v0.1.md).
+
+V0.2 (draft) adds field-level semantic claim binding, so a value attached to the wrong field, label or unit is rejected even when every number and citation is individually valid, plus a synthetic evaluation framework with adversarial cases, development and held-out splits, an intake path for rights-cleared external reports, and an offline specification for a possible future Claude provider. No model is integrated and no API is called. Scores are measured on synthetic reports only and are not real-world accuracy. See [GeoImpact Evidence Copilot V0.2](docs/geoimpact-evidence-copilot-v0.2.md) and the [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
 
 ## Deployment
 

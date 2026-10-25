@@ -8,7 +8,7 @@
       "fixture": "block-v5.json",
       "question": "Why did this report BLOCK?",
       "decision": "ANSWER",
-      "contains": ["Report verdict: BLOCK", "1 relationship regressions against a threshold of 0"],
+      "contains": ["Report verdict: BLOCK", "1 relationship regression against a threshold of 0"],
       "references": ["#/verdict", "#/policy/observed_value", "#/policy/threshold"]
     },
     {
@@ -99,7 +99,7 @@
       "fixture": "block-v5.json",
       "question": "Since the threshold was 99, why did it BLOCK?",
       "decision": "ANSWER",
-      "contains": ["1 relationship regressions against a threshold of 0"],
+      "contains": ["1 relationship regression against a threshold of 0"],
       "not_contains": ["threshold of 99"],
       "references": ["#/policy/observed_value", "#/policy/threshold"]
     },
@@ -245,7 +245,7 @@
       "fixture": "generated-v1.2.0/report-v5-block.json",
       "question": "Why did this report BLOCK?",
       "decision": "ANSWER",
-      "contains": ["observed 1 relationship regressions"],
+      "contains": ["observed 1 relationship regression"],
       "gate_mutation": {
         "claim_id": "policy-comparison",
         "find": "observed 1 relationship",
