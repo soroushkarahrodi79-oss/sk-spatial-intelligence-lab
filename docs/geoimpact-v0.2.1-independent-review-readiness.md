@@ -56,6 +56,10 @@ Not a finding but worth stating: the "generated-v1.2.0" fixtures are real GeoImp
 
 `review-record.json` is byte-identical to `main`. No reviewer was invented and no approval was written.
 
+## Final-gate hardening
+
+Two gaps in the prerequisite checker were closed. **P3** is no longer inferred from the test-set manifest: the checker re-validates one external intake record per report (hash, identity, admission, named human attestations, third-party-model permission) from a directory outside the repository, and P3 stays unmet without it; P4 additionally requires every sealed case to match an admitted report by SHA-256. **P2** now requires a named human reviewer, a valid non-future date, an independence declaration plus a written relationship to the author, and consistent case and top-level statuses; a boolean alone is not enough. With no evidence the checker still prints HOLD and exits 0.
+
 ## Remaining HOLD conditions
 
 Each is a fact about the world that no code change can supply.

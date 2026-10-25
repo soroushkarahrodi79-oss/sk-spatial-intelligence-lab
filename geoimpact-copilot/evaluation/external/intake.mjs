@@ -101,7 +101,7 @@ export function recordProblems(record, { bytes, report, known, now = today() }) 
   return problems;
 }
 
-export async function checkIntake(directory, { now = today() } = {}) {
+export async function checkIntake(directory, { now = today(), onlyThirdPartyPermitted = false } = {}) {
   const names = (await readdir(directory)).filter((name) => name.endsWith(".intake.json")).sort();
   const reports = (await readdir(directory)).filter((name) => name.endsWith(".report.json")).sort();
   if (names.length === 0 && reports.length === 0) {
@@ -120,10 +120,11 @@ export async function checkIntake(directory, { now = today() } = {}) {
     } catch (error) { results.push({ file, outcome: "rejected_intake", problems: [`report cannot be loaded as a valid V4/V5 report: ${String(error.message).slice(0, 160)}`] }); continue; }
     const problems = recordProblems(record, { bytes, report, known, now });
     const outcome = problems.length ? "rejected_intake" : record.status === "admitted" ? "admitted" : record.status === "rejected" ? "rejected_by_record" : "candidate";
-    results.push({ file, report_file: reportName, outcome, problems, status: record?.status, report_version: record?.diversity?.report_version, verdict: record?.diversity?.verdict, size_class: record?.diversity?.size_class, region: record?.diversity?.region_description, third_party_model_permitted: outcome === "admitted" && record.rights.may_be_sent_to_third_party_model === true });
+    results.push({ file, report_file: reportName, report_sha256: outcome === "admitted" ? record.report_sha256 : null, outcome, problems, status: record?.status, report_version: record?.diversity?.report_version, verdict: record?.diversity?.verdict, size_class: record?.diversity?.size_class, region: record?.diversity?.region_description, third_party_model_permitted: outcome === "admitted" && record.rights.may_be_sent_to_third_party_model === true });
   }
   for (const report of reports) if (!names.includes(report.replace(".report.json", ".intake.json"))) results.push({ file: report, outcome: "rejected_intake", problems: ["report has no NAME.intake.json; it cannot be used"] });
-  const admitted = results.filter((item) => item.outcome === "admitted");
+  // With onlyThirdPartyPermitted, a report without explicit permission to go to a third-party model is not counted.
+  const admitted = results.filter((item) => item.outcome === "admitted" && (!onlyThirdPartyPermitted || item.third_party_model_permitted === true));
   const count = (key, value) => admitted.filter((item) => item[key] === value).length;
   const diversity = {
     admitted: admitted.length,
@@ -142,11 +143,12 @@ export async function checkIntake(directory, { now = today() } = {}) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL(`file://${process.argv[1].replaceAll("\\", "/")}`))) {
   const directory = process.argv[2];
+  const onlyPermitted = process.argv.includes("--third-party-model-only");
   if (!directory) {
     process.stderr.write("usage: node geoimpact-copilot/evaluation/external/intake.mjs DIRECTORY\n");
     process.exitCode = 2;
   } else {
-    const result = await checkIntake(directory);
+    const result = await checkIntake(directory, { onlyThirdPartyPermitted: onlyPermitted });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     process.exitCode = result.gate_passed ? 0 : 1;
   }

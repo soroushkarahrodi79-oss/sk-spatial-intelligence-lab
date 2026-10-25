@@ -7,7 +7,8 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { answerQuestion } from "../lib/answer.mjs";
-import { evaluateReview, committedRecordProblems } from "../lib/review.mjs";
+import { evaluateReview, committedRecordProblems, labelReviewProblems } from "../lib/review.mjs";
+import { checkIntake } from "../evaluation/external/intake.mjs";
 import { manifestProblems } from "../evaluation/independent-test-set/check-test-set.mjs";
 import { buildEvidencePack } from "./provider-contract.mjs";
 import { allQuestions, collectReports } from "../semantic/build-skeletons.mjs";
@@ -86,22 +87,32 @@ export function specProblems(spec) {
   return problems;
 }
 
-export async function assess() {
+/**
+ * @param intakeDir directory OUTSIDE the repository holding NAME.report.json and NAME.intake.json. Without it, P3 and P4 are unmet:
+ *   admission is never inferred from a field the manifest declares about itself.
+ * The remaining options replace repository files and exist so tests can exercise the checks.
+ */
+export async function assess({ intakeDir = process.env.GEOIMPACT_INTAKE_DIR ?? null, testSet: testSetOverride = null, labels: labelsOverride = null, now } = {}) {
   const spec = await readJson("geoimpact-copilot/provider-contract/sonnet-experiment-prerequisites.json");
   const registry = await readJson("geoimpact-copilot/semantic/approved-skeletons.json");
   const record = await readJson("geoimpact-copilot/semantic/review-record.json");
-  const labels = await readJson("geoimpact-copilot/evaluation/expected-answers.json");
-  const testSet = await readJson("geoimpact-copilot/evaluation/independent-test-set/manifest.json");
+  const labels = labelsOverride ?? await readJson("geoimpact-copilot/evaluation/expected-answers.json");
+  const testSet = testSetOverride ?? await readJson("geoimpact-copilot/evaluation/independent-test-set/manifest.json");
   const review = evaluateReview(record, registry);
   const reviewProblems = [...review.problems, ...(review.state === "reviewed" ? committedRecordProblems(record) : [])];
   const violations = await repositoryViolations();
-  const setProblems = await manifestProblems(testSet);
+  const setProblems = await manifestProblems(testSet, now ? { now } : {});
+  // P3: every counted report needs its own independently validated intake record in the external directory.
+  const intake = intakeDir ? await checkIntake(intakeDir, { onlyThirdPartyPermitted: true, ...(now ? { now } : {}) }).catch((error) => ({ status: "unreadable", gate_passed: false, admitted: 0, error: error.message })) : null;
+  const admittedHashes = new Set((intake?.reports ?? []).filter((item) => item.outcome === "admitted" && item.third_party_model_permitted === true).map((item) => item.report_sha256));
+  const intakeOk = intake?.status === "supplied" && intake.gate_passed === true && intake.admitted >= 8 && intake.diversity?.target_met === true;
+  // P4: each sealed case must correspond to a report that intake independently admitted for third-party model use.
+  const linked = testSet.status === "established" && testSet.cases.length > 0 && testSet.cases.every((item) => admittedHashes.has(item.report_sha256));
   const met = {
     review_record_reviewed: review.state === "reviewed" && reviewProblems.length === 0,
-    labels_reviewed: labels.labeling?.human_review?.status === "reviewed" && labels.labeling.human_review.independent_of_author === true,
-    // The repository never holds reports, so admitted-report evidence can only come from an established, sealed test set.
-    intake_admitted: testSet.status === "established" && setProblems.length === 0 && testSet.cases.length >= 8,
-    test_set_established: testSet.status === "established" && setProblems.length === 0,
+    labels_reviewed: labelReviewProblems(labels, now ? { today: now } : {}).length === 0,
+    intake_admitted: intakeOk,
+    test_set_established: testSet.status === "established" && setProblems.length === 0 && linked,
     owner_approved: spec.owner_approval?.owner_approved === true && specProblems(spec).length === 0,
     secret_controls_signed_off: false,
     repository_clean: violations.length === 0,
@@ -115,7 +126,8 @@ export async function assess() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL(`file://${process.argv[1].replaceAll("\\", "/")}`))) {
-  const result = await assess();
+  const flag = process.argv.indexOf("--intake-dir");
+  const result = await assess({ intakeDir: flag > 0 ? process.argv[flag + 1] : undefined });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   process.exitCode = result.consistency_problems.length ? 1 : 0;
 }

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { answerQuestion } from "../geoimpact-copilot/lib/answer.mjs";
 import { verifyAnswerEvidence } from "../geoimpact-copilot/lib/evidence.mjs";
 import { loadReportFile } from "../geoimpact-copilot/lib/report.mjs";
-import { assertReviewValid, committedRecordProblems, currentEntryIds, entryId, evaluateReview, reviewerIdentityProblems, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
+import { assertReviewValid, committedRecordProblems, currentEntryIds, entryId, evaluateReview, labelReviewProblems, reviewerIdentityProblems, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
 import { SEMANTIC_CONTRACT_VERSION } from "../geoimpact-copilot/lib/semantic.mjs";
 import { gateFailures, runEvaluation } from "../geoimpact-copilot/evaluation/run-v2.mjs";
 import { collectSkeletons } from "../geoimpact-copilot/semantic/build-skeletons.mjs";
@@ -67,9 +67,7 @@ test("expected-answer labels carry an honest, internally consistent review statu
   const review = labels.labeling.human_review;
   assert.equal(review.status, [...statuses][0]);
   if (review.status === "reviewed") {
-    assert.deepEqual(reviewerIdentityProblems(review.reviewed_by), [], "reviewed labels name a person");
-    assert.match(review.reviewed_on ?? "", /^\d{4}-\d{2}-\d{2}$/);
-    assert.ok(review.independent_of_author === true, "reviewed labels declare independence from their author");
+    assert.deepEqual(labelReviewProblems(labels), [], "reviewed labels need a named person, a valid non-future date, a stated relationship to the author and consistent case statuses");
   } else {
     assert.equal(labels.labeling.labeled_by, "author_hand_label", "unreviewed labels are attributed to their author, not to an independent labeller");
   }

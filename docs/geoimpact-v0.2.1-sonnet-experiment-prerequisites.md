@@ -14,8 +14,8 @@
 | ID | Prerequisite | Today |
 | --- | --- | --- |
 | P1 | Vocabulary reviewed by a named independent person; matching digest and contract version; 52 `Approve` | **Unmet.** UNREVIEWED |
-| P2 | The 18 expected-answer labels independently reviewed, or replaced by independent labels | **Unmet.** Author-written |
-| P3 | At least 8 genuine rights-cleared reports admitted by the intake check, meeting the diversity target, each permitted to go to a third-party model | **Unmet.** 0 supplied |
+| P2 | The 18 expected-answer labels reviewed: a named human reviewer (not automated, not the labeller), a real non-future date, `independent_of_author` true and a written `relationship_to_author`, every case reviewed, the top-level status no longer UNREVIEWED; or independent labels | **Unmet.** Author-written |
+| P3 | At least 8 reports, each re-validated by the checker from its own external intake record (matching SHA-256 and identity, admitted, named human rights and provenance attestations, not synthetic, third-party-model permission), meeting the diversity target. Run with `--intake-dir DIR` or `GEOIMPACT_INTAKE_DIR`; nothing is inferred from the test-set manifest | **Unmet.** No external evidence supplied |
 | P4 | Independent test set sealed before any model run | **Unmet.** Not established |
 | P5 | Owner approval of limits and budget, with current prices recorded | **Unmet.** Limits are proposals |
 | P6 | Server-side secret controls S1 to S9 built and signed off in a separate change | **Unmet.** Nothing built |

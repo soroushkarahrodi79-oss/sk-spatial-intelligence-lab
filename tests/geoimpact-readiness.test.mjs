@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { answerQuestion } from "../geoimpact-copilot/lib/answer.mjs";
-import { currentEntryIds, entryId, evaluateReview, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
+import { currentEntryIds, entryId, evaluateReview, labelReviewProblems, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
 import { SEMANTIC_CONTRACT_VERSION, narrativePredicates, normalizeClaimId } from "../geoimpact-copilot/lib/semantic.mjs";
 import { buildReport, makeSpec } from "../geoimpact-copilot/evaluation/synthetic/generator.mjs";
 import { DIVERSITY_TARGET, canonicalDigest, checkIntake, knownSyntheticCorpus } from "../geoimpact-copilot/evaluation/external/intake.mjs";
@@ -428,4 +428,128 @@ test("secret and SDK controls: no key, SDK, endpoint or provider secret in execu
   const text = JSON.stringify(prerequisites);
   assert.doesNotMatch(text, /sk-ant-|ANTHROPIC_API_KEY|Bearer |https:\/\/api\./);
   for (const workflow of ["validate.yml", "deploy-space.yml"]) assert.doesNotMatch(await readFile(repo(`.github/workflows/${workflow}`), "utf8"), /ANTHROPIC|CLAUDE_API|sk-ant/i, workflow);
+});
+
+// ---------------------------------------------------------------------------
+// Final gate: P3 needs independently validated intake evidence; P2 needs a complete human review
+// ---------------------------------------------------------------------------
+
+// Test-only stand-ins in a temp directory outside the repository; none of this is a real report.
+async function externalDirectory({ mutateRecord = (record) => record, count = 8 } = {}) {
+  const directory = await mkdtemp(path.join(tmpdir(), "geoimpact-p3-"));
+  const plan = [["5", 0], ["5", 1], ["5", 1], ["4", 0], ["4", 1], ["4", 1], ["5", 0], ["4", 0]].slice(0, count);
+  const hashes = [];
+  for (const [index, [version, regressions]] of plan.entries()) {
+    const report = buildReport(makeSpec(995000 + index, { report_version: version, regression_count: regressions, threshold: 0 }));
+    if (version === "5") report.provenance.engine = { geoimpact_ci: "1.2.0", shapely: "2.1.0", geos: "3.13.0", pyproj: "3.7.0", proj: "9.5.0" };
+    const text = JSON.stringify(report) + "\n";
+    const name = "case-" + index;
+    await writeFile(path.join(directory, name + ".report.json"), text);
+    const record = intakeRecord(report, text, { report_file: name + ".report.json", diversity: { report_version: version, verdict: report.verdict, size_class: ["small", "medium", "large"][index % 3], region_description: "Region " + (index % 4), dependency_count_class: "one" } });
+    await writeFile(path.join(directory, name + ".intake.json"), JSON.stringify(mutateRecord(record, index)));
+    hashes.push(sha(text));
+  }
+  return { directory, hashes };
+}
+const p3Met = async (options) => !(await assess(options)).unmet.some((item) => item.id === "P3");
+
+test("P3: eight independently validated intake records satisfy it, and nothing else does", async () => {
+  assert.equal(await p3Met({ intakeDir: null }), false, "no external evidence: unmet");
+  const { directory } = await externalDirectory();
+  assert.equal(await p3Met({ intakeDir: directory }), true, "structurally valid records pass");
+  const result = await assess({ intakeDir: directory });
+  assert.equal(result.verdict, "HOLD", "other prerequisites keep it on HOLD");
+  assert.deepEqual(result.consistency_problems, []);
+});
+
+test("P3: a forged manifest cannot stand in for intake evidence", async () => {
+  const forged = establishedManifest();
+  const claimed = await assess({ testSet: forged, now: "2026-10-25" });
+  assert.ok(claimed.unmet.some((item) => item.id === "P3"), "an established manifest does not admit anything");
+  assert.ok(claimed.unmet.some((item) => item.id === "P4"), "its cases are linked to no admitted report");
+  const { directory } = await externalDirectory();
+  const withDir = await assess({ testSet: forged, intakeDir: directory, now: "2026-10-25" });
+  assert.ok(withDir.unmet.some((item) => item.id === "P4"), "cases whose hashes intake never admitted stay unmet");
+  assert.ok(!withDir.unmet.some((item) => item.id === "P3"));
+});
+
+test("P3: missing, mismatched, forged or unpermitted intake records do not count", async () => {
+  const cases = {
+    "a record removed": async () => { const e = await externalDirectory(); await rm(path.join(e.directory, "case-3.intake.json")); return e; },
+    "fewer than eight": async () => externalDirectory({ count: 7 }),
+    "hash mismatch": async () => externalDirectory({ mutateRecord: (r, i) => (i === 2 ? { ...r, report_sha256: "0".repeat(64) } : r) }),
+    "report swapped after intake": async () => { const e = await externalDirectory(); await writeFile(path.join(e.directory, "case-1.report.json"), "{}\n"); return e; },
+    "admitted flag forged over unverified checks": async () => externalDirectory({ mutateRecord: (r, i) => (i === 1 ? { ...r, status: "admitted", verification: { rights: { status: "unverified" }, provenance: { status: "unverified" } } } : r) }),
+    "attestation by an automated system": async () => externalDirectory({ mutateRecord: (r, i) => (i === 0 ? { ...r, verification: { ...r.verification, rights: { ...r.verification.rights, verified_by: "Claude" } } } : r) }),
+    "synthetic origin": async () => externalDirectory({ mutateRecord: (r, i) => (i === 4 ? { ...r, origin: { ...r.origin, kind: "synthetic" } } : r) }),
+    "no third-party model permission on one": async () => externalDirectory({ mutateRecord: (r, i) => (i === 5 ? { ...r, rights: { ...r.rights, may_be_sent_to_third_party_model: false } } : r) }),
+    "no third-party model permission on any": async () => externalDirectory({ mutateRecord: (r) => ({ ...r, rights: { ...r.rights, may_be_sent_to_third_party_model: false } }) }),
+    "report identity differs from the record": async () => externalDirectory({ mutateRecord: (r, i) => (i === 6 ? { ...r, report_file: "case-0.report.json" } : r) }),
+    "unreadable directory": async () => ({ directory: path.join(tmpdir(), "geoimpact-does-not-exist-" + Date.now()) })
+  };
+  for (const [name, make] of Object.entries(cases)) {
+    const { directory } = await make();
+    assert.equal(await p3Met({ intakeDir: directory }), false, name);
+  }
+  const empty = await mkdtemp(path.join(tmpdir(), "geoimpact-p3-empty-"));
+  assert.equal(await p3Met({ intakeDir: empty }), false, "an empty directory: unmet, and not an error");
+});
+
+test("P3 and P4: an established set links to admitted reports only by matching hash", async () => {
+  const { directory, hashes } = await externalDirectory();
+  const manifest = establishedManifest(8);
+  manifest.cases.forEach((item, index) => { item.report_sha256 = hashes[index]; });
+  const linked = reseal(manifest);
+  const good = await assess({ testSet: linked, intakeDir: directory, now: "2026-10-25" });
+  assert.ok(!good.unmet.some((item) => item.id === "P4"), "every case matches an admitted, permitted report");
+  const broken = structuredClone(manifest);
+  broken.cases[0].report_sha256 = "a".repeat(64);
+  assert.ok((await assess({ testSet: reseal(broken), intakeDir: directory, now: "2026-10-25" })).unmet.some((item) => item.id === "P4"));
+});
+
+const reviewedLabels = (overrides = {}, review = {}) => ({
+  review_status: "Reviewed by an independent reviewer.",
+  labeling: { labeled_by: "author_hand_label", human_review: { status: "reviewed", reviewed_by: "Imani Okoye", reviewed_on: "2026-10-20", independent_of_author: true, relationship_to_author: "Colleague from another institution; no part in writing the code.", ...review } },
+  cases: Array.from({ length: 18 }, (_, i) => ({ id: "c" + i, human_review_status: "reviewed" })),
+  ...overrides
+});
+
+test("P2: a complete, consistent human review satisfies it structurally", async () => {
+  assert.deepEqual(labelReviewProblems(reviewedLabels(), { today: "2026-10-25" }), []);
+  assert.equal((await assess({ labels: reviewedLabels(), now: "2026-10-25" })).unmet.some((item) => item.id === "P2"), false);
+});
+
+test("P2: a status plus an independence boolean is not enough", async () => {
+  const bad = {
+    "no reviewer name": reviewedLabels({}, { reviewed_by: null }),
+    "blank reviewer name": reviewedLabels({}, { reviewed_by: "  " }),
+    "automated reviewer": reviewedLabels({}, { reviewed_by: "Claude Sonnet 5.5" }),
+    "no date": reviewedLabels({}, { reviewed_on: null }),
+    "malformed date": reviewedLabels({}, { reviewed_on: "20/10/2026" }),
+    "impossible date": reviewedLabels({}, { reviewed_on: "2026-02-31" }),
+    "future date": reviewedLabels({}, { reviewed_on: "2099-01-01" }),
+    "independence false": reviewedLabels({}, { independent_of_author: false }),
+    "independence missing": reviewedLabels({}, { independent_of_author: undefined }),
+    "independence as a string": reviewedLabels({}, { independent_of_author: "true" }),
+    "no stated relationship": reviewedLabels({}, { relationship_to_author: undefined }),
+    "trivial relationship": reviewedLabels({}, { relationship_to_author: "n/a" }),
+    "status unreviewed": reviewedLabels({}, { status: "unreviewed" }),
+    "one case still unreviewed": reviewedLabels({ cases: [{ id: "x", human_review_status: "reviewed" }, { id: "y", human_review_status: "unreviewed" }] }),
+    "top-level text still says UNREVIEWED": reviewedLabels({ review_status: "UNREVIEWED: author-written" }),
+    "reviewer is the labeller": reviewedLabels({}, { reviewed_by: "author_hand_label" }),
+    "no review block": { labeling: {}, cases: [] }
+  };
+  for (const [name, labels] of Object.entries(bad)) {
+    assert.ok(labelReviewProblems(labels, { today: "2026-10-25" }).length > 0, name);
+    assert.ok((await assess({ labels, now: "2026-10-25" })).unmet.some((item) => item.id === "P2"), name);
+  }
+});
+
+test("honest state: UNREVIEWED labels and zero real reports give HOLD and exit 0", async () => {
+  const result = await assess({ intakeDir: null });
+  assert.equal(result.verdict, "HOLD");
+  assert.deepEqual(result.consistency_problems, []);
+  for (const id of ["P2", "P3", "P4"]) assert.ok(result.unmet.some((item) => item.id === id), id);
+  const run = execFileSync(process.execPath, [fileURLToPath(repo("geoimpact-copilot/provider-contract/check-sonnet-prerequisites.mjs"))], { encoding: "utf8", env: { ...process.env, GEOIMPACT_INTAKE_DIR: "" } });
+  assert.equal(JSON.parse(run).verdict, "HOLD");
 });

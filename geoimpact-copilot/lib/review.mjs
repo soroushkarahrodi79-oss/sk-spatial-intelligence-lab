@@ -53,6 +53,30 @@ export function reviewerIdentityProblems(name) {
   return problems;
 }
 
+const realIsoDate = (text) => typeof text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(text) && new Date(`${text}T00:00:00Z`).toISOString().slice(0, 10) === text;
+
+/**
+ * Problems with the review metadata of the expected-answer labels. Empty means every field a
+ * "reviewed" claim needs is present and consistent. A reviewed status plus a boolean is not enough:
+ * the reviewer must be named, dated (not in the future), and state their relationship to the author.
+ */
+export function labelReviewProblems(labels, { today = new Date().toISOString().slice(0, 10) } = {}) {
+  const review = labels?.labeling?.human_review;
+  const cases = Array.isArray(labels?.cases) ? labels.cases : [];
+  const problems = [];
+  if (!review || typeof review !== "object") return ["labeling.human_review is missing"];
+  if (review.status !== "reviewed") problems.push("labeling.human_review.status is not reviewed");
+  problems.push(...reviewerIdentityProblems(review.reviewed_by).map((problem) => `labeling.human_review: ${problem.replace("reviewed_by", "reviewed_by")}`));
+  if (!realIsoDate(review.reviewed_on)) problems.push("labeling.human_review.reviewed_on must be a real YYYY-MM-DD date");
+  else if (review.reviewed_on > today) problems.push("labeling.human_review.reviewed_on is in the future");
+  if (review.independent_of_author !== true) problems.push("labeling.human_review.independent_of_author must be true");
+  if (typeof review.relationship_to_author !== "string" || review.relationship_to_author.trim().length < 10) problems.push("labeling.human_review.relationship_to_author must state, in words, how the reviewer relates to the author");
+  if (cases.length === 0 || !cases.every((item) => item.human_review_status === "reviewed")) problems.push("every case must have human_review_status reviewed");
+  if (/^UNREVIEWED/i.test(String(labels?.review_status ?? ""))) problems.push("the top-level review_status still says UNREVIEWED");
+  if (labels?.labeling?.labeled_by !== undefined && review.reviewed_by === labels.labeling.labeled_by) problems.push("the reviewer is the labeller");
+  return problems;
+}
+
 /**
  * Extra checks that apply to the record committed in the repository, not to arbitrary records
  * a test constructs. A committed approval must name a real-looking person, not a fixture.
