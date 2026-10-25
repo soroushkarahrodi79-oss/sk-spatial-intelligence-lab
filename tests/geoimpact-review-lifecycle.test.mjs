@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { answerQuestion } from "../geoimpact-copilot/lib/answer.mjs";
 import { verifyAnswerEvidence } from "../geoimpact-copilot/lib/evidence.mjs";
 import { loadReportFile } from "../geoimpact-copilot/lib/report.mjs";
-import { assertReviewValid, currentEntryIds, entryId, evaluateReview, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
+import { assertReviewValid, committedRecordProblems, currentEntryIds, entryId, evaluateReview, labelReviewProblems, reviewerIdentityProblems, vocabularyDigest } from "../geoimpact-copilot/lib/review.mjs";
 import { SEMANTIC_CONTRACT_VERSION } from "../geoimpact-copilot/lib/semantic.mjs";
 import { gateFailures, runEvaluation } from "../geoimpact-copilot/evaluation/run-v2.mjs";
 import { collectSkeletons } from "../geoimpact-copilot/semantic/build-skeletons.mjs";
@@ -35,16 +35,42 @@ const withEntry = (vocabulary, mutate) => {
   return copy;
 };
 
-test("the committed record is an honest unreviewed state covering the current 52 entries", async () => {
-  assert.equal(committedRecord.status, "unreviewed");
-  for (const field of ["reviewed_by", "reviewed_on", "content_digest", "contract_version"]) assert.equal(committedRecord[field], null, field);
-  assert.deepEqual(committedRecord.decisions, [], "no decision has been entered by anyone");
-  assert.equal(evaluateReview(committedRecord, registry).state, "unreviewed");
+// The committed record may legitimately be in either state. What it may never be is a claim the
+// repository cannot back: an unreviewed record must be blank, and a reviewed one must be complete,
+// current, attributed to a person and not a placeholder. This test does not pin the status, so a
+// real review can be committed without editing the tests, and a fabricated one still fails.
+test("the committed record is in a legitimate state and covers the current 52 entries", async () => {
+  const result = evaluateReview(committedRecord, registry);
+  assert.ok(["unreviewed", "reviewed"].includes(result.state), `committed record is ${result.state}: ${result.problems.join("; ")}`);
+  assert.deepEqual(result.problems, []);
   assert.equal(currentEntryIds(registry).length, 52);
   assert.equal(new Set(currentEntryIds(registry)).size, 52, "entry IDs are unique");
+  if (result.state === "unreviewed") {
+    for (const field of ["reviewed_by", "reviewed_on", "content_digest", "contract_version"]) assert.equal(committedRecord[field], null, field);
+    assert.deepEqual(committedRecord.decisions, [], "an unreviewed record holds no decision");
+  } else {
+    assert.equal(committedRecord.content_digest, vocabularyDigest(registry));
+    assert.equal(committedRecord.contract_version, SEMANTIC_CONTRACT_VERSION);
+    assert.deepEqual(reviewerIdentityProblems(committedRecord.reviewed_by), []);
+    assert.deepEqual(committedRecordProblems(committedRecord), [], "a committed approval cannot be a placeholder or fixture");
+    assert.deepEqual(committedRecord.decisions.map((item) => item.entry_id).sort(), [...currentEntryIds(registry)].sort(), "one decision for every current entry");
+    assert.ok(committedRecord.decisions.every((item) => item.decision === "Approve"));
+  }
+});
+
+test("expected-answer labels carry an honest, internally consistent review status", async () => {
   const labels = await readJson(new URL("../geoimpact-copilot/evaluation/expected-answers.json", import.meta.url));
   assert.equal(labels.cases.length, 18);
-  assert.ok(labels.cases.every((item) => item.human_review_status === "unreviewed"));
+  const statuses = new Set(labels.cases.map((item) => item.human_review_status));
+  assert.ok([...statuses].every((status) => ["unreviewed", "reviewed"].includes(status)));
+  assert.equal(statuses.size, 1, "labels are either all reviewed or all unreviewed; a half-reviewed set is not reported as reviewed");
+  const review = labels.labeling.human_review;
+  assert.equal(review.status, [...statuses][0]);
+  if (review.status === "reviewed") {
+    assert.deepEqual(labelReviewProblems(labels), [], "reviewed labels need a named person, a valid non-future date, a stated relationship to the author and consistent case statuses");
+  } else {
+    assert.equal(labels.labeling.labeled_by, "author_hand_label", "unreviewed labels are attributed to their author, not to an independent labeller");
+  }
 });
 
 test("the generated vocabulary carries a digest but no review state and no approval", () => {
@@ -53,7 +79,7 @@ test("the generated vocabulary carries a digest but no review state and no appro
 });
 
 test("both legitimate states are accepted: unreviewed, and reviewed with identity, date and a matching digest", () => {
-  assert.equal(evaluateReview(committedRecord, registry).state, "unreviewed");
+  assert.equal(evaluateReview({ ...committedRecord, status: "unreviewed", reviewed_by: null, reviewed_on: null, content_digest: null, contract_version: null, decisions: [] }, registry).state, "unreviewed");
   const reviewed = approvalFor(registry);
   assert.deepEqual(evaluateReview(reviewed, registry), { state: "reviewed", problems: [] });
   assert.equal(assertReviewValid(reviewed, registry), "reviewed");
@@ -166,18 +192,54 @@ test("the checklist is a disposable worksheet bound to the digest and holds no d
   assert.doesNotMatch(checklist, /- \[x\]/i);
 });
 
-test("the check command passes an honest unreviewed record, and a stale approval would fail it", () => {
+test("the check command reports the committed record's real state, and a stale approval would fail it", () => {
   const output = JSON.parse(execFileSync(process.execPath, [fileURLToPath(semantic("check-review.mjs"))], { encoding: "utf8" }));
-  assert.deepEqual(output, { state: "unreviewed", current_content_digest: vocabularyDigest(registry), problems: [] });
+  assert.equal(output.state, evaluateReview(committedRecord, registry).state);
+  assert.ok(["unreviewed", "reviewed"].includes(output.state));
+  assert.equal(output.current_content_digest, vocabularyDigest(registry));
+  assert.deepEqual(output.problems, []);
   const exitCodeFor = (record, vocabulary) => (evaluateReview(record, vocabulary).state === "invalid" ? 1 : 0);
-  assert.equal(exitCodeFor(committedRecord, registry), 0);
+  assert.equal(exitCodeFor({ ...committedRecord, status: "unreviewed", reviewed_by: null, reviewed_on: null, content_digest: null, contract_version: null, decisions: [] }, registry), 0);
   assert.equal(exitCodeFor(approvalFor(registry), registry), 0);
   assert.equal(exitCodeFor(approvalFor(registry), withEntry(registry, (copy) => { copy.claims["metric-limits"][0].skeleton += "."; })), 1);
 });
 
+test("a reviewed record must name a person, not an automated system or a fixture", () => {
+  for (const name of ["Claude", "Claude Sonnet 5.5", "Anthropic", "GPT-5 reviewer", "automated review", "Copilot", "ci bot", "GitHub Actions"]) {
+    const result = evaluateReview(approvalFor(registry, { reviewed_by: name }), registry);
+    assert.equal(result.state, "invalid", name);
+    assert.ok(result.problems.some((problem) => /automated system/.test(problem)), name);
+  }
+  for (const name of ["Ai Tanaka", "Maria Garcia Lopez", "J. Okafor"]) {
+    assert.equal(evaluateReview(approvalFor(registry, { reviewed_by: name }), registry).state, "reviewed", name);
+  }
+  // The unit-test fixture is a valid record for the lifecycle logic, but could never be committed.
+  const fixture = approvalFor(registry);
+  assert.equal(evaluateReview(fixture, registry).state, "reviewed");
+  assert.ok(committedRecordProblems(fixture).length > 0);
+  for (const name of ["Placeholder", "TBD", "Example Reviewer", "unknown"]) assert.ok(committedRecordProblems(approvalFor(registry, { reviewed_by: name })).length > 0, name);
+  assert.deepEqual(committedRecordProblems(committedRecord), []);
+});
+
+test("a review date cannot be in the future, and decisions must use the exact vocabulary", () => {
+  const future = evaluateReview(approvalFor(registry, { reviewed_on: "2030-01-01" }), registry, undefined, { today: "2026-10-25" });
+  assert.equal(future.state, "invalid");
+  assert.ok(future.problems.some((problem) => /in the future/.test(problem)));
+  assert.equal(evaluateReview(approvalFor(registry, { reviewed_on: "2026-10-25" }), registry, undefined, { today: "2026-10-25" }).state, "reviewed");
+  const lowercase = approvalFor(registry, { decisions: currentEntryIds(registry).map((id) => ({ entry_id: id, decision: "approve" })) });
+  assert.equal(evaluateReview(lowercase, registry).state, "invalid");
+});
+
+test("a blank decision sheet is not a review record and cannot pass as one", async () => {
+  const sheet = await readJson(new URL("../docs/review/geoimpact-v0.2.1-decision-sheet.template.json", import.meta.url));
+  assert.equal(evaluateReview(sheet, registry).state, "invalid");
+  assert.equal(evaluateReview({ ...{ ...committedRecord, status: "unreviewed", reviewed_by: null, reviewed_on: null, content_digest: null, contract_version: null, decisions: [] }, status: "reviewed" }, registry).state, "invalid", "flipping the status of a blank record is not an approval");
+});
+
 test("the evaluation reports the review state and its gate fails on a stale or malformed approval", async () => {
   const clean = await runEvaluation({ performance: false });
-  assert.equal(clean.review_status.skeleton_vocabulary, "unreviewed");
+  assert.equal(clean.review_status.skeleton_vocabulary, evaluateReview(committedRecord, registry).state);
+  assert.ok(["unreviewed", "reviewed"].includes(clean.review_status.skeleton_vocabulary));
   assert.equal(clean.review_status.skeleton_vocabulary_content_digest, vocabularyDigest(registry));
   assert.deepEqual(gateFailures(clean), []);
 

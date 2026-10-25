@@ -13,6 +13,7 @@ import { answerQuestion } from "../lib/answer.mjs";
 import { verifyAnswerEvidence } from "../lib/evidence.mjs";
 import { loadReportFile, parseReportText, validateReportObject } from "../lib/report.mjs";
 import { evaluateReview, vocabularyDigest } from "../lib/review.mjs";
+import { knownSyntheticCorpus, recordProblems } from "./external/intake.mjs";
 import { applyMutation, mutations } from "./mutations.mjs";
 import { questions, expectations } from "./oracle.mjs";
 import { summarize, tally, wilson } from "./metrics.mjs";
@@ -316,7 +317,9 @@ async function loadExternal(directory) {
   const files = (await readdir(directory)).filter((name) => name.endsWith(".meta.json")).sort();
   const reviewed = tally();
   const unreviewed = [];
+  const originUnverified = [];
   const rejected = [];
+  const known = await knownSyntheticCorpus();
   for (const file of files) {
     const meta = JSON.parse(await readFile(`${directory}/${file}`, "utf8"));
     if (!validateMeta(meta)) {
@@ -329,6 +332,12 @@ async function loadExternal(directory) {
       continue;
     }
     const report = await loadReportFile(`${directory}/${meta.report_file}`);
+    // Reviewed labels count toward an aggregate only for a report whose origin and rights were verified by a person (see intake.mjs).
+    let admitted = false;
+    try {
+      const record = JSON.parse(await readFile(`${directory}/${meta.report_file.replace(".report.json", ".intake.json")}`, "utf8"));
+      admitted = record.status === "admitted" && recordProblems(record, { bytes, report, known }).length === 0;
+    } catch { admitted = false; }
     let correct = 0;
     for (const label of meta.independent_labels) {
       const answer = answerQuestion(report, label.question);
@@ -338,11 +347,12 @@ async function loadExternal(directory) {
         (label.expected_not_contains ?? []).every((text) => !answer.answer.includes(text)) &&
         (label.expected_facts ?? []).every((fact) => answer.claims.flatMap((claim) => claim.bindings ?? []).some((binding) => binding.path === fact.path && same(binding.value, fact.value)));
       if (ok) correct += 1;
-      if (meta.human_review.status === "reviewed") reviewed.add(`${meta.split}`, ok);
+      if (meta.human_review.status === "reviewed" && admitted) reviewed.add(`${meta.split}`, ok);
     }
+    if (meta.human_review.status === "reviewed" && !admitted) originUnverified.push({ file, labels: meta.independent_labels.length, note: "labels reviewed, but no admitted intake record: origin and rights are unverified, so this report is excluded from every aggregate" });
     if (meta.human_review.status !== "reviewed") unreviewed.push({ file, review_status: meta.human_review.status, labels: meta.independent_labels.length, labels_matching: correct, note: "excluded from aggregates until human review is complete" });
   }
-  return { status: "supplied", reports_found: files.length, reviewed_label_agreement_by_split: reviewed.toObject(), unreviewed, rejected_intake: rejected };
+  return { status: "supplied", reports_found: files.length, reviewed_label_agreement_by_split: reviewed.toObject(), unreviewed, origin_unverified: originUnverified, rejected_intake: rejected };
 }
 
 export async function runEvaluation({ external = null, performance: withPerformance = true, reviewRecord = null } = {}) {

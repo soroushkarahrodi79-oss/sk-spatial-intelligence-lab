@@ -1,0 +1,26 @@
+{
+  "schema": "geoimpact-test-set-label-sheet/1",
+  "status": "blank_template",
+  "note": "One sheet per labeller per report. Copy it OUTSIDE the repository, fill it in by hand, and never from the copilot's output. A labeller must see only the report and the question, never an answer produced by this software or by a model. Every field below is null on purpose.",
+  "report_sha256": null,
+  "labeller": {
+    "name": null,
+    "role": null,
+    "independent_of_author": null,
+    "has_seen_copilot_output_for_this_report": null,
+    "has_seen_model_output_for_this_report": null
+  },
+  "labelled_on": null,
+  "labels": [
+    {
+      "question": null,
+      "expected_decision": null,
+      "expected_reason": null,
+      "expected_contains": [],
+      "expected_not_contains": [],
+      "expected_facts": [],
+      "basis": null,
+      "uncertainty": null
+    }
+  ]
+}

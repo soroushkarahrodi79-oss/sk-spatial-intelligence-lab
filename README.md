@@ -44,6 +44,8 @@ The default path is deterministic. No LLM client, model credentials, API, or use
 
 V0.2 (draft) adds field-level semantic claim binding, so a value attached to the wrong field, label or unit is rejected even when every number and citation is individually valid, plus a synthetic evaluation framework with adversarial cases, development and held-out splits, an intake path for rights-cleared external reports, and an offline specification for a possible future Claude provider. No model is integrated and no API is called. Scores are measured on synthetic reports only and are not real-world accuracy. See [GeoImpact Evidence Copilot V0.2](docs/geoimpact-evidence-copilot-v0.2.md) and the [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
 
+V0.2.1 (draft) prepares an independent review without performing one: a [review packet](docs/review/geoimpact-v0.2.1-review-packet.md), hardened review-record checks, an evidence intake for genuine reports, an independent test-set protocol and the exact prerequisites for a first Sonnet pilot. **Verdict: HOLD.** Every review is still UNREVIEWED, no genuine report has been evaluated and no model is called. See [V0.2.1 independent review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md).
+
 ## Deployment
 
 Read [deployment and first-run approval](docs/deployment.md), [credential setup](docs/security-and-credentials.md), the [captured change inventory](docs/pre-deployment-inventory.md), and [rollback instructions](docs/rollback.md) before enabling production sync. The workflow has no push trigger and was not run as part of this work.

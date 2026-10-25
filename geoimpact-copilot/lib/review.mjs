@@ -40,6 +40,52 @@ function realDate(text) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
 }
 
+// A reviewer must be a person. Names that identify an automated system are refused so that a
+// script or model cannot record its own output as a human review. This is a guard against
+// accidents and obvious fabrication, not proof of identity: nothing here can prove who typed a name.
+const automatedIdentity = /\b(claude|anthropic|sonnet|haiku|opus|gpt|chatgpt|openai|gemini|copilot|llm|bot|automat\w*|github[- ]actions)\b/i;
+const placeholderIdentity = /\b(not a real person|test fixture|placeholder|example|unknown|tbd|todo|n\/a)\b/i;
+
+export function reviewerIdentityProblems(name) {
+  if (typeof name !== "string" || name.trim().length === 0) return ["reviewed_by must name the reviewer"];
+  const problems = [];
+  if (automatedIdentity.test(name)) problems.push("reviewed_by names an automated system; a review must be recorded by a person");
+  return problems;
+}
+
+const realIsoDate = (text) => typeof text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(text) && new Date(`${text}T00:00:00Z`).toISOString().slice(0, 10) === text;
+
+/**
+ * Problems with the review metadata of the expected-answer labels. Empty means every field a
+ * "reviewed" claim needs is present and consistent. A reviewed status plus a boolean is not enough:
+ * the reviewer must be named, dated (not in the future), and state their relationship to the author.
+ */
+export function labelReviewProblems(labels, { today = new Date().toISOString().slice(0, 10) } = {}) {
+  const review = labels?.labeling?.human_review;
+  const cases = Array.isArray(labels?.cases) ? labels.cases : [];
+  const problems = [];
+  if (!review || typeof review !== "object") return ["labeling.human_review is missing"];
+  if (review.status !== "reviewed") problems.push("labeling.human_review.status is not reviewed");
+  problems.push(...reviewerIdentityProblems(review.reviewed_by).map((problem) => `labeling.human_review: ${problem.replace("reviewed_by", "reviewed_by")}`));
+  if (!realIsoDate(review.reviewed_on)) problems.push("labeling.human_review.reviewed_on must be a real YYYY-MM-DD date");
+  else if (review.reviewed_on > today) problems.push("labeling.human_review.reviewed_on is in the future");
+  if (review.independent_of_author !== true) problems.push("labeling.human_review.independent_of_author must be true");
+  if (typeof review.relationship_to_author !== "string" || review.relationship_to_author.trim().length < 10) problems.push("labeling.human_review.relationship_to_author must state, in words, how the reviewer relates to the author");
+  if (cases.length === 0 || !cases.every((item) => item.human_review_status === "reviewed")) problems.push("every case must have human_review_status reviewed");
+  if (/^UNREVIEWED/i.test(String(labels?.review_status ?? ""))) problems.push("the top-level review_status still says UNREVIEWED");
+  if (labels?.labeling?.labeled_by !== undefined && review.reviewed_by === labels.labeling.labeled_by) problems.push("the reviewer is the labeller");
+  return problems;
+}
+
+/**
+ * Extra checks that apply to the record committed in the repository, not to arbitrary records
+ * a test constructs. A committed approval must name a real-looking person, not a fixture.
+ */
+export function committedRecordProblems(record) {
+  if (!record || record.status !== "reviewed") return [];
+  return placeholderIdentity.test(String(record.reviewed_by ?? "")) ? ["reviewed_by looks like a placeholder or test fixture and cannot be a committed approval"] : [];
+}
+
 /**
  * Classify a review record against the current vocabulary.
  *  - "unreviewed": a well-formed record that makes no approval claim.
@@ -47,7 +93,7 @@ function realDate(text) {
  *                  Approve decision for every current entry.
  *  - "invalid":    anything else, including a stale approval. Callers must fail closed.
  */
-export function evaluateReview(record, registry, contractVersion = SEMANTIC_CONTRACT_VERSION) {
+export function evaluateReview(record, registry, contractVersion = SEMANTIC_CONTRACT_VERSION, { today = new Date().toISOString().slice(0, 10) } = {}) {
   const problems = [];
   if (!record || typeof record !== "object" || Array.isArray(record)) return { state: "invalid", problems: ["review record is not an object"] };
   if (record.schema !== REVIEW_RECORD_SCHEMA) problems.push(`schema must be ${REVIEW_RECORD_SCHEMA}`);
@@ -62,8 +108,9 @@ export function evaluateReview(record, registry, contractVersion = SEMANTIC_CONT
   }
   if (record.status !== "reviewed") return { state: "invalid", problems: [...problems, "status must be unreviewed or reviewed"] };
 
-  if (typeof record.reviewed_by !== "string" || record.reviewed_by.trim().length === 0) problems.push("reviewed_by must name the reviewer");
+  problems.push(...reviewerIdentityProblems(record.reviewed_by));
   if (!realDate(record.reviewed_on)) problems.push("reviewed_on must be a real YYYY-MM-DD date");
+  else if (record.reviewed_on > today) problems.push("reviewed_on is in the future");
   const digest = vocabularyDigest(registry, contractVersion);
   if (record.contract_version !== contractVersion) problems.push(`stale approval: contract_version ${JSON.stringify(record.contract_version)} is not ${contractVersion}`);
   if (record.content_digest !== digest) problems.push("stale approval: content_digest does not match the current vocabulary; the approved content has changed and must be reviewed again");
@@ -81,8 +128,8 @@ export function evaluateReview(record, registry, contractVersion = SEMANTIC_CONT
   return problems.length ? { state: "invalid", problems } : { state: "reviewed", problems };
 }
 
-export function assertReviewValid(record, registry) {
-  const result = evaluateReview(record, registry);
+export function assertReviewValid(record, registry, options) {
+  const result = evaluateReview(record, registry, SEMANTIC_CONTRACT_VERSION, options);
   if (result.state === "invalid") throw new Error(`Vocabulary review record is invalid: ${result.problems.join("; ")}`);
   return result.state;
 }

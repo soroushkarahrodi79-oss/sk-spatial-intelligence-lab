@@ -34,7 +34,7 @@ No real report is bundled, and none is required. To evaluate reports you are ent
 2. `NAME.meta.json` must satisfy `external/metadata.schema.json`: source provenance, dataset rights with evidence URL, `redistribution_allowed: true`, `contains_personal_data: false`, the report's SHA-256, a development/held-out assignment, independent labels with who labelled them, a human-review status, and uncertainty notes.
 3. `npm run evaluate:copilot:v2 -- --external DIR`.
 
-A report with missing rights, a hash mismatch or no labels is rejected and fails the gate. Reports whose review status is not `reviewed` are listed separately and **never enter an aggregate**.
+A report with missing rights, a hash mismatch or no labels is rejected and fails the gate. Reviewed labels count toward an aggregate only when the report also has an **admitted** `NAME.intake.json` (origin, rights and two named verifications; see `docs/geoimpact-v0.2.1-evidence-intake.md` and `external/intake.mjs`); otherwise the report is listed under `origin_unverified` and excluded. Reports whose review status is not `reviewed` are listed separately and **never enter an aggregate**.
 
 ## Reading the numbers
 
