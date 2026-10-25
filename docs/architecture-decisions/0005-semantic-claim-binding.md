@@ -16,6 +16,8 @@ The V0.1 evidence gate accepted a number or literal if it existed in any cited e
 5. Reject invisible and direction-changing characters in the report at the input boundary, and flag mixed-script or non-NFC identifiers instead of rejecting them.
 6. Keep the V0.1 checks and run the semantic layer after them, so existing error behaviour is preserved. `semantic: false` remains available only so evaluation can measure the V0.1 gap.
 
+7. Bind human review to content: a separate hand-edited `review-record.json` stores reviewer, date, and a digest of the canonical vocabulary plus contract version. No script writes it; any content change makes an existing approval invalid and fails the check; approval is never renewed automatically.
+
 ## Consequences
 
 * Positive: a swap, a unit change or an invented sentence is detected without a model or a classifier; failures name the field.

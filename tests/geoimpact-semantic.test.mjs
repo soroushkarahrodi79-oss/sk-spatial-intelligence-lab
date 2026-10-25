@@ -7,6 +7,7 @@ import test from "node:test";
 import { answerQuestion } from "../geoimpact-copilot/lib/answer.mjs";
 import { verifyAnswerEvidence } from "../geoimpact-copilot/lib/evidence.mjs";
 import { loadReportFile, parseReportText, ReportValidationError, validateReportObject } from "../geoimpact-copilot/lib/report.mjs";
+import { evaluateReview } from "../geoimpact-copilot/lib/review.mjs";
 import { unicodeNotes } from "../geoimpact-copilot/lib/unicode.mjs";
 import { applyMutation, mutations } from "../geoimpact-copilot/evaluation/mutations.mjs";
 import { gateFailures, runEvaluation, splitReports } from "../geoimpact-copilot/evaluation/run-v2.mjs";
@@ -460,8 +461,10 @@ test("regression counts agree in number with their noun, and a wrong plural is r
 test("generated vocabulary, hand-written labels and the oracle are recorded as unreviewed, and the checklist is an unfilled worksheet", async () => {
   const registry = JSON.parse(await readFile(new URL("../geoimpact-copilot/semantic/approved-skeletons.json", import.meta.url), "utf8"));
   const labels = JSON.parse(await readFile(new URL("../geoimpact-copilot/evaluation/expected-answers.json", import.meta.url), "utf8"));
-  const attributed = (review) => review.status === "unreviewed" || (review.status === "reviewed" && Boolean(review.reviewed_by) && Boolean(review.reviewed_on));
-  assert.ok(attributed(registry.review), "vocabulary review status must be unreviewed or attributed to a named reviewer and date");
+  assert.equal(registry.review, undefined, "the generated vocabulary carries no review state");
+  const record = JSON.parse(await readFile(new URL("../geoimpact-copilot/semantic/review-record.json", import.meta.url), "utf8"));
+  assert.equal(record.status, "unreviewed");
+  assert.notEqual(evaluateReview(record, registry).state, "invalid");
   assert.ok(labels.cases.every((item) => item.human_review_status === "unreviewed"), "labels are unreviewed until a person changes them");
   assert.match(labels.review_status, /^UNREVIEWED/);
   const checklist = await readFile(new URL("../docs/geoimpact-v0.2-human-review-checklist.md", import.meta.url), "utf8");

@@ -79,7 +79,7 @@ Known strictness: the verifier accepts only registered phrasings. A reworded but
 
 Run `npm run evaluate:copilot:v2` (exits non-zero on any gate failure; `--out FILE`, `--skip-performance`, `--external DIR`). Layers, provenance and reading guidance are in [`geoimpact-copilot/evaluation/README.md`](../geoimpact-copilot/evaluation/README.md).
 
-* **Deterministic unit tests**: 30 new tests in `tests/geoimpact-semantic.test.mjs` plus the 18 V0.1 tests (48 total, all passing).
+* **Deterministic unit tests**: 30 new tests in `tests/geoimpact-semantic.test.mjs`, 12 review-lifecycle tests in `tests/geoimpact-review-lifecycle.test.mjs`, plus the 18 V0.1 tests (60 total, all passing).
 * **Independent expected answers**: 18 hand-typed cases on the committed fixtures (`evaluation/expected-answers.json`). Labelled by the author; **human review status: unreviewed** (each case carries `human_review_status`). Reported separately from any reviewed set.
 * **Generated oracle**: a seeded generator ([`synthetic/generator.mjs`](../geoimpact-copilot/evaluation/synthetic/generator.mjs)) builds schema-valid V4/V5 reports with measurement styles including integers, long doubles, `1e-7` and `1.5e+21`, 1–3 dependency datasets, 0–5 regressions, and PASS/BLOCK. An oracle ([`oracle.mjs`](../geoimpact-copilot/evaluation/oracle.mjs)) states expected strings and field values from the report data without importing the code under test. 16 questions cover 11 categories.
 * **Adversarial catalogue**: 28 mutations in 9 risk groups ([`mutations.mjs`](../geoimpact-copilot/evaluation/mutations.mjs)), plus 21 input-boundary cases (version drift, unknown metadata, contradictory verdict, hidden Unicode, non-finite numbers, duplicate keys, BOM, truncation, over 10 MiB), 5 report-field injection payloads, and a mixed-script identifier flag check.
@@ -164,12 +164,21 @@ Held-out split, 120 reports × 16 questions = 1,920 report–question pairs (dev
 
 | Artifact | Status |
 | --- | --- |
-| `semantic/approved-skeletons.json` (sentence vocabulary) | UNREVIEWED, generated |
+| `semantic/approved-skeletons.json` (sentence vocabulary) | Generated; carries a `content_digest` and **no** review state |
+| `semantic/review-record.json` (the durable human record) | `unreviewed`; no reviewer, date, digest or decision entered |
 | `evaluation/expected-answers.json` (hand-typed labels) | UNREVIEWED, author-written |
 | `evaluation/oracle.mjs` expectations | UNREVIEWED, author-written |
 | Review worksheet | [`geoimpact-v0.2-human-review-checklist.md`](geoimpact-v0.2-human-review-checklist.md), generated, all boxes unchecked; flags each sentence as affirmative or disclaimer and marks geographic, temporal, causal, legal or scientific wording |
 
-The evaluation output prints these statuses (`review_status`). Tests fail if any artifact claims `reviewed` without a named reviewer and date. Nothing here is self-certified.
+### Review lifecycle
+
+Approval is bound to the exact content reviewed. `lib/review.mjs` computes a SHA-256 digest over the canonical claims, their conditions (order-independent) and the semantic contract version. The generated vocabulary and the generated checklist are disposable; the review record is a separate hand-edited file that **no script reads or writes**, so regenerating cannot erase a decision, and no script can create or renew an approval.
+
+* `unreviewed`: reviewer, date, digest and contract version are all `null`.
+* `reviewed`: a named reviewer, a real `YYYY-MM-DD` date, the digest and contract version matching the current content, and an `Approve` decision for every current entry ID.
+* Anything else, including a stale approval after any change to a sentence, condition, entry or the contract version, is `invalid`. `npm run check:review-record` and the evaluation gate fail on it, in CI as well. Restoring the exact content makes the same approval valid again; a changed vocabulary needs a new, complete approval.
+
+Review state does not change enforcement: the gate reads only the vocabulary. The evaluation prints `review_status`, and the 18 author-written labels stay `unreviewed`. Nothing here is self-certified.
 
 ## Reproduction
 

@@ -13,13 +13,14 @@
     "plan:space": "node scripts/space-plan.mjs",
     "test:browser": "node scripts/browser-check.mjs",
     "copilot": "node geoimpact-copilot/cli.mjs",
-    "test:copilot": "node --test tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs",
+    "test:copilot": "node --test tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs tests/geoimpact-review-lifecycle.test.mjs",
     "evaluate:copilot": "node geoimpact-copilot/evaluate.mjs",
-    "test": "npm run validate && npm run test:copilot && npm run check:skeletons && npm run check:review-checklist && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
+    "test": "npm run validate && npm run test:copilot && npm run check:skeletons && npm run check:review-checklist && npm run check:review-record && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
     "evaluate:copilot:v2": "node geoimpact-copilot/evaluation/run-v2.mjs",
     "check:skeletons": "node geoimpact-copilot/semantic/build-skeletons.mjs --check",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=geoimpact-copilot/lib/** --test-coverage-include=geoimpact-copilot/provider-contract/** tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs",
-    "check:review-checklist": "node geoimpact-copilot/semantic/build-review-checklist.mjs --check"
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=geoimpact-copilot/lib/** --test-coverage-include=geoimpact-copilot/provider-contract/** tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs tests/geoimpact-review-lifecycle.test.mjs",
+    "check:review-checklist": "node geoimpact-copilot/semantic/build-review-checklist.mjs --check",
+    "check:review-record": "node geoimpact-copilot/semantic/check-review.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",

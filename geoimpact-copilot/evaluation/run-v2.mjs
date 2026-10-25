@@ -12,6 +12,7 @@ import { performance } from "node:perf_hooks";
 import { answerQuestion } from "../lib/answer.mjs";
 import { verifyAnswerEvidence } from "../lib/evidence.mjs";
 import { loadReportFile, parseReportText, validateReportObject } from "../lib/report.mjs";
+import { evaluateReview, vocabularyDigest } from "../lib/review.mjs";
 import { applyMutation, mutations } from "./mutations.mjs";
 import { questions, expectations } from "./oracle.mjs";
 import { summarize, tally, wilson } from "./metrics.mjs";
@@ -344,8 +345,10 @@ async function loadExternal(directory) {
   return { status: "supplied", reports_found: files.length, reviewed_label_agreement_by_split: reviewed.toObject(), unreviewed, rejected_intake: rejected };
 }
 
-export async function runEvaluation({ external = null, performance: withPerformance = true } = {}) {
-  const registryReview = JSON.parse(await readFile(new URL("../semantic/approved-skeletons.json", here), "utf8")).review;
+export async function runEvaluation({ external = null, performance: withPerformance = true, reviewRecord = null } = {}) {
+  const registry = JSON.parse(await readFile(new URL("../semantic/approved-skeletons.json", here), "utf8"));
+  const record = reviewRecord ?? JSON.parse(await readFile(new URL("../semantic/review-record.json", here), "utf8"));
+  const vocabularyReview = evaluateReview(record, registry);
   const expectedAnswerSpec = JSON.parse(await readFile(new URL("./expected-answers.json", here), "utf8"));
   const manifest = JSON.parse(await readFile(manifestUrl, "utf8"));
   const development = splitReports(manifest, "development");
@@ -359,7 +362,9 @@ export async function runEvaluation({ external = null, performance: withPerforma
     scope_notice: "SYNTHETIC reports only. These figures measure software behaviour on invented, schema-valid inputs; they are not scientific accuracy on real GeoImpact-CI output and must not be quoted as such.",
     review_status: {
       note: "Nothing in this repository is human-reviewed. These fields report the status recorded in the files; they are not self-certification.",
-      skeleton_vocabulary: registryReview.status,
+      skeleton_vocabulary: vocabularyReview.state,
+      skeleton_vocabulary_problems: vocabularyReview.problems,
+      skeleton_vocabulary_content_digest: vocabularyDigest(registry),
       expected_answer_labels: expectedAnswerSpec.cases.every((item) => item.human_review_status === "unreviewed") ? "unreviewed" : "mixed_or_reviewed: inspect expected-answers.json",
       oracle_expectations: "unreviewed (author-written)",
       checklist: "docs/geoimpact-v0.2-human-review-checklist.md"
@@ -399,6 +404,7 @@ export function gateFailures(result) {
   const failures = [];
   if (result.committed_fixture_expected_answers.failures.length) failures.push(`${result.committed_fixture_expected_answers.failures.length} committed-fixture expected-answer failures`);
   for (const [risk, count] of Object.entries(result.risk_area_executable_cases)) if (count === 0 && (risk !== "large_valid_reports" || result.performance)) failures.push(`risk area has no executable case: ${risk}`);
+  if (result.review_status.skeleton_vocabulary === "invalid") failures.push(`vocabulary review record is invalid: ${result.review_status.skeleton_vocabulary_problems.join("; ")}`);
   if (!result.reproducibility.reproduced) failures.push("synthetic splits are not reproducible from the manifest");
   for (const [name, split] of Object.entries(result.splits)) {
     if (split.failure_count > 0) failures.push(`${name}: ${split.failure_count} expected-answer failures`);

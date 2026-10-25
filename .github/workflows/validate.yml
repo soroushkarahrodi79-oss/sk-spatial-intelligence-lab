@@ -27,6 +27,7 @@ jobs:
       - run: npm run test:copilot
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
+      - run: npm run check:review-record
       - run: npm run evaluate:copilot
       - run: npm run evaluate:copilot:v2
       - run: npm run check:links

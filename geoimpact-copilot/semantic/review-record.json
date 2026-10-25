@@ -1,0 +1,10 @@
+{
+  "schema": "geoimpact-vocabulary-review-record/1",
+  "status": "unreviewed",
+  "reviewed_by": null,
+  "reviewed_on": null,
+  "content_digest": null,
+  "contract_version": null,
+  "decisions": [],
+  "instructions": "Hand-edited by a human reviewer only; no script writes this file. To record approval, set status to reviewed, name yourself in reviewed_by, give the date, copy the content digest and contract version printed by `npm run check:review-record`, and add one decision per entry id listed in docs/geoimpact-v0.2-human-review-checklist.md. Any later change to the generated vocabulary makes the approval invalid; it is never renewed automatically."
+}
