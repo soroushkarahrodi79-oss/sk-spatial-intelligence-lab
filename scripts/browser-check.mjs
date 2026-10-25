@@ -41,6 +41,20 @@ try {
   assert.equal(await page.locator("main").count(), 1);
   assert.equal(await page.locator(".card").count(), 3);
 
+  // Fix 1: each hero proof chip deep-links to its own project card (stable, language-independent IDs)
+  for (const [chip, cardId] of [[1, "madrid"], [2, "geoimpact"], [3, "salmas"]]) {
+    assert.equal(await page.locator(`.proof a[href="#${cardId}"]`).count(), 1, `Proof chip ${chip} must link to #${cardId}`);
+    assert.equal(await page.locator(`article.card#${cardId}`).count(), 1, `Project card #${cardId} must exist`);
+  }
+  // Fix 2: proof chip interactive target must be at least 44px tall
+  for (const height of await page.locator(".proof a").evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))) {
+    assert.ok(height >= 44, `Proof chip target too short: ${height}px`);
+  }
+  // Fix 3: Methods stage markers are language-neutral numerics
+  assert.deepEqual((await page.locator(".stage .num").allTextContents()).map((text) => text.trim()), ["01", "02", "03", "04", "05"], "Methods stage markers must be language-neutral numerics");
+  assert.deepEqual(await page.locator(".stage h3").allTextContents(), ["Source", "Validate", "Compute", "Evaluate", "Interpret"], "Methods headings must be English in EN");
+  console.log("PASS hero proof chips deep-link to cards, 44px targets, and language-neutral Methods markers (EN)");
+
   const expectedLinks = [
     "https://soroushkarahrodi79-oss.github.io/madrid-tourism-intelligence-lens/",
     "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens",
@@ -70,6 +84,10 @@ try {
   assert.equal(await page.locator("html").getAttribute("lang"), "es");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Investigación y sistemas" }).count(), 1);
   assert.equal(await page.locator("#primaryMenu").getAttribute("aria-label"), "Navegación principal");
+  assert.deepEqual(await page.locator(".stage h3").allTextContents(), ["Fuente", "Validar", "Calcular", "Evaluar", "Interpretar"], "Methods headings must be Spanish in ES");
+  assert.deepEqual((await page.locator(".stage .num").allTextContents()).map((text) => text.trim()), ["01", "02", "03", "04", "05"], "Methods stage markers stay numeric in ES");
+  for (const cardId of ["madrid", "geoimpact", "salmas"]) assert.equal(await page.locator(`.proof a[href="#${cardId}"]`).count(), 1, `Proof chip link to #${cardId} must persist in ES`);
+  console.log("PASS Spanish Methods headings, numeric markers, and persistent proof-chip deep-links (ES)");
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
   assert.equal(await page.getByRole("heading", { level: 2, name: "Research & systems" }).count(), 1);
