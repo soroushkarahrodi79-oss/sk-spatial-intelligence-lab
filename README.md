@@ -30,6 +30,10 @@ npm run test:browser
 
 `npm test` runs all validation, copilot, link, and browser checks after Chromium is installed. CI runs these checks on GitHub Actions; no build step or runtime package is needed to serve the static site.
 
+## Evidence Explorer V0.1
+
+The Space includes a static, bilingual evidence index (`data/evidence-catalog.json`, 12 commit-pinned records) with separate provenance, reproducibility, validation and review labels. It is plain text search over a fixed catalog, not AI. See [Evidence Explorer V0.1](docs/evidence-explorer-v0.1.md).
+
 ## GeoImpact Evidence Copilot V0.1 and V0.2 hardening
 
 The local deterministic prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, ties quantities to typed report paths, binds versions and digit-bearing identifiers to exact cited strings, and abstains when the report cannot support a question. Hand-authored fixtures and generated CLI reports use synthetic inputs; none are research observations.
