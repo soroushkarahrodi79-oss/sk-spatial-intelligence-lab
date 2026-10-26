@@ -16,7 +16,7 @@ for (const lang of ["en", "es"]) {
     await p.waitForTimeout(100);
     await p.screenshot({ path: `docs/review/evidence-explorer-v0.1/${lang}-${w}x${h}-controls.png` });
     await p.locator(".ev summary").first().click();
-    await p.evaluate(() => { document.querySelector(".ev details").scrollIntoView({block:"center"}); });
+    await p.evaluate(() => { document.querySelector("#ev-EV-GIC-001").scrollIntoView({block:"start"}); });
     await p.waitForTimeout(100);
     await p.screenshot({ path: `docs/review/evidence-explorer-v0.1/${lang}-${w}x${h}-disclosure.png` });
     await p.addScriptTag({ content: axeSrc }).catch(()=>{});

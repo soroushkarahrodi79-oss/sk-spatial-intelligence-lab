@@ -264,6 +264,20 @@ try {
   }
   console.log("PASS bilingual search continuity: EN<->ES queries keep results, text and open details; display follows UI language");
 
+  // Sticky header must never cover an evidence control reached by keyboard or at the normal reading position
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; });
+  const probeFocus = () => page.evaluate(() => { const el = document.activeElement; const box = el.getBoundingClientRect(); const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2); return { inside: !!el.closest("#evidence"), covered: !(el === hit || el.contains(hit)) || box.top < document.querySelector("header").getBoundingClientRect().bottom }; });
+  await page.locator("#evQ").focus();
+  let coveredStops = 0;
+  for (const key of ["Tab", "Shift+Tab"]) for (let i = 0; i < 70; i++) { await page.keyboard.press(key); const s = await probeFocus(); if (s.inside && s.covered) coveredStops++; }
+  assert.equal(coveredStops, 0, "No evidence control may sit under the sticky header when focused by keyboard");
+  await page.evaluate(() => document.querySelector("#ev-EV-GIC-001").scrollIntoView({ block: "start" }));
+  for (const link of await page.locator("#ev-EV-GIC-001 .evlinks a").all()) {
+    assert.equal(await link.evaluate((el) => { el.scrollIntoView({ block: "center" }); const b = el.getBoundingClientRect(); const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return el === hit || el.contains(hit); }), true, "Source link must be hit-testable when scrolled into view");
+  }
+  console.log("PASS sticky header never covers focused evidence controls (140 tab stops) or links scrolled to the reading position");
+
   // Scientific-integrity rendering: synthetic stays distinguishable and HOLD states stay explicit
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
