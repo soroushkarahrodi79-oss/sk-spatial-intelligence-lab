@@ -385,6 +385,52 @@ try {
   if ((await page.locator("html").getAttribute("lang")) !== "en") await page.getByRole("button", { name: "Change language" }).click();
   console.log("PASS claim statements are searchable in EN and ES");
 
+  // ---- Hero geo-layers illustration (decorative, conceptual, inline SVG) ----
+  const heroCopy = { en: { alt: /not a real map/i, tag: "CONCEPTUAL · NOT OBSERVED DATA", legend: ["Evidence layer", "Spatial observations", "Land cover and use", "Topography", "Territorial boundaries"] }, es: { alt: /no es un mapa real/i, tag: "CONCEPTUAL · NO SON DATOS OBSERVADOS", legend: ["Capa de evidencia", "Observaciones espaciales", "Ocupación y usos del suelo", "Topografía", "Límites territoriales"] } };
+  assert.equal(await page.locator(".visual svg[role='img']").count(), 1, "The hero illustration is a single inline SVG with an image role");
+  assert.equal(await page.locator(".visual .ring, .visual .track, .visual .cross").count(), 0, "Old radar elements must be gone");
+  assert.equal(await page.locator(".visual svg image, .visual svg foreignObject, .visual svg script, .visual svg use, .visual img, .visual canvas").count(), 0, "The illustration has no raster, external, script or embedded-HTML content");
+  assert.equal(await page.locator(".visual a, .visual button, .visual input, .visual [tabindex], .visual svg [onclick]").count(), 0, "The illustration is not interactive and takes no focus");
+  assert.equal(await page.locator(".visual svg").evaluate((svg) => svg.querySelectorAll("text").length), 0, "No text is baked into the SVG (labels are real, translatable HTML)");
+  for (const language of ["en", "es"]) {
+    if ((await page.locator("html").getAttribute("lang")) !== language) await page.getByRole("button", { name: "Change language" }).click();
+    const label = await page.locator(".visual svg").getAttribute("aria-label");
+    assert.match(label, heroCopy[language].alt, `Accessible name must say the illustration is not a real map (${language})`);
+    assert.equal(await page.locator(".visual-tag").textContent(), heroCopy[language].tag, `Visible conceptual note (${language})`);
+    assert.deepEqual((await page.locator(".vlegend li").allTextContents()).map((text) => text.trim()), heroCopy[language].legend, `Layer legend, top to bottom (${language})`);
+    for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      const geometry = await page.evaluate(() => {
+        const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const visual = box(".visual");
+        const copyColumn = box(".hero > div:first-child");
+        return {
+          width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth, visual: { left: visual.left, right: visual.right, top: visual.top, height: visual.height },
+          copyBottom: copyColumn.bottom, copyRight: copyColumn.right, svgHeight: box(".vsvg").height, visualScroll: document.querySelector(".visual").scrollWidth - document.querySelector(".visual").clientWidth,
+          clippedLegend: [...document.querySelectorAll(".vlegend li, .visual-tag")].filter((el) => el.scrollWidth > el.clientWidth + 1).length,
+          legendOutside: [...document.querySelectorAll(".vlegend li, .visual-tag")].filter((el) => { const r = el.getBoundingClientRect(); return r.right > visual.right || r.left < visual.left; }).length,
+          h1Size: parseFloat(getComputedStyle(document.querySelector("h1")).fontSize),
+        };
+      });
+      const where = `${language} ${viewport.width}px`;
+      assert.ok(geometry.scrollWidth <= geometry.width, `Horizontal overflow at ${where}`);
+      assert.ok(geometry.visual.left >= 0 && geometry.visual.right <= geometry.width, `Hero illustration leaves the viewport at ${where}`);
+      assert.ok(geometry.svgHeight > 150, `Illustration collapsed at ${where}`);
+      assert.equal(geometry.visualScroll, 0, `Illustration content is clipped at ${where}`);
+      assert.equal(geometry.clippedLegend, 0, `Legend or note text clipped at ${where}`);
+      assert.equal(geometry.legendOutside, 0, `Legend or note overflows its card at ${where}`);
+      if (viewport.width <= 850) assert.ok(geometry.visual.top >= geometry.copyBottom, `Illustration must sit below the hero text at ${where}`);
+      else assert.ok(geometry.visual.left >= geometry.copyRight, `Illustration must sit beside, not over, the hero text at ${where}`);
+    }
+  }
+  if ((await page.locator("html").getAttribute("lang")) !== "en") await page.getByRole("button", { name: "Change language" }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  assert.ok((await page.locator("h1").boundingBox()).width > 400, "Headline keeps its width beside the illustration");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(await page.locator(".visual").evaluate((el) => [el, ...el.querySelectorAll("*")].reduce((n, node) => n + node.getAnimations().length, 0)), 0, "No animation or transition runs inside the illustration");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  console.log("PASS hero geo-layers illustration: one labelled SVG, no baked text or focus stops, conceptual note + legend in EN/ES, no overflow or clipping at 360-1440px");
+
   assert.deepEqual(pageErrors, [], `Browser errors: ${pageErrors.join("; ")}`);
   console.log("PASS keyboard skip link, bilingual switch, landmark label, title, cards, and project links");
 } finally {
