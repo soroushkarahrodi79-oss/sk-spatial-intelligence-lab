@@ -2,10 +2,12 @@
 //   node scripts/evidence-catalog.mjs            check (offline, deterministic)
 //   node scripts/evidence-catalog.mjs --write    re-embed the catalog into space/index.html
 //   node scripts/evidence-catalog.mjs --online   also request every source URL (network)
+//   node scripts/evidence-catalog.mjs --trace-online   also compare cited claim lines with the pinned upstream files (network)
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import Ajv2020 from "ajv/dist/2020.js";
+import { checkTrace, checkTraceOnline, excerptsPath } from "./claim-trace.mjs";
 
 const catalogPath = "data/evidence-catalog.json";
 const pagePath = "space/index.html";
@@ -97,6 +99,11 @@ for (const record of records) {
 }
 report("synthetic and real-source evidence stay distinct; HOLD and pending states are explicit");
 
+// 4b. Claim-to-source traces: pinned, line-ranged, and the cited lines must contain what the claim states
+const excerptFile = JSON.parse(await readFile(excerptsPath, "utf8"));
+const trace = checkTrace(catalog, excerptFile);
+report(`${trace.claims} claim traces: commit-pinned permalinks, valid line ranges, cited lines contain every anchor term and number, no status upgrade, unique IDs`);
+
 // 5. Unsupported scientific claims and private data
 const overclaim = /\b(validated|verified|certified|proven|proves|proof|ground[- ]truth|guarantee[sd]?|accurate|accuracy of|independently (validated|reviewed)|AI-generated)\b/i;
 for (const record of records) {
@@ -126,7 +133,13 @@ const page = await readFile(pagePath, "utf8");
 assert.ok(page.includes(embeddedBlock()), "space/index.html embeds a stale evidence catalog. Run: npm run build:evidence");
 report("space/index.html embeds the current catalog byte for byte");
 
-// 8. Optional: every source answers
+// 8. Optional: cited lines still equal the pinned upstream files
+if (process.argv.includes("--trace-online")) {
+  const count = await checkTraceOnline(catalog, excerptFile);
+  report(`${count} claim excerpts equal the lines of the pinned upstream files`);
+}
+
+// 9. Optional: every source answers
 if (process.argv.includes("--online")) {
   const urls = [...new Set(records.flatMap((record) => record.sources.map((source) => source.url)))];
   const failures = [];

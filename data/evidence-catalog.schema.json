@@ -84,7 +84,54 @@
             }
           }
         },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/claim" }
+        },
         "relatedTo": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^EV-(GIC|MUL|SAL|LAB)-\\d{3}$" } }
+      }
+    },
+    "statement": {
+      "description": "One statement tied to an exact line range of a commit-pinned document. The permalink must equal the claim source plus the line range, and every number in the text and every anchor term must occur in the cited lines (checked by scripts/claim-trace.mjs).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "lines", "permalink", "terms"],
+      "properties": {
+        "text": { "$ref": "#/$defs/text" },
+        "lines": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 1 } },
+        "permalink": { "type": "string", "pattern": "^https://github\\.com/soroushkarahrodi79-oss/[a-z0-9-]+/blob/[0-9a-f]{40}/[^\\s#?]+#L\\d+(-L\\d+)?$" },
+        "terms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 4, "maxLength": 160 } }
+      }
+    },
+    "claim": {
+      "description": "A claim-level trace. Its status can only repeat the record's scientificValidation and independentReview values: a source document stating a result is not independent validation of it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "status", "statements"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^CL-(GIC|MUL|SAL|LAB)-\\d{3}-\\d{2}$" },
+        "source": { "type": "string", "pattern": "^https://github\\.com/soroushkarahrodi79-oss/[a-z0-9-]+/blob/[0-9a-f]{40}/[^\\s#?]+$" },
+        "status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["traceStatus", "scientificValidation", "independentReview"],
+          "properties": {
+            "traceStatus": { "enum": ["line-range-checked"] },
+            "scientificValidation": { "enum": ["none-claimed", "hold", "pending"] },
+            "independentReview": { "enum": ["none-recorded", "pending"] }
+          }
+        },
+        "statements": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claim", "method", "limitation"],
+          "properties": {
+            "claim": { "$ref": "#/$defs/statement" },
+            "method": { "$ref": "#/$defs/statement" },
+            "limitation": { "$ref": "#/$defs/statement" }
+          }
+        }
       }
     }
   }

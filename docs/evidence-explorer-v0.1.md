@@ -50,3 +50,7 @@ Not published: dataset contents, report bodies, coordinates, casualty or househo
 ## Limits
 
 Provenance is not correctness. Pinned documents reflect their repositories at the pinned commit; later changes (for example Salmas, days after the event) are not reflected. No independent review exists for any record. The explorer demonstrates traceability, not validation.
+
+## Claim traces (GeoAI-2B)
+
+Three records carry optional claim-level traces with exact line-range permalinks; see [Claim-to-Source Evidence Trace V0.1](claim-trace-v0.1.md).

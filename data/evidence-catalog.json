@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "0.1.0",
+  "catalogVersion": "0.2.0",
   "asOf": "2026-10-26",
   "note": "Metadata and links only. Every statement is traceable to a public document at the pinned revision; no dataset, report body or coordinate is copied. Status fields describe four separate dimensions and are never combined.",
   "pins": {
@@ -30,6 +30,33 @@
         { "role": "methodology", "label": "GATE_6_REAL_WORLD_BENCHMARK.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_6_REAL_WORLD_BENCHMARK.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
         { "role": "methodology", "label": "GATE_5_SOURCE_REGISTER.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_SOURCE_REGISTER.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" }
       ],
+      "claims": [
+        {
+          "id": "CL-GIC-001-01",
+          "source": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_REAL_WORLD_CASE.md",
+          "status": { "traceStatus": "line-range-checked", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+          "statements": {
+            "claim": {
+              "text": { "en": "The GeoImpact CLI run on the checked-in subset reported 2,112 address-point relationship changes, all recorded as assignment_changed, across 26 distinct old-to-new section ID pairs, with a BLOCK verdict.", "es": "La ejecución de la CLI de GeoImpact sobre el subconjunto incluido en el repositorio registró 2.112 cambios de relación de puntos de dirección, todos como assignment_changed, entre 26 pares distintos de ID de sección antigua y nueva, con veredicto BLOCK." },
+              "lines": [53, 61],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_REAL_WORLD_CASE.md#L53-L61",
+              "terms": ["BLOCK / 1 (completed analysis)", "Relationship changes | 2,112 `assignment_changed`", "Distinct old→new section ID pairs | 26"]
+            },
+            "method": {
+              "text": { "en": "The figures come from a deterministic, checked-in local subset (37 BASE polygons, 49 CANDIDATE polygons, 2,112 unique address points), not complete city coverage; point locations are held fixed across the two boundary versions.", "es": "Las cifras proceden de un subconjunto local determinista incluido en el repositorio (37 polígonos BASE, 49 CANDIDATE y 2.112 puntos de dirección únicos), no de la cobertura completa de la ciudad; las ubicaciones de los puntos se mantienen fijas entre las dos versiones de límites." },
+              "lines": [33, 40],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_REAL_WORLD_CASE.md#L33-L40",
+              "terms": ["a deterministic, local subset, not complete city coverage", "37 BASE polygons, 49 CANDIDATE polygons, and 2,112 unique address points", "locations are held fixed across the two boundary versions"]
+            },
+            "limitation": {
+              "text": { "en": "The source does not establish the exact effective dates or administrative rationale for every 2024-to-2025 geometry change, and the address snapshot is from 2026, so the result is not a time-aligned historical impact estimate; it does not validate legal, electoral or statistical decisions for individual locations.", "es": "La fuente no establece las fechas de efecto exactas ni la justificación administrativa de cada cambio de geometría de 2024 a 2025, y la instantánea de direcciones es de 2026, por lo que el resultado no es una estimación de impacto histórico alineada en el tiempo; no valida decisiones legales, electorales ni estadísticas sobre ubicaciones concretas." },
+              "lines": [130, 136],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_REAL_WORLD_CASE.md#L130-L136",
+              "terms": ["it is not a time-aligned historical impact estimate", "does not validate legal, electoral, or statistical decisions for individual locations"]
+            }
+          }
+        }
+      ],
       "relatedTo": ["EV-LAB-001"]
     },
     {
@@ -51,6 +78,33 @@
         { "role": "evidence", "label": "GATE_8_REAL_WORLD_GENERALIZATION.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
         { "role": "methodology", "label": "sierra-de-baza-2015-2025/README.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/research/sierra-de-baza-2015-2025/README.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
         { "role": "methodology", "label": "GATE_8_SOURCE_REGISTER.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_SOURCE_REGISTER.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" }
+      ],
+      "claims": [
+        {
+          "id": "CL-GIC-002-01",
+          "source": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md",
+          "status": { "traceStatus": "line-range-checked", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+          "statements": {
+            "claim": {
+              "text": { "en": "The GeoImpact CLI reported 52 relationship records and 0 relationship regressions (52 unchanged, 0 assignment changed, 0 gained, 0 lost), with a PASS policy verdict against a zero threshold.", "es": "La CLI de GeoImpact registró 52 registros de relación y 0 regresiones de relación (52 sin cambios, 0 con asignación cambiada, 0 ganados, 0 perdidos), con veredicto de política PASS frente a un umbral cero." },
+              "lines": [124, 128],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md#L124-L128",
+              "terms": ["GeoImpact policy verdict: **PASS** (0 observed regressions against a zero threshold)", "Relationship records: **52**", "Relationship regressions: **0**", "52 unchanged; 0 assignment changed; 0 gained; 0 lost"]
+            },
+            "method": {
+              "text": { "en": "The 52 points are a deterministic subset of a fixed dependency layer: every point within the primary change-footprint bounding envelope expanded by exactly 10,000 m was kept. The expansion is only a fixture selection rule set without observing assignments, not a GeoImpact predicate or policy buffer.", "es": "Los 52 puntos son un subconjunto determinista de una capa de dependencia fija: se conservó cada punto dentro de la envolvente del área de cambio ampliada exactamente 10.000 m. La ampliación es solo una regla de selección del fixture, fijada sin observar asignaciones, y no un predicado ni un búfer de política de GeoImpact." },
+              "lines": [92, 97],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md#L92-L97",
+              "terms": ["expanded by exactly **10,000 m** on each side", "it is not a GeoImpact predicate or policy buffer", "It yielded 52 dependency points"]
+            },
+            "limitation": {
+              "text": { "en": "The comparison establishes only that one official protected-area geometry changed and records how a fixed reference inventory relates to the two states. It makes no claims about causality, legal impact or administrative intent, and the inventory was not historically aligned with the boundary states.", "es": "La comparación solo establece que cambió la geometría oficial de un espacio protegido y registra cómo se relaciona un inventario de referencia fijo con los dos estados. No hace afirmaciones sobre causalidad, efecto legal ni intención administrativa, y el inventario no estaba alineado históricamente con los estados de los límites." },
+              "lines": [184, 192],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md#L184-L192",
+              "terms": ["establishes only that one official protected-area geometry changed", "It makes no claims about causality, legal impact, administrative intent", "was not historically aligned"]
+            }
+          }
+        }
       ],
       "relatedTo": []
     },
@@ -266,6 +320,33 @@
       "sources": [
         { "role": "evidence", "label": "SENSOR_GATE.md", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" },
         { "role": "methodology", "label": "catalog_snapshot.csv", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/provenance/catalog_snapshot.csv", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" }
+      ],
+      "claims": [
+        {
+          "id": "CL-SAL-002-01",
+          "source": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md",
+          "status": { "traceStatus": "line-range-checked", "scientificValidation": "hold", "independentReview": "none-recorded" },
+          "statements": {
+            "claim": {
+              "text": { "en": "The sensor-gate document lists a Sentinel-1D scene of 2026-10-21 and Sentinel-2C tiles of 2026-10-22 (tile-level cloud cover of 27.63% and 48.13%) as the known pre-event observations, and records the gate status at inception as provisional GO for catalogue monitoring and HOLD for flood extent.", "es": "El documento de la puerta de sensores enumera una escena Sentinel-1D del 2026-10-21 y teselas Sentinel-2C del 2026-10-22 (nubosidad a escala de tesela de 27,63 % y 48,13 %) como observaciones previas al evento conocidas, y registra el estado de la puerta al inicio como GO provisional para el seguimiento del catálogo y EN ESPERA para la extensión de la inundación." },
+              "lines": [3, 15],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md#L3-L15",
+              "terms": ["PROVISIONAL GO FOR CATALOGUE MONITORING / HOLD FOR FLOOD EXTENT", "Known pre-event observations", "tile-level cloud cover of 27.63% and 48.13%", "2026-10-21T14:52:30Z", "2026-10-22T07:49:51Z"]
+            },
+            "method": {
+              "text": { "en": "Flood delineation may open only when all eight listed conditions hold, including at least one post-event acquisition that intersects the analytical AOI and checks against independent observations.", "es": "La delineación de la inundación solo puede abrirse cuando se cumplen las ocho condiciones enumeradas, entre ellas al menos una adquisición posterior al evento que intersecte el área de estudio y comprobaciones frente a observaciones independientes." },
+              "lines": [17, 28],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md#L17-L28",
+              "terms": ["All conditions are mandatory", "at least one post-event acquisition intersects the analytical AOI", "results are checked against independent observations and terrain pathways"]
+            },
+            "limitation": {
+              "text": { "en": "The document lists failure modes (short-lived water may drain before the next pass; optical evidence may be obscured by storm clouds; other surfaces can mimic water-related backscatter changes) and states that if they dominate, the valid output is an observation-gap map and a NO-GO verdict, not a forced flood polygon.", "es": "El documento enumera modos de fallo (el agua efímera puede drenar antes del siguiente paso; la evidencia óptica puede quedar oculta por las nubes de la tormenta; otras superficies pueden imitar cambios de retrodispersión asociados al agua) y establece que, si predominan, el resultado válido es un mapa de huecos de observación y un veredicto NO-GO, no un polígono de inundación forzado." },
+              "lines": [30, 38],
+              "permalink": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md#L30-L38",
+              "terms": ["Short-lived water may drain before the next satellite pass", "Optical evidence may be obscured by the same storm clouds", "an observation-gap map and a NO-GO verdict, not a forced flood polygon"]
+            }
+          }
+        }
       ],
       "relatedTo": ["EV-SAL-001"]
     }
