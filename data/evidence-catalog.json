@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "0.1.0",
+  "asOf": "2026-10-26",
+  "note": "Metadata and links only. Every statement is traceable to a public document at the pinned revision; no dataset, report body or coordinate is copied. Status fields describe four separate dimensions and are never combined.",
+  "pins": {
+    "geoimpact-ci": { "repo": "soroushkarahrodi79-oss/geoimpact-ci", "sha": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+    "madrid-lens": { "repo": "soroushkarahrodi79-oss/madrid-tourism-intelligence-lens", "sha": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" },
+    "salmas": { "repo": "soroushkarahrodi79-oss/salmas-flood-spatial-forensics", "sha": "97be23c1d9a5c2548daa3772375e235b59f98b30" },
+    "lab": { "repo": "soroushkarahrodi79-oss/sk-spatial-intelligence-lab", "sha": "1d430a8f8f99405666173f57d5a05b855502566d" }
+  },
+  "records": [
+    {
+      "id": "EV-GIC-001",
+      "project": "geoimpact-ci",
+      "type": "real-source-case",
+      "dataOrigin": "real-source",
+      "title": { "en": "Madrid census-section boundary change", "es": "Cambio de secciones censales de Madrid" },
+      "question": { "en": "If two official versions of Madrid census sections differ, how many fixed address points change section?", "es": "Si dos versiones oficiales de las secciones censales de Madrid difieren, ¿cuántos puntos de dirección fijos cambian de sección?" },
+      "finding": { "en": "On a bounded, frozen subset (37 BASE and 49 CANDIDATE sections, 2,112 fixed address points) GeoImpact-CI recorded 2,112 assignment changes across 26 old-to-new section pairs and a policy BLOCK.", "es": "En un subconjunto acotado y congelado (37 secciones BASE, 49 CANDIDATE y 2.112 puntos de dirección fijos), GeoImpact-CI registró 2.112 cambios de asignación entre 26 pares de secciones antiguas y nuevas, y un veredicto de política BLOCK." },
+      "limitations": { "en": "The result is a spatial counterfactual: 2026 address points are tested against 2024 and 2025 section versions, so it is not a time-aligned historical impact estimate. BLOCK is a policy decision on a zero-threshold exploratory setting, not geographic truth. INE's dataset-specific reuse licence is unconfirmed.", "es": "El resultado es un contrafactual espacial: los puntos de dirección de 2026 se contrastan con las secciones de 2024 y 2025, de modo que no es una estimación de impacto histórico alineada en el tiempo. BLOCK es una decisión de política con un umbral cero exploratorio, no una verdad geográfica. La licencia de reutilización específica del INE no está confirmada." },
+      "scope": {
+        "geographic": { "en": "Madrid municipality; bounded subset around changed sections only", "es": "Municipio de Madrid; subconjunto acotado alrededor de las secciones modificadas" },
+        "temporal": { "en": "Section versions 2024 and 2025; address snapshot retrieved 2026-10-03", "es": "Versiones de secciones de 2024 y 2025; instantánea de direcciones obtenida el 2026-10-03" }
+      },
+      "reproducibility": { "en": "Four input files have recorded SHA-256 values and the expected BLOCK result is enforced as a CI contract on Linux and Windows.", "es": "Cuatro archivos de entrada tienen valores SHA-256 registrados y el resultado BLOCK esperado se exige como contrato de CI en Linux y Windows." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "ci-contract", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "GATE_5_REAL_WORLD_CASE.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_REAL_WORLD_CASE.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+        { "role": "methodology", "label": "GATE_6_REAL_WORLD_BENCHMARK.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_6_REAL_WORLD_BENCHMARK.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+        { "role": "methodology", "label": "GATE_5_SOURCE_REGISTER.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_5_SOURCE_REGISTER.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" }
+      ],
+      "relatedTo": ["EV-LAB-001"]
+    },
+    {
+      "id": "EV-GIC-002",
+      "project": "geoimpact-ci",
+      "type": "real-source-case",
+      "dataOrigin": "real-source",
+      "title": { "en": "Sierra de Baza boundary update (negative control)", "es": "Actualización del límite de Sierra de Baza (control negativo)" },
+      "question": { "en": "Does an official protected-area boundary update change which fixed public-use facilities fall inside the park?", "es": "¿Una actualización oficial del límite de un espacio protegido cambia qué equipamientos de uso público fijos quedan dentro del parque?" },
+      "finding": { "en": "For 52 fixed facility points GeoImpact-CI recorded 0 relationship changes, 0 regressions and a policy PASS between the 2015 and December 2025 park boundaries. Gate 8 accepted it as a negative control, not as a demonstration of impact.", "es": "Para 52 puntos de equipamiento fijos, GeoImpact-CI registró 0 cambios de relación, 0 regresiones y un veredicto PASS entre los límites del parque de 2015 y de diciembre de 2025. La Gate 8 lo aceptó como control negativo, no como demostración de impacto." },
+      "limitations": { "en": "The facility inventory was retrieved on 2026-10-05 and is not aligned with either boundary date. Geometry alone cannot show administrative intent, legal effect, access or service. The current boundary and facility layers need separate rights confirmation beyond the CC BY 4.0 stated for the 2015 layer.", "es": "El inventario de equipamientos se obtuvo el 2026-10-05 y no coincide con ninguna de las fechas de los límites. La geometría por sí sola no muestra intención administrativa, efecto legal, acceso ni servicio. Los límites y equipamientos actuales requieren confirmar derechos por separado, más allá de la licencia CC BY 4.0 indicada para la capa de 2015." },
+      "scope": {
+        "geographic": { "en": "Sierra de Baza Natural Park, Andalusia, Spain", "es": "Parque Natural Sierra de Baza, Andalucía, España" },
+        "temporal": { "en": "Boundaries May 2015 and December 2025; facilities snapshot 2026-10-05", "es": "Límites de mayo de 2015 y diciembre de 2025; instantánea de equipamientos del 2026-10-05" }
+      },
+      "reproducibility": { "en": "Source and fixture SHA-256 values are recorded and a preparation script aborts on a hash mismatch. Raw snapshots are not in the repository, and the current WFS may change upstream.", "es": "Los SHA-256 de fuentes y fixtures están registrados y un script de preparación aborta si el hash no coincide. Las instantáneas originales no están en el repositorio y el WFS actual puede cambiar en origen." },
+      "status": { "sourceProvenance": "pinned-partial", "reproducibility": "ci-contract", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "GATE_8_REAL_WORLD_GENERALIZATION.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_REAL_WORLD_GENERALIZATION.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+        { "role": "methodology", "label": "sierra-de-baza-2015-2025/README.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/research/sierra-de-baza-2015-2025/README.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+        { "role": "methodology", "label": "GATE_8_SOURCE_REGISTER.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_8_SOURCE_REGISTER.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-GIC-003",
+      "project": "geoimpact-ci",
+      "type": "reproducibility",
+      "dataOrigin": "real-source",
+      "title": { "en": "Cross-platform boundary-displacement drift and fix", "es": "Deriva de desplazamiento de límite entre plataformas y su corrección" },
+      "question": { "en": "Why did the same frozen case give slightly different displacement values on Windows and Linux, and was it fixed?", "es": "¿Por qué el mismo caso congelado daba valores de desplazamiento algo distintos en Windows y Linux, y se corrigió?" },
+      "finding": { "en": "One displacement scalar differed by about 1.5e-10 m between platforms (368.8250959451751 vs 368.82509594532814 m). After conforming measurement copies to a 1e-6 m grid, the frozen Sierra case produced byte-identical V3 reports on both hosted runners.", "es": "Un escalar de desplazamiento difería unos 1,5e-10 m entre plataformas (368,8250959451751 frente a 368,82509594532814 m). Tras ajustar las copias de medición a una malla de 1e-6 m, el caso Sierra congelado produjo informes V3 idénticos byte a byte en ambos ejecutores alojados." },
+      "limitations": { "en": "The guarantee covers Shapely 2.1.2, GEOS 3.13.1, Linux with Python 3.11 and Windows with Python 3.14 only. The grid is a computation-precision choice, not a claim about source accuracy. It is an engineering finding, not a geographic result.", "es": "La garantía cubre solo Shapely 2.1.2, GEOS 3.13.1, Linux con Python 3.11 y Windows con Python 3.14. La malla es una decisión de precisión de cálculo, no una afirmación sobre la exactitud de la fuente. Es un hallazgo de ingeniería, no un resultado geográfico." },
+      "scope": {
+        "geographic": { "en": "Not applicable (numerical behaviour); demonstrated on the Sierra de Baza case", "es": "No aplica (comportamiento numérico); demostrado con el caso Sierra de Baza" },
+        "temporal": { "en": "Hosted CI runs recorded for GeoImpact-CI Gate 9", "es": "Ejecuciones de CI alojado registradas para la Gate 9 de GeoImpact-CI" }
+      },
+      "reproducibility": { "en": "Two hosted CI runs are linked: the full frozen-case qualification and the final pull-request workflow.", "es": "Se enlazan dos ejecuciones de CI alojado: la cualificación del caso congelado completo y el flujo final de la pull request." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "ci-contract", "scientificValidation": "not-applicable", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "GATE_9_DISPLACEMENT_PORTABILITY.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/GATE_9_DISPLACEMENT_PORTABILITY.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" },
+        { "role": "run", "label": "CI run 37321556884", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/actions/runs/37321556884", "pin": "run:37321556884" },
+        { "role": "run", "label": "CI run 37321989980", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/actions/runs/37321989980", "pin": "run:37321989980" }
+      ],
+      "relatedTo": ["EV-GIC-002"]
+    },
+    {
+      "id": "EV-GIC-004",
+      "project": "geoimpact-ci",
+      "type": "validation-status",
+      "dataOrigin": "documentation",
+      "title": { "en": "External adoption validation of GeoImpact-CI v1.2.0", "es": "Validación externa de adopción de GeoImpact-CI v1.2.0" },
+      "question": { "en": "Can an independent GIS user adopt and interpret GeoImpact-CI from its frozen public documentation?", "es": "¿Puede una persona usuaria independiente de SIG adoptar e interpretar GeoImpact-CI a partir de su documentación pública congelada?" },
+      "finding": { "en": "A pre-registered protocol (2026-10-06) exists. At the pinned commit its result is PENDING and zero evaluators had taken part.", "es": "Existe un protocolo preinscrito (2026-10-06). En el commit fijado su resultado está PENDIENTE y ningún evaluador había participado." },
+      "limitations": { "en": "A protocol is not a result. Even a completed study would test adoption and interpretation, not geographic truth, causality or real-world impact. Status after the pinned commit is not reflected here.", "es": "Un protocolo no es un resultado. Incluso un estudio completado evaluaría adopción e interpretación, no verdad geográfica, causalidad ni impacto real. El estado posterior al commit fijado no se refleja aquí." },
+      "hold": { "en": "Result PENDING: no evaluator has participated.", "es": "Resultado PENDIENTE: ningún evaluador ha participado." },
+      "scope": {
+        "geographic": { "en": "Not applicable", "es": "No aplica" },
+        "temporal": { "en": "Protocol pre-registered 2026-10-06", "es": "Protocolo preinscrito el 2026-10-06" }
+      },
+      "reproducibility": { "en": "Not applicable: no study results exist yet.", "es": "No aplica: todavía no existen resultados del estudio." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "not-applicable", "scientificValidation": "pending", "independentReview": "pending" },
+      "sources": [
+        { "role": "evidence", "label": "EXTERNAL_VALIDATION_V1_PROTOCOL.md", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/blob/c39733b61b60abe3b6e9e9c50f74f5c206022399/docs/EXTERNAL_VALIDATION_V1_PROTOCOL.md", "pin": "c39733b61b60abe3b6e9e9c50f74f5c206022399" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-LAB-001",
+      "project": "lab",
+      "type": "reproducibility",
+      "dataOrigin": "real-source",
+      "title": { "en": "Madrid V5 report recovered from CI artifacts", "es": "Informe V5 de Madrid recuperado de artefactos de CI" },
+      "question": { "en": "Do the Linux and Windows CI artifacts of the Madrid benchmark contain the same V5 report, and can it be admitted as evidence?", "es": "¿Contienen los artefactos de CI de Linux y Windows del benchmark de Madrid el mismo informe V5, y puede admitirse como evidencia?" },
+      "finding": { "en": "Both artifacts hold byte-identical V5 BLOCK reports with 2,112 relationship regressions, and their input hashes match the pinned Gate 5 source register. This is a mechanical file inspection of one case.", "es": "Ambos artefactos contienen informes V5 BLOCK idénticos byte a byte con 2.112 regresiones de relación, y sus hashes de entrada coinciden con el registro de fuentes fijado de la Gate 5. Es una inspección mecánica de archivos de un solo caso." },
+      "limitations": { "en": "Not admitted: independent rights and provenance review has not happened. The Windows and Linux copies are one observation, not two. Artifact retention is limited and the report body is deliberately not published here.", "es": "No admitido: no se ha realizado la revisión independiente de derechos y procedencia. Las copias de Windows y Linux son una sola observación, no dos. La retención de artefactos es limitada y el cuerpo del informe no se publica aquí a propósito." },
+      "hold": { "en": "Scientific and rights admission is ON HOLD.", "es": "La admisión científica y de derechos está EN ESPERA." },
+      "scope": {
+        "geographic": { "en": "Madrid census-section subset (same case as EV-GIC-001)", "es": "Subconjunto de secciones censales de Madrid (mismo caso que EV-GIC-001)" },
+        "temporal": { "en": "CI run of 2026-10-19; inspected 2026-10-25", "es": "Ejecución de CI del 2026-10-19; inspeccionada el 2026-10-25" }
+      },
+      "reproducibility": { "en": "Report SHA-256 29a9337a…b272df is identical on both platforms. Reproducing it needs the pinned inputs or the (expiring) artifacts.", "es": "El SHA-256 del informe 29a9337a…b272df es idéntico en ambas plataformas. Reproducirlo requiere las entradas fijadas o los artefactos (que caducan)." },
+      "status": { "sourceProvenance": "pinned-partial", "reproducibility": "receipt-only", "scientificValidation": "none-claimed", "independentReview": "pending" },
+      "sources": [
+        { "role": "evidence", "label": "geoimpact-v0.2.2-madrid-v5-inspection.md", "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/1d430a8f8f99405666173f57d5a05b855502566d/docs/geoimpact-v0.2.2-madrid-v5-inspection.md", "pin": "1d430a8f8f99405666173f57d5a05b855502566d" },
+        { "role": "methodology", "label": "geoimpact-v0.2.2-evidence-candidate-register.md", "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/1d430a8f8f99405666173f57d5a05b855502566d/docs/geoimpact-v0.2.2-evidence-candidate-register.md", "pin": "1d430a8f8f99405666173f57d5a05b855502566d" },
+        { "role": "run", "label": "CI run 39253997774", "url": "https://github.com/soroushkarahrodi79-oss/geoimpact-ci/actions/runs/39253997774", "pin": "run:39253997774" }
+      ],
+      "relatedTo": ["EV-GIC-001"]
+    },
+    {
+      "id": "EV-LAB-002",
+      "project": "lab",
+      "type": "synthetic-evaluation",
+      "dataOrigin": "synthetic",
+      "title": { "en": "Evidence Copilot semantic gate (synthetic evaluation)", "es": "Puerta semántica del Evidence Copilot (evaluación sintética)" },
+      "question": { "en": "Does field-level claim binding catch meaning-changing edits that number-and-citation checks accept?", "es": "¿La vinculación de afirmaciones a campos detecta ediciones que cambian el significado y que las comprobaciones de números y citas aceptan?" },
+      "finding": { "en": "Over 2,731 mutated claims on 120 held-out synthetic reports, the V0.1-style checks rejected 576 (21%) and the V0.2 semantic gate rejected all 2,731.", "es": "Sobre 2.731 afirmaciones mutadas en 120 informes sintéticos reservados, las comprobaciones de estilo V0.1 rechazaron 576 (21 %) y la puerta semántica V0.2 rechazó las 2.731." },
+      "limitations": { "en": "Invented, schema-valid reports from one author and one generator: this measures software behaviour, not real-world accuracy. The held-out split is procedural, not independent. No language model is involved and all human reviews are unreviewed.", "es": "Informes inventados y válidos según el esquema, de un solo autor y un solo generador: mide el comportamiento del software, no la exactitud en el mundo real. La división reservada es procedimental, no independiente. No interviene ningún modelo de lenguaje y todas las revisiones humanas siguen sin realizarse." },
+      "scope": {
+        "geographic": { "en": "None: synthetic geometries", "es": "Ninguno: geometrías sintéticas" },
+        "temporal": { "en": "Evaluation recorded 2026-10-24", "es": "Evaluación registrada el 2026-10-24" }
+      },
+      "reproducibility": { "en": "Seeded generator with SHA-256 split manifests; the evaluation runs offline and fails on any gate miss.", "es": "Generador con semillas y manifiestos SHA-256 por división; la evaluación se ejecuta sin conexión y falla ante cualquier fallo de puerta." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "local-deterministic", "scientificValidation": "synthetic-only", "independentReview": "pending" },
+      "sources": [
+        { "role": "evidence", "label": "geoimpact-evidence-copilot-v0.2.md", "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/1d430a8f8f99405666173f57d5a05b855502566d/docs/geoimpact-evidence-copilot-v0.2.md", "pin": "1d430a8f8f99405666173f57d5a05b855502566d" },
+        { "role": "methodology", "label": "evaluation/README.md", "url": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/blob/1d430a8f8f99405666173f57d5a05b855502566d/geoimpact-copilot/evaluation/README.md", "pin": "1d430a8f8f99405666173f57d5a05b855502566d" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-MUL-001",
+      "project": "madrid-lens",
+      "type": "source-gate",
+      "dataOrigin": "real-source",
+      "title": { "en": "Granted urban licences: source gate and layer", "es": "Licencias urbanísticas otorgadas: control de fuente y capa" },
+      "question": { "en": "Can granted urban licences be placed on official addresses defensibly, and what may they be used to say?", "es": "¿Pueden situarse las licencias urbanísticas otorgadas sobre direcciones oficiales de forma defendible y qué permiten afirmar?" },
+      "finding": { "en": "Gate M matched 11,265 of 11,498 granted-licence rows (97.97%) to official callejero addresses and withholds the other 233. The shipped layer separates three licence families and never sums them.", "es": "La Gate M asignó 11.265 de 11.498 filas de licencias otorgadas (97,97 %) a direcciones del callejero oficial y retiene las otras 233. La capa publicada separa tres familias de licencias y nunca las suma." },
+      "limitations": { "en": "A granted licence records an administrative grant, not that work started, finished or was occupied. The register is granted-only, so no approval or refusal rate can be derived. Gate M's own verdict is GO WITH CONDITIONS.", "es": "Una licencia otorgada registra una concesión administrativa, no que las obras empezaran, terminaran u ocuparan. El registro solo contiene concesiones, así que no puede derivarse ninguna tasa de aprobación o denegación. El veredicto de la propia Gate M es GO CON CONDICIONES." },
+      "scope": {
+        "geographic": { "en": "Madrid city, official callejero addresses", "es": "Ciudad de Madrid, direcciones del callejero oficial" },
+        "temporal": { "en": "Sources retrieved 2026-10-06; licence grant dates vary by record", "es": "Fuentes obtenidas el 2026-10-06; las fechas de concesión varían por registro" }
+      },
+      "reproducibility": { "en": "Official sources are retrieved at build time and committed with SHA-256 fingerprints; the browser never calls the open-data portals.", "es": "Las fuentes oficiales se obtienen en tiempo de compilación y se confirman con huellas SHA-256; el navegador nunca llama a los portales de datos abiertos." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "build-time-pinned", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "CALLEJERO_NDP_CROSSWALK_GATE_M.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/CALLEJERO_NDP_CROSSWALK_GATE_M.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" },
+        { "role": "methodology", "label": "URBAN_LICENCES_V1.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/URBAN_LICENCES_V1.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-MUL-002",
+      "project": "madrid-lens",
+      "type": "source-gate",
+      "dataOrigin": "real-source",
+      "title": { "en": "Accommodation numerator: two candidate sources", "es": "Numerador de alojamiento: dos fuentes candidatas" },
+      "question": { "en": "Which public source can support a barrio-level count of tourist accommodation supply in Madrid?", "es": "¿Qué fuente pública puede respaldar un recuento de oferta de alojamiento turístico por barrio en Madrid?" },
+      "finding": { "en": "Gate B admitted the municipal licensed tourist-dwelling register (1,025 of 1,025 records reconciled to a barrio) as a numerator-only artifact, and returned MODIFY for the regional accommodation inventory (6,465 of 6,501 reconciled) because it defines no universe or record-level period.", "es": "La Gate B admitió el registro municipal de viviendas de uso turístico con licencia (1.025 de 1.025 registros asignados a un barrio) como artefacto solo de numerador, y devolvió MODIFICAR para el inventario regional de alojamientos (6.465 de 6.501 asignados) porque no define universo ni periodo por registro." },
+      "limitations": { "en": "Gate B qualifies sources only: it publishes no indicator, ratio, per-resident figure or ranking. The audit was run on 2026-09-30 against live official sources and its numbers can drift.", "es": "La Gate B solo cualifica fuentes: no publica indicador, ratio, cifra por habitante ni ranking. La auditoría se ejecutó el 2026-09-30 sobre fuentes oficiales vivas y sus cifras pueden variar." },
+      "scope": {
+        "geographic": { "en": "Madrid city, barrio level", "es": "Ciudad de Madrid, nivel de barrio" },
+        "temporal": { "en": "Audit of 2026-09-30; source periods differ by dataset", "es": "Auditoría del 2026-09-30; los periodos de la fuente difieren según el conjunto" }
+      },
+      "reproducibility": { "en": "The audit script is committed and regenerates the three report files quoted in the gate record.", "es": "El script de auditoría está en el repositorio y regenera los tres archivos de informe citados en el registro de la gate." },
+      "status": { "sourceProvenance": "pinned-partial", "reproducibility": "build-time-pinned", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "ACCOMMODATION_NUMERATOR_GATE_B.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/ACCOMMODATION_NUMERATOR_GATE_B.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-MUL-003",
+      "project": "madrid-lens",
+      "type": "source-gate",
+      "dataOrigin": "real-source",
+      "title": { "en": "Destination origin context: domestic GO, international HOLD", "es": "Contexto de origen de destino: nacional GO, internacional EN ESPERA" },
+      "question": { "en": "Can origin-of-visitor evidence be added at municipality level without inventing local geography?", "es": "¿Puede añadirse evidencia del origen de los visitantes a nivel municipal sin inventar geografía local?" },
+      "finding": { "en": "Gate H approved domestic origin context from the official INE workbook and put international origin on HOLD/WATCH. It does not authorise barrio, district or Lens-circle allocation.", "es": "La Gate H aprobó el contexto de origen nacional a partir del libro oficial del INE y dejó el origen internacional EN ESPERA/VIGILANCIA. No autoriza la asignación a barrio, distrito ni círculo del Lens." },
+      "limitations": { "en": "INE publishes only origin-destination crossings above 30 tourists, so suppression is part of the data. The measure is experimental and mobile-phone-based. A Dataestur API route failed with HTTP 504 in CI and is not the production route.", "es": "El INE solo publica cruces origen-destino de más de 30 turistas, por lo que la supresión forma parte de los datos. La medida es experimental y basada en telefonía móvil. Una ruta de la API de Dataestur falló con HTTP 504 en CI y no es la ruta de producción." },
+      "hold": { "en": "International origin is on HOLD/WATCH.", "es": "El origen internacional está EN ESPERA/VIGILANCIA." },
+      "scope": {
+        "geographic": { "en": "Madrid municipality only", "es": "Solo el municipio de Madrid" },
+        "temporal": { "en": "Gate closed 2026-10-02; INE workbook months 2026-01 to 2026-07", "es": "Gate cerrada el 2026-10-02; meses del libro del INE de 2026-01 a 2026-07" }
+      },
+      "reproducibility": { "en": "The INE workbook was downloaded successfully in GitHub Actions and its structure recorded; this is a source contract, not a computed result.", "es": "El libro del INE se descargó correctamente en GitHub Actions y se registró su estructura; es un contrato de fuente, no un resultado calculado." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "build-time-pinned", "scientificValidation": "none-claimed", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "DESTINATION_ORIGIN_GATE_H.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/DESTINATION_ORIGIN_GATE_H.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-MUL-004",
+      "project": "madrid-lens",
+      "type": "source-gate",
+      "dataOrigin": "real-source",
+      "title": { "en": "Hospitality choropleth fill suspended", "es": "Relleno coroplético de hostelería suspendido" },
+      "question": { "en": "Is a colour-filled barrio map of hospitality indicators defensible as shipped?", "es": "¿Es defendible un mapa de barrios rellenos de color con indicadores de hostelería tal como se publicó?" },
+      "finding": { "en": "The value-driven polygon fill was suspended because no review of classification, legend or misreading risk had been recorded. The five approved indicators stay readable through the selector and context card, and the area denominator was ruled NO-GO.", "es": "El relleno de polígonos según valor se suspendió porque no constaba revisión de clasificación, leyenda ni riesgo de mala lectura. Los cinco indicadores aprobados siguen legibles mediante el selector y la ficha de contexto, y el denominador por área se declaró NO-GO." },
+      "limitations": { "en": "The record covers 131 barrios in a September 2026 snapshot. Absolute counts mostly reflect barrio size, and per-resident rates are extreme in small-population barrios. No reviewed classification exists yet.", "es": "El registro abarca 131 barrios en una instantánea de septiembre de 2026. Los recuentos absolutos reflejan sobre todo el tamaño del barrio y las tasas por habitante son extremas en barrios de poca población. Aún no existe una clasificación revisada." },
+      "hold": { "en": "Choropleth fill is ON HOLD.", "es": "El relleno coroplético está EN ESPERA." },
+      "scope": {
+        "geographic": { "en": "Madrid, 131 barrios", "es": "Madrid, 131 barrios" },
+        "temporal": { "en": "September 2026 snapshot (one indicator also dated 1 Jan 2026)", "es": "Instantánea de septiembre de 2026 (un indicador también con fecha 1 ene 2026)" }
+      },
+      "reproducibility": { "en": "A single constant in the source switches the fill; the decision and its rationale are recorded in the cited document.", "es": "Una única constante en el código activa el relleno; la decisión y su justificación constan en el documento citado." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "not-applicable", "scientificValidation": "hold", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "HOSPITALITY_CHOROPLETH_HOLD.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/HOSPITALITY_CHOROPLETH_HOLD.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" },
+        { "role": "methodology", "label": "CLAIMS_AND_LIMITATIONS.md", "url": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/704fffb2848f9f9780f5ad2b84aeb71750e46f73/docs/CLAIMS_AND_LIMITATIONS.md", "pin": "704fffb2848f9f9780f5ad2b84aeb71750e46f73" }
+      ],
+      "relatedTo": []
+    },
+    {
+      "id": "EV-SAL-001",
+      "project": "salmas",
+      "type": "claim-register",
+      "dataOrigin": "documentation",
+      "title": { "en": "Salmas flash flood: claim register", "es": "Crecida repentina de Salmas: registro de afirmaciones" },
+      "question": { "en": "Which statements about the Salmas flash flood are supported, superseded, unsupported or out of scope?", "es": "¿Qué afirmaciones sobre la crecida repentina de Salmas están respaldadas, superadas, sin respaldo o fuera de alcance?" },
+      "finding": { "en": "Eight dated claims carry explicit statuses: the event occurred (supported), maximum flood extent is unknown (supported absence), operational casualty and dwelling reports are supersedable, village-scale rainfall intensity is unsupported, and climate attribution is out of scope.", "es": "Ocho afirmaciones fechadas llevan estados explícitos: el evento ocurrió (respaldada), la extensión máxima de la inundación se desconoce (ausencia respaldada), los informes operativos de víctimas y viviendas son reemplazables, la intensidad de lluvia a escala de pueblo no tiene respaldo y la atribución climática queda fuera de alcance." },
+      "limitations": { "en": "Event reporting was still evolving when the register was pinned (days after the event). Counts are intentionally not reproduced here. A claim register records the state of evidence, not an independent measurement.", "es": "La información sobre el evento seguía evolucionando cuando se fijó el registro (días después del suceso). Las cifras no se reproducen aquí a propósito. Un registro de afirmaciones documenta el estado de la evidencia, no una medición independiente." },
+      "hold": { "en": "Flood extent is ON HOLD.", "es": "La extensión de la inundación está EN ESPERA." },
+      "scope": {
+        "geographic": { "en": "Salmas County, West Azerbaijan, Iran", "es": "Condado de Salmas, Azerbaiyán Occidental, Irán" },
+        "temporal": { "en": "Event of 2026-10-22; claims stamped 2026-10-22 and 2026-10-23", "es": "Evento del 2026-10-22; afirmaciones fechadas el 2026-10-22 y el 2026-10-23" }
+      },
+      "reproducibility": { "en": "Not applicable: a versioned CSV register, not a computed result.", "es": "No aplica: es un registro CSV versionado, no un resultado calculado." },
+      "status": { "sourceProvenance": "pinned", "reproducibility": "not-applicable", "scientificValidation": "hold", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "claim_register.csv", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/provenance/claim_register.csv", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" },
+        { "role": "methodology", "label": "LIMITATIONS.md", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/LIMITATIONS.md", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" }
+      ],
+      "relatedTo": ["EV-SAL-002"]
+    },
+    {
+      "id": "EV-SAL-002",
+      "project": "salmas",
+      "type": "source-gate",
+      "dataOrigin": "real-source",
+      "title": { "en": "Salmas sensor gate: satellite flood extent on hold", "es": "Puerta de sensores de Salmas: extensión satelital en espera" },
+      "question": { "en": "Do the available Sentinel acquisitions allow a satellite flood polygon to be delineated?", "es": "¿Permiten las adquisiciones Sentinel disponibles delinear un polígono de inundación por satélite?" },
+      "finding": { "en": "Only pre-event scenes were catalogued: a Sentinel-1 baseline on 2026-10-21 and Sentinel-2 tiles on 2026-10-22 with 27.63% and 48.13% tile-level cloud. No post-event Sentinel-1 scene was catalogued, so the gate stays HOLD and no flood polygon is authorised.", "es": "Solo se catalogaron escenas previas al evento: una referencia Sentinel-1 del 2026-10-21 y teselas Sentinel-2 del 2026-10-22 con 27,63 % y 48,13 % de nubosidad a escala de tesela. No se catalogó ninguna escena Sentinel-1 posterior, por lo que la gate sigue EN ESPERA y no se autoriza ningún polígono de inundación." },
+      "limitations": { "en": "The catalogue snapshot was taken at repository inception and newer acquisitions may exist. Tile-level cloud cover is not AOI-specific. A non-detection could not prove that flooding did not occur. Eight conditions must all be met before delineation opens.", "es": "La instantánea del catálogo se tomó al inicio del repositorio y pueden existir adquisiciones posteriores. La nubosidad por tesela no es específica del área de estudio. Una no detección no probaría que no hubo inundación. Deben cumplirse ocho condiciones antes de abrir la delineación." },
+      "hold": { "en": "Satellite flood extent is ON HOLD.", "es": "La extensión de la inundación por satélite está EN ESPERA." },
+      "scope": {
+        "geographic": { "en": "Exploratory catalogue search window around Salmas County; not a hydrological boundary", "es": "Ventana exploratoria de búsqueda en el catálogo alrededor del condado de Salmas; no es un límite hidrológico" },
+        "temporal": { "en": "Catalogue queried 2026-10-23; scenes of 2026-10-21 and 2026-10-22", "es": "Catálogo consultado el 2026-10-23; escenas del 2026-10-21 y 2026-10-22" }
+      },
+      "reproducibility": { "en": "A re-runnable catalogue query script exists, but it queries a live service, so results can change over time.", "es": "Existe un script de consulta al catálogo reejecutable, pero consulta un servicio vivo, por lo que los resultados pueden cambiar con el tiempo." },
+      "status": { "sourceProvenance": "pinned-partial", "reproducibility": "not-applicable", "scientificValidation": "hold", "independentReview": "none-recorded" },
+      "sources": [
+        { "role": "evidence", "label": "SENSOR_GATE.md", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/docs/SENSOR_GATE.md", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" },
+        { "role": "methodology", "label": "catalog_snapshot.csv", "url": "https://github.com/soroushkarahrodi79-oss/salmas-flood-spatial-forensics/blob/97be23c1d9a5c2548daa3772375e235b59f98b30/provenance/catalog_snapshot.csv", "pin": "97be23c1d9a5c2548daa3772375e235b59f98b30" }
+      ],
+      "relatedTo": ["EV-SAL-001"]
+    }
+  ]
+}

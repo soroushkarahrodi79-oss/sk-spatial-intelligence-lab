@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/data/evidence-catalog.schema.json",
+  "title": "SK Spatial Intelligence Lab evidence catalog",
+  "description": "Metadata and links to public research evidence. The four status dimensions are deliberately separate and have no 'validated', 'verified' or 'independently reviewed' value: this version of the schema cannot express a validation claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "asOf", "note", "pins", "records"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "asOf": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "note": { "type": "string", "minLength": 20 },
+    "pins": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "enum": ["geoimpact-ci", "madrid-lens", "salmas", "lab"] },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["repo", "sha"],
+        "properties": {
+          "repo": { "type": "string", "pattern": "^soroushkarahrodi79-oss/[a-z0-9-]+$" },
+          "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        }
+      }
+    },
+    "records": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/record" } }
+  },
+  "$defs": {
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en", "es"],
+      "properties": {
+        "en": { "type": "string", "minLength": 3, "maxLength": 700 },
+        "es": { "type": "string", "minLength": 3, "maxLength": 800 }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "project", "type", "dataOrigin", "title", "question", "finding", "limitations", "scope", "reproducibility", "status", "sources", "relatedTo"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^EV-(GIC|MUL|SAL|LAB)-\\d{3}$" },
+        "project": { "enum": ["geoimpact-ci", "madrid-lens", "salmas", "lab"] },
+        "type": { "enum": ["real-source-case", "reproducibility", "synthetic-evaluation", "source-gate", "claim-register", "validation-status"] },
+        "dataOrigin": { "enum": ["real-source", "synthetic", "documentation"] },
+        "title": { "$ref": "#/$defs/text" },
+        "question": { "$ref": "#/$defs/text" },
+        "finding": { "$ref": "#/$defs/text" },
+        "limitations": { "$ref": "#/$defs/text" },
+        "hold": { "$ref": "#/$defs/text" },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["geographic", "temporal"],
+          "properties": { "geographic": { "$ref": "#/$defs/text" }, "temporal": { "$ref": "#/$defs/text" } }
+        },
+        "reproducibility": { "$ref": "#/$defs/text" },
+        "status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceProvenance", "reproducibility", "scientificValidation", "independentReview"],
+          "properties": {
+            "sourceProvenance": { "enum": ["pinned", "pinned-partial"] },
+            "reproducibility": { "enum": ["ci-contract", "build-time-pinned", "local-deterministic", "receipt-only", "not-applicable"] },
+            "scientificValidation": { "enum": ["none-claimed", "synthetic-only", "hold", "pending", "not-applicable"] },
+            "independentReview": { "enum": ["none-recorded", "pending"] }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "label", "url", "pin"],
+            "properties": {
+              "role": { "enum": ["evidence", "methodology", "run"] },
+              "label": { "type": "string", "minLength": 3, "maxLength": 80 },
+              "url": { "type": "string", "pattern": "^https://github\\.com/soroushkarahrodi79-oss/[a-z0-9-]+/(blob/[0-9a-f]{40}/[^\\s#?]+|actions/runs/\\d+)$" },
+              "pin": { "type": "string", "pattern": "^([0-9a-f]{40}|run:\\d+)$" }
+            }
+          }
+        },
+        "relatedTo": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^EV-(GIC|MUL|SAL|LAB)-\\d{3}$" } }
+      }
+    }
+  }
+}

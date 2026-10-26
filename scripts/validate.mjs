@@ -40,7 +40,7 @@ for (const [index, css] of [...styleBlocks, externalCss].entries()) {
   report(index < styleBlocks.length ? `inline CSS block ${index + 1}` : "preserved style.css");
 }
 
-const scripts = [...page.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
+const scripts = [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter((match) => !/\btype="application\/json"/i.test(match[1])).map((match) => match[2]);
 assert.ok(scripts.length > 0, "The page must contain the bilingual language switch script");
 for (const [index, source] of scripts.entries()) {
   new vm.Script(source, { filename: `inline-script-${index + 1}.js` });
