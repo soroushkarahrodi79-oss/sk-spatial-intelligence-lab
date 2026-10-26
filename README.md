@@ -32,7 +32,7 @@ npm run test:browser
 
 ## Evidence Explorer V0.1
 
-The Space includes a static, bilingual evidence index (`data/evidence-catalog.json`, 12 commit-pinned records) with separate provenance, reproducibility, validation and review labels. It is plain text search over a fixed catalog, not AI. See [Evidence Explorer V0.1](docs/evidence-explorer-v0.1.md).
+The Space includes a static, bilingual evidence index (`data/evidence-catalog.json`, 12 commit-pinned records) with separate provenance, reproducibility, validation and review labels. It is plain text search over a fixed catalog, not AI. See [Evidence Explorer V0.1](docs/evidence-explorer-v0.1.md). GeoAI-2B (draft) adds claim-to-source traces with exact line-range permalinks for three records: see [Claim-to-Source Evidence Trace V0.1](docs/claim-trace-v0.1.md).
 
 ## GeoImpact Evidence Copilot V0.1 and V0.2 hardening
 

@@ -25,6 +25,8 @@ jobs:
       - run: npm ci
       - run: npm run validate
       - run: npm run check:evidence
+      - run: npm run check:trace:online
+      - run: npm run test:trace
       - run: npm run test:copilot
       - run: npm run check:skeletons
       - run: npm run check:review-checklist

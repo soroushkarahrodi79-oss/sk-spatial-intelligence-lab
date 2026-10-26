@@ -15,7 +15,7 @@
     "copilot": "node geoimpact-copilot/cli.mjs",
     "test:copilot": "node --test tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs tests/geoimpact-review-lifecycle.test.mjs tests/geoimpact-readiness.test.mjs",
     "evaluate:copilot": "node geoimpact-copilot/evaluate.mjs",
-    "test": "npm run validate && npm run check:evidence && npm run test:copilot && npm run check:skeletons && npm run check:review-checklist && npm run check:review-record && npm run check:review-packet && npm run check:test-set && npm run check:sonnet-prerequisites && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
+    "test": "npm run validate && npm run check:evidence && npm run test:trace && npm run test:copilot && npm run check:skeletons && npm run check:review-checklist && npm run check:review-record && npm run check:review-packet && npm run check:test-set && npm run check:sonnet-prerequisites && npm run evaluate:copilot && npm run evaluate:copilot:v2 && npm run check:links && npm run test:browser",
     "evaluate:copilot:v2": "node geoimpact-copilot/evaluation/run-v2.mjs",
     "check:skeletons": "node geoimpact-copilot/semantic/build-skeletons.mjs --check",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=geoimpact-copilot/lib/** --test-coverage-include=geoimpact-copilot/provider-contract/** tests/geoimpact-copilot.test.mjs tests/geoimpact-semantic.test.mjs tests/geoimpact-review-lifecycle.test.mjs",
@@ -27,7 +27,10 @@
     "check:intake": "node geoimpact-copilot/evaluation/external/intake.mjs",
     "build:evidence": "node scripts/evidence-catalog.mjs --write",
     "check:evidence": "node scripts/evidence-catalog.mjs",
-    "check:evidence:online": "node scripts/evidence-catalog.mjs --online"
+    "check:evidence:online": "node scripts/evidence-catalog.mjs --online",
+    "check:trace:online": "node scripts/evidence-catalog.mjs --trace-online",
+    "build:trace-excerpts": "node scripts/claim-trace.mjs --write-excerpts",
+    "test:trace": "node --test tests/claim-trace.test.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",

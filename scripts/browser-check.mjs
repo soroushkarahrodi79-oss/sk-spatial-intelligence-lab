@@ -151,14 +151,14 @@ try {
       assert.ok(await record.locator(".limit").first().isVisible(), `${id}: limitation must be visible without interaction`);
       assert.equal(await record.locator(".evstatus dt").count(), 4, `${id}: four separate status dimensions`);
       assert.equal(await record.locator(".evstatus dd").count(), 4);
-      assert.equal(await record.locator("details").evaluate((el) => el.open), false, `${id}: detail starts collapsed`);
+      assert.equal(await record.locator("details").evaluateAll((els) => els.every((el) => !el.open)), true, `${id}: every disclosure starts collapsed`);
       for (const link of await record.locator(".evlinks a").all()) {
         assert.match(await link.getAttribute("href"), /^https:\/\/github\.com\/soroushkarahrodi79-oss\//);
         assert.equal(await link.getAttribute("rel"), "noopener noreferrer");
         assert.equal(await link.getAttribute("target"), "_blank");
         assert.ok((await link.boundingBox()).height >= 44, `${id}: link target below 44px`);
       }
-      assert.ok((await record.locator("summary").boundingBox()).height >= 44, `${id}: disclosure target below 44px`);
+      for (const summary of await record.locator("summary").all()) assert.ok((await summary.boundingBox()).height >= 44, `${id}: disclosure target below 44px`);
     }
     const sectionText = await page.locator("#evidence").innerText();
     assert.doesNotMatch(sectionText, /\bverified\b|\bvalidated\b|\bverificad[oa]|\bvalidad[oa]/i, `No overclaiming status wording may be shown (${language})`);
@@ -216,7 +216,7 @@ try {
       const focus = await page.evaluate(() => { const el = document.activeElement; const style = getComputedStyle(el); return { inside: !!el.closest("#evidence"), outline: style.outlineStyle, width: parseFloat(style.outlineWidth) }; });
       assert.ok(focus.inside && focus.outline !== "none" && focus.width >= 2, `Keyboard focus must be visible inside the evidence section (step ${step})`);
     }
-    const summary = page.locator(".ev:not([hidden]) summary").first();
+    const summary = page.locator(".ev:not([hidden]) details.evmore > summary").first();
     await summary.focus();
     await page.keyboard.press("Enter");
     assert.equal(await summary.evaluate((el) => el.parentElement.open), true, "Enter opens the evidence detail");
@@ -248,14 +248,14 @@ try {
     await page.locator("#evQ").fill(query);
     const before = await page.locator(".ev:not([hidden])").evaluateAll((els) => els.map((el) => el.dataset.id));
     assert.ok(before.includes(id), `"${query}" must find ${id} in ${from}`);
-    await page.locator(`.ev[data-id="${id}"] summary`).click();
+    await page.locator(`.ev[data-id="${id}"] details.evmore > summary`).click();
     await page.getByRole("button", { name: "Change language" }).click();
     assert.equal(await page.locator("html").getAttribute("lang"), to);
     const after = await page.locator(".ev:not([hidden])").evaluateAll((els) => els.map((el) => el.dataset.id));
     assert.deepEqual(after, before, `Results for "${query}" must not change when switching ${from} -> ${to}`);
     assert.equal(new Set(after).size, after.length, "No duplicated results");
     assert.equal(await page.locator("#evQ").inputValue(), query, "Search text is preserved");
-    assert.equal(await page.locator(`.ev[data-id="${id}"] details`).evaluate((el) => el.open), true, "Open detail is preserved");
+    assert.equal(await page.locator(`.ev[data-id="${id}"] details.evmore`).evaluate((el) => el.open), true, "Open detail is preserved");
     assert.equal(await page.locator(".ev").count(), total, "Records are rendered once");
     const expectedTitle = catalog.records.find((r) => r.id === id).title[to];
     assert.equal(await page.locator(`.ev[data-id="${id}"] h3`).textContent(), expectedTitle, "Display follows the UI language");
@@ -289,6 +289,101 @@ try {
   assert.equal(await page.locator("#evidence").getByText(/AI-generated|chatbot/i).count(), 0);
   assert.equal(await page.locator("#ev-EV-SAL-002").count(), 1, "Records have stable deep-link anchors");
   console.log("PASS evidence integrity rendering: synthetic labelled, HOLD and not-admitted states visible, stable anchors");
+
+
+  // ---- GeoAI-2B Claim-to-Source Evidence Trace V0.1 ----
+  const tracedRecords = catalog.records.filter((record) => record.claims?.length);
+  assert.deepEqual(tracedRecords.map((record) => record.id), ["EV-GIC-001", "EV-GIC-002", "EV-SAL-002"], "Exactly the three scoped records carry a claim trace");
+  const claimCount = tracedRecords.reduce((sum, record) => sum + record.claims.length, 0);
+  const traceCopy = {
+    en: { view: "View evidence", claim: "Claim", permalink: "Exact source permalink", hold: /On hold/, review: /not a scientific review/, caveat: /not independent validation/, lines: (a, b) => "lines " + a + "–" + b },
+    es: { view: "Ver evidencia", claim: "Afirmación", permalink: "Enlace permanente exacto a la fuente", hold: /En espera/, review: /no una revisión científica/, caveat: /no es una validación independiente/, lines: (a, b) => "líneas " + a + "–" + b },
+  };
+  const permalinkShape = /^https:\/\/github\.com\/soroushkarahrodi79-oss\/[a-z0-9-]+\/blob\/[0-9a-f]{40}\/[^\s#?]+#L\d+(-L\d+)?$/;
+  await page.setViewportSize({ width: 1024, height: 768 });
+  for (const language of ["en", "es"]) {
+    if ((await page.locator("html").getAttribute("lang")) !== language) await page.getByRole("button", { name: "Change language" }).click();
+    const c = traceCopy[language];
+    assert.equal(await page.locator(".evtrace").count(), claimCount, "One trace disclosure per claim, no duplicate evidence cards");
+    assert.equal(await page.locator(".ev").count(), total, "Still one card per record");
+    assert.equal(await page.locator(".ev:not(:is(#ev-EV-GIC-001, #ev-EV-GIC-002, #ev-EV-SAL-002)) .evtrace").count(), 0, "Untraced records get no trace control");
+    for (const record of tracedRecords) {
+      for (const claim of record.claims) {
+        const trace = page.locator("#ev-" + record.id + ' details.evtrace[data-key="' + claim.id + '"]');
+        const summary = trace.locator("> summary");
+        assert.equal((await summary.textContent()).trim(), c.view);
+        assert.equal(await trace.evaluate((el) => el.open), false, claim.id + ": trace starts collapsed");
+        assert.ok((await summary.boundingBox()).height >= 44, claim.id + ": trace toggle below 44px");
+        // Interaction 1: open. Interaction 2: the permalink. Nothing else is needed to reach the cited lines.
+        await summary.click();
+        assert.equal(await trace.evaluate((el) => el.open), true);
+        const permalink = trace.locator("a.evperma");
+        assert.equal(await permalink.count(), 1);
+        assert.ok(await permalink.isVisible(), claim.id + ": permalink visible right after opening");
+        const [start, end] = claim.statements.claim.lines;
+        assert.equal(await permalink.getAttribute("href"), claim.statements.claim.permalink, claim.id + ": displayed permalink is the catalog permalink");
+        assert.match(await permalink.textContent(), new RegExp(c.lines(start, end)));
+        assert.equal(await permalink.getAttribute("target"), "_blank");
+        assert.equal(await permalink.getAttribute("rel"), "noopener noreferrer");
+        assert.ok((await permalink.boundingBox()).height >= 44, claim.id + ": permalink target below 44px");
+        const hrefs = await trace.locator("a").evaluateAll((els) => els.map((el) => el.getAttribute("href")));
+        assert.equal(hrefs.length, 3, claim.id + ": claim, method and limitation permalinks");
+        for (const href of hrefs) assert.match(href, permalinkShape);
+        const text = await trace.innerText();
+        for (const kind of ["claim", "method", "limitation"]) assert.ok(text.replace(/\s+/g, " ").includes(claim.statements[kind].text[language]), claim.id + ": " + kind + " text shown in " + language);
+        assert.ok(text.includes(claim.source.match(/blob\/([0-9a-f]{40})\//)[1]), claim.id + ": full commit SHA is displayed");
+        assert.ok(text.includes(record.scope.geographic[language]) && text.includes(record.scope.temporal[language]), claim.id + ": record scope shown with the claim");
+        assert.match(text, c.review);
+        assert.match(text, c.caveat);
+        assert.doesNotMatch(text, /\bverified\b|\bvalidated\b|\bverificad[oa]|\bvalidad[oa]/i, claim.id + ": no overclaiming wording in the trace");
+        if (record.status.scientificValidation === "hold") assert.match(text, c.hold, claim.id + ": HOLD stays visible inside the trace");
+        // Keyboard: Enter / Space toggle
+        await summary.focus();
+        await page.keyboard.press("Space");
+        assert.equal(await trace.evaluate((el) => el.open), false, "Space closes the trace");
+        await page.keyboard.press("Enter");
+        assert.equal(await trace.evaluate((el) => el.open), true, "Enter opens the trace");
+        await page.keyboard.press("Enter");
+        assert.equal(await trace.evaluate((el) => el.open), false);
+      }
+    }
+    console.log("PASS claim trace (" + language + "): " + claimCount + " claims, two-interaction path to the exact permalink, 44px targets, commit SHA, scope, HOLD and no-validation caveat visible");
+  }
+
+  // Open traces stay open and re-render in the new language; they never overflow narrow screens.
+  for (const [from, to] of [["en", "es"], ["es", "en"]]) {
+    if ((await page.locator("html").getAttribute("lang")) !== from) await page.getByRole("button", { name: "Change language" }).click();
+    await page.setViewportSize({ width: 360, height: 800 });
+    for (const id of ["EV-GIC-001", "EV-GIC-002", "EV-SAL-002"]) {
+      await page.locator("#ev-" + id + " details.evtrace > summary").click();
+      await page.locator("#ev-" + id + " details.evmore > summary").click();
+    }
+    const overflow = () => page.evaluate(() => ({ scroll: document.documentElement.scrollWidth - window.innerWidth, wide: [...document.querySelectorAll("#evidence *")].filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1).map((el) => el.tagName + "." + el.className).slice(0, 5) }));
+    const before = await overflow();
+    assert.ok(before.scroll <= 0 && before.wide.length === 0, "Open trace overflows at 360px (" + from + "): " + JSON.stringify(before));
+    await page.getByRole("button", { name: "Change language" }).click();
+    assert.equal(await page.locator("html").getAttribute("lang"), to);
+    assert.equal(await page.locator("details.evtrace[open]").count(), claimCount, "Open traces persist across the language switch");
+    assert.equal(await page.locator("details.evmore[open]").count(), 3, "Scope details persist independently of traces");
+    const after = await overflow();
+    assert.ok(after.scroll <= 0 && after.wide.length === 0, "Open trace overflows at 360px (" + to + "): " + JSON.stringify(after));
+    assert.equal((await page.locator("#ev-EV-GIC-001 details.evtrace > summary").textContent()).trim(), traceCopy[to].view);
+    assert.ok((await page.locator("#ev-EV-GIC-001 details.evtrace").innerText()).includes(catalog.records[0].claims[0].statements.claim.text[to]));
+    await page.locator("details[open]").evaluateAll((els) => els.forEach((el) => { el.open = false; }));
+    await page.setViewportSize({ width: 1024, height: 768 });
+    if ((await page.locator("html").getAttribute("lang")) !== "en") await page.getByRole("button", { name: "Change language" }).click();
+  }
+  console.log("PASS claim trace persists across language switch and fits 360px with all disclosures open");
+
+  // Traced statements are searchable in both languages and do not disturb existing results.
+  for (const [language, query, id] of [["en", "old-to-new section ID pairs", "EV-GIC-001"], ["es", "pares distintos de ID de sección", "EV-GIC-001"], ["en", "fixture selection rule", "EV-GIC-002"], ["es", "mapa de huecos de observación", "EV-SAL-002"]]) {
+    if ((await page.locator("html").getAttribute("lang")) !== language) await page.getByRole("button", { name: "Change language" }).click();
+    await page.locator("#evQ").fill(query);
+    assert.deepEqual(await page.locator(".ev:not([hidden])").evaluateAll((els) => els.map((el) => el.dataset.id)), [id], "Search for traced text \"" + query + "\" finds " + id);
+    await page.locator("#evClear").click();
+  }
+  if ((await page.locator("html").getAttribute("lang")) !== "en") await page.getByRole("button", { name: "Change language" }).click();
+  console.log("PASS claim statements are searchable in EN and ES");
 
   assert.deepEqual(pageErrors, [], `Browser errors: ${pageErrors.join("; ")}`);
   console.log("PASS keyboard skip link, bilingual switch, landmark label, title, cards, and project links");

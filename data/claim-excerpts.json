@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "note": "Verbatim lines copied mechanically from the pinned upstream files for the ranges cited by catalog claims. Used only to check that cited lines support each claim; verified against upstream by `npm run check:trace:online`.",
+  "excerpts": {
+    "CL-GIC-001-01": {
+      "claim": [
+        "| Observation | Result |",
+        "|---|---:|",
+        "| CLI verdict / exit code | BLOCK / 1 (completed analysis) |",
+        "| Modified common section geometries reported | 30 |",
+        "| Changed-footprint area for reported modified features | 13,463,975.314659253 m² |",
+        "| Maximum reported boundary displacement | 2,937.635066209976 m |",
+        "| Address-point relationship records | 2,112 |",
+        "| Relationship changes | 2,112 `assignment_changed` |",
+        "| Distinct old→new section ID pairs | 26 |"
+      ],
+      "method": [
+        "The checked-in files are a deterministic, local subset, not complete city",
+        "coverage. The subset keeps all 56 section IDs changed, added, or removed in the",
+        "annual pair. Its dependency keeps every portal point intersecting the union of",
+        "the 30 same-ID geometry symmetric differences and the full geometries of",
+        "added/removed sections. This selects points by the spatial change footprint,",
+        "not by the CLI's reported assignment results. It contains 37 BASE polygons,",
+        "49 CANDIDATE polygons, and 2,112 unique address points. Coordinates and point",
+        "locations are held fixed across the two boundary versions."
+      ],
+      "limitation": [
+        "- **Unknown:** the source pages do not establish the exact effective dates or",
+        "  administrative rationale for every 2024-to-2025 geometry change. The",
+        "  address snapshot is from 2026, so the probe asks how the two published",
+        "  section versions assign the current fixed address locations; it is not a",
+        "  time-aligned historical impact estimate. The probe does not validate legal,",
+        "  electoral, or statistical decisions for individual locations. The reason",
+        "  197 portal points lack a `WITHIN` assignment was not investigated."
+      ]
+    },
+    "CL-GIC-002-01": {
+      "claim": [
+        "- GeoImpact policy verdict: **PASS** (0 observed regressions against a zero threshold).",
+        "- Initial local CLI runtime observation: **2.028 s**; verification rerun runtime: **1.497 s**. These are observations only; no timing threshold was applied.",
+        "- Relationship records: **52**.",
+        "- Relationship regressions: **0**.",
+        "- Change types: 52 unchanged; 0 assignment changed; 0 gained; 0 lost."
+      ],
+      "method": [
+        "The fixed dependency layer contains point geometries and the stable source ID",
+        "field `CODIGOEQUI`. A deterministic subset retains every point within the",
+        "primary change-footprint bounding envelope expanded by exactly **10,000 m** on",
+        "each side. The expansion is only a research fixture selection rule; it is not",
+        "a GeoImpact predicate or policy buffer. The rule was set without observing",
+        "assignments. It yielded 52 dependency points, all with present unique IDs."
+      ],
+      "limitation": [
+        "## Limitations and final status",
+        "",
+        "This comparison establishes only that one official protected-area geometry",
+        "changed and records how a fixed reference inventory is spatially related to",
+        "the two states. It makes no claims about causality, legal impact, administrative",
+        "intent, service accessibility, visitor access, socioeconomic effects, or",
+        "historical individual impact. The source data's survey scale, boundary",
+        "precision, and update lineage constrain interpretation. The dependency",
+        "inventory can change over time and was not historically aligned."
+      ]
+    },
+    "CL-SAL-002-01": {
+      "claim": [
+        "**Gate status at inception: PROVISIONAL GO FOR CATALOGUE MONITORING / HOLD FOR FLOOD EXTENT**",
+        "",
+        "## Known pre-event observations",
+        "",
+        "### Sentinel-2",
+        "",
+        "Sentinel-2C acquired tiles `T38SNH` and `T38SMH` at `2026-10-22T07:49:51Z`, before the first currently registered local impact report at `2026-10-22T11:14:00Z`.",
+        "",
+        "The catalogue reports tile-level cloud cover of 27.63% and 48.13%. Those values do not establish clear observation over the study area. Scene-classification masks and an AOI-specific clear-pixel audit are required.",
+        "",
+        "### Sentinel-1",
+        "",
+        "Sentinel-1D acquired a dual-polarization IW GRD scene at `2026-10-21T14:52:30Z`, ascending relative orbit 174. This is a strong temporal baseline but cannot by itself show flood change."
+      ],
+      "method": [
+        "## Requirements to open flood delineation",
+        "",
+        "All conditions are mandatory:",
+        "",
+        "1. at least one post-event acquisition intersects the analytical AOI;",
+        "2. a compatible pre-event observation exists with the same relevant acquisition geometry;",
+        "3. acquisition time is close enough to retain a plausible flood or aftermath signal;",
+        "4. calibration, terrain correction and masks are documented;",
+        "5. permanent water and radar shadow/layover are excluded or separately labelled;",
+        "6. candidate thresholds are evaluated through sensitivity analysis;",
+        "7. results are checked against independent observations and terrain pathways;",
+        "8. output language says “change consistent with inundation/wetness” unless validation supports a stronger label."
+      ],
+      "limitation": [
+        "## Failure modes",
+        "",
+        "- Short-lived water may drain before the next satellite pass.",
+        "- Smooth bare soil, irrigation, rainfall-wetted fields and radar geometry can mimic water-related backscatter changes.",
+        "- Buildings and vegetation can increase or complicate backscatter during inundation.",
+        "- Optical evidence may be obscured by the same storm clouds that produced the flood.",
+        "- Pixel spacing is not positional or thematic accuracy.",
+        "",
+        "If these limitations dominate, the scientifically valid output is an observation-gap map and a NO-GO verdict, not a forced flood polygon."
+      ]
+    }
+  }
+}
