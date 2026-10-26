@@ -1,0 +1,59 @@
+[
+ {
+  "lang": "en",
+  "w": 360,
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "w": 390,
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "w": 768,
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "w": 1024,
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "w": 1440,
+  "violations": []
+ },
+ {
+  "lang": "es",
+  "w": 360,
+  "violations": []
+ },
+ {
+  "lang": "es",
+  "w": 390,
+  "violations": []
+ },
+ {
+  "lang": "es",
+  "w": 768,
+  "violations": []
+ },
+ {
+  "lang": "es",
+  "w": 1024,
+  "violations": [
+   {
+    "id": "target-size",
+    "impact": "serious",
+    "n": 1,
+    "sample": "#ev-EV-GIC-001 > .evlinks > li:nth-child(1) > a[target=\"_blank\"][rel=\"noopener noreferrer\"] :: Target has insufficient size because it is partially obscured (smallest space is 315.3px by 21.9px, should be at least 24px by 24px)"
+   }
+  ]
+ },
+ {
+  "lang": "es",
+  "w": 1440,
+  "violations": []
+ }
+]

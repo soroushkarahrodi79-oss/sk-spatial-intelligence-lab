@@ -242,6 +242,28 @@ try {
     console.log(`PASS evidence state across language switch (${language} -> ${other} -> ${language})`);
   }
 
+  // Bilingual search continuity: the index covers both languages, display follows the UI language
+  for (const [from, to, query, id] of [["en", "es", "negative control", "EV-GIC-002"], ["es", "en", "control negativo", "EV-GIC-002"], ["es", "en", "Crecida repentina", "EV-SAL-001"], ["en", "es", "flash flood", "EV-SAL-001"]]) {
+    if ((await page.locator("html").getAttribute("lang")) !== from) await page.getByRole("button", { name: "Change language" }).click();
+    await page.locator("#evQ").fill(query);
+    const before = await page.locator(".ev:not([hidden])").evaluateAll((els) => els.map((el) => el.dataset.id));
+    assert.ok(before.includes(id), `"${query}" must find ${id} in ${from}`);
+    await page.locator(`.ev[data-id="${id}"] summary`).click();
+    await page.getByRole("button", { name: "Change language" }).click();
+    assert.equal(await page.locator("html").getAttribute("lang"), to);
+    const after = await page.locator(".ev:not([hidden])").evaluateAll((els) => els.map((el) => el.dataset.id));
+    assert.deepEqual(after, before, `Results for "${query}" must not change when switching ${from} -> ${to}`);
+    assert.equal(new Set(after).size, after.length, "No duplicated results");
+    assert.equal(await page.locator("#evQ").inputValue(), query, "Search text is preserved");
+    assert.equal(await page.locator(`.ev[data-id="${id}"] details`).evaluate((el) => el.open), true, "Open detail is preserved");
+    assert.equal(await page.locator(".ev").count(), total, "Records are rendered once");
+    const expectedTitle = catalog.records.find((r) => r.id === id).title[to];
+    assert.equal(await page.locator(`.ev[data-id="${id}"] h3`).textContent(), expectedTitle, "Display follows the UI language");
+    await page.locator("#evClear").click();
+    await page.locator("details[open]").evaluateAll((els) => els.forEach((el) => { el.open = false; }));
+  }
+  console.log("PASS bilingual search continuity: EN<->ES queries keep results, text and open details; display follows UI language");
+
   // Scientific-integrity rendering: synthetic stays distinguishable and HOLD states stay explicit
   await page.getByRole("button", { name: "Change language" }).click();
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
