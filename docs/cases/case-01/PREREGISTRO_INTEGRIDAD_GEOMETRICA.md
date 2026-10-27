@@ -1,6 +1,6 @@
 # CASE-01 — Prerregistro prospectivo de integridad geométrica
 
-**Versión documental:** 0.3.0 — revisión K1-R3-B (adjudicación offline del AOI)
+**Versión documental:** 0.4.0 — revisión K1-R4 (aislamiento del runtime PROJ)
 **Estado:** DRAFT — NO CONGELADO
 **Preparado:** 2026-10-26 (Europe/Madrid)
 **Repositorio de destino:** `soroushkarahrodi79-oss/sk-spatial-intelligence-lab`
@@ -120,7 +120,25 @@ Perfil candidato, observado en la reproducción K0.1 y aún sujeto a congelació
 | PyProj | 3.7.2 |
 | PROJ | 9.5.1 |
 
-Estas versiones describen la reproducción K0.1; no se atribuyen al proceso que produjo el snapshot histórico ni certifican que la configuración esté instalada actualmente. Antes de congelar se registrarán sistema operativo, arquitectura, build, wheels/hashes, `proj.db` y su SHA-256, configuración/data directory PROJ, locale, `PROJ_NETWORK=OFF` y lista/hash de grids disponibles. Las operaciones no descargarán grids automáticamente. Una grid requerida que falte, `best_available=false`, una selección distinta o un fallback ballpark causan HOLD. Un cambio de biblioteca, base EPSG/PROJ o grid requiere enmienda y nueva aprobación antes de la captura.
+Las versiones de la tabla describen la reproducción K0.1; no se atribuyen al proceso que produjo el snapshot histórico. K1-R4 verificó dos contextos PyProj en procesos hijos de corta duración. El padre pasó a cada hijo un diccionario `env` de `subprocess`; no se alteraron variables globales de Windows, PostgreSQL/PostGIS, el registro ni perfiles de PowerShell.
+
+**Perfil A, ambiente heredado.** El hijo recibió la configuración PROJ heredada, salvo `PYTHONDONTWRITEBYTECODE=1` y la codificación de salida. `PROJ_LIB` apuntaba a `C:\Program Files\PostgreSQL\18\share\contrib\postgis-3.6\proj`; `GDAL_DATA` apuntaba a PostgreSQL; `PROJ_DATA`, `PROJ_AUX_DB` y `PROJ_NETWORK` estaban sin definir. Sin embargo, PyProj 3.7.2 resolvió `datadir.get_data_dir()` al directorio empaquetado de PyProj y consultó `proj.db` EPSG v11.022, SHA-256 `47A7205D83BA6B7774B763F276AB57331F4DADE2B2CFBCC0D486677E6543350B`. La base indicada por `PROJ_LIB` es distinta (EPSG v10.041, SHA-256 `DB22DE2BDDF7F5473C606C20CDD94E543DCAEA005EB4E1595BDDBC90A9FB453D`), pero no fue la base efectiva de esos procesos PyProj. `PROJ_NETWORK` heredado estaba sin definir y la red efectiva resultó desactivada; el `proj.ini` empaquetado declara `network=off`.
+
+**Perfil B, runtime de estudio aislado.** El padre creó un segundo diccionario de entorno sin `PROJ_DATA`, `PROJ_LIB`, `PROJ_AUX_DB`, otras variables `PROJ_*`/`PYPROJ_*`, rutas `GDAL_*`/`CPL_*`, `PYTHONPATH`/`PYTHONHOME` ni rutas PostgreSQL/PostGIS de `PATH`; no había entradas de PostgreSQL en `PATH` que retirar. Añadió `PROJ_NETWORK=OFF` y `PYTHONDONTWRITEBYTECODE=1`. Dentro de cada hijo se llamó a la API soportada `pyproj.datadir.set_data_dir()` con `pyproj/proj_dir/share/proj` y a `pyproj.network.set_network_enabled(False)`. No se heredó una ruta de base auxiliar y la inspección de módulos cargados no encontró DLL de PostgreSQL/PostGIS. El directorio B efectivo contiene cero grids; la operación seleccionada no requiere grids. Su `proj.ini` SHA-256 `4AF3BE139976ECD3A5CC56563CA321BB5012163C0B89DF0807BEF78A7DD2B41E` declara `network=off`, `only_best_default=off` y `tmerc_default_algo=poder_engsager`.
+
+El host de la comprobación B fue Windows 11 `10.0.26300-SP0`, AMD64; Python fue CPython 3.14.5, build `tags/v3.14.5:5607950`, compilador MSC v.1944 de 64 bits. PyProj fue 3.7.2, PROJ 9.5.1 y la versión EPSG de la base efectiva fue v11.022. El directorio de datos efectivo fue `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pyproj\proj_dir\share\proj`; `proj.db` está en ese directorio y su SHA-256 es `47A7205D83BA6B7774B763F276AB57331F4DADE2B2CFBCC0D486677E6543350B`. `proj.ini` está junto a esa base. El Perfil B usó `PROJ_NETWORK=OFF`, llamó también a `pyproj.network.set_network_enabled(False)` y verificó `is_network_enabled() == False`. La lista de grids presentes en ese directorio fue vacía; ninguna grid se requiere para esta operación.
+
+El inventario del ambiente heredado no encontró otras variables `PROJ_*`, `PYPROJ_*`, `GDAL_*` o `CPL_*` además de `PROJ_LIB` y `GDAL_DATA`; tampoco estaban definidas `PYTHONPATH`, `PYTHONHOME` ni variables de entorno Conda/venv. En el `proj.ini` de B también aparecen `cdn_endpoint=https://cdn.proj.org`, caché habilitada de 300 MB y TTL de 86400 s; son inertes para la operación ensayada porque el acceso de red se desactivó tanto en el entorno como en PyProj. `ca_bundle_path` está comentado y no se observó override ambiental. `only_best_default=off` se registró, pero la selección se auditó con `allow_ballpark=False`, `best_available=True`, ninguna operación no disponible y luego se instanció la definición enumerada; no se permitió una sustitución automática silenciosa. La versión candidata Shapely 2.1.2/GEOS 3.13.1 de la tabla procede de la reproducción K0.1: K1-R4 no importó ni usó Shapely/GEOS y no verifica el entorno de geometría completo.
+
+| Binario/perfil B | Ruta o identidad observada | SHA-256 |
+|---|---|---|
+| Python 3.14.5 x64 | `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\python.exe` | `3ADBBF2AF609E206E3CA18CD55FC7C4B52F5C8BB8218DD99FD5A9E50D7A193CD` |
+| PyProj transformer extension | `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pyproj\_transformer.cp314-win_amd64.pyd` | `F7D0041EC735B12EBEBC4459BC7C9CC8D0BDB4358D0820A5DCF5746E4B7DD326` |
+| PROJ DLL cargada | `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pyproj.libs\proj_9-c635a7dcf1c2f5308514f46a54311e70.dll` | `F7C0E557890E501E33545C3406F167810FAED118C79B6C0DE25100B29058AF80` |
+| SQLite DLL cargada | `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pyproj.libs\sqlite3-fe7be31bbec5a4ba375dbf7916a37e96.dll` | `FE7BE31BBEC5A4BA375DBF7916A37E96084DEFDCE56B0D41C09A59C563394147` |
+| PyProj context extension | `C:\Users\Dell\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pyproj\_context.cp314-win_amd64.pyd` | `D5F434501E725890C595936FD0E43161C2D4D774714EEB9B13B8BF73FA959B35` |
+
+El perfil B se repitió en dos procesos independientes con la misma versión de Python, base y definición. Estos hashes identifican binarios instalados en este host, no un wheel ni un paquete de redistribución. No se encontró un hash de wheel y no se afirma portabilidad universal ni reconstrucción en otra máquina. Si una captura futura no reproduce las rutas, versiones, hashes, configuración y operación B aquí registradas, el gate es HOLD; queda prohibido resolverlo cambiando variables globales o la instalación de PostgreSQL/PostGIS.
 
 ## 5. Etapas y estrategias candidatas
 
@@ -135,7 +153,675 @@ Todas las etapas operan sobre copias en memoria y conservan el S0 inmutable.
 
 La operación seleccionada por este diseño para la conversión es la composición ordenada: inversa de la conversión Transverse Mercator de EPSG:25830 (UTM 30N), seguida de EPSG **1149**, `ETRS89 to WGS 84 (1)`, con tres traslaciones geocéntricas nulas y salida X/Y compatible con `OGC:CRS84` mediante `always_xy=True`. EPSG:1149 declara exactitud de 1 m y no requiere grid de datum. Esa cifra publicada no es tolerancia del estudio ni evidencia de precisión centimétrica. La selección es metodológica y no afirma que K0.1 o el builder usaran esta operación.
 
-Antes de congelar se inspeccionará, sin adquirir la fuente, el inventario de operaciones para EPSG:25830→`OGC:CRS84` en la versión y `proj.db` candidatos, con el AOI de estudio definido en §5.2 —no con una supuesta extensión de la capa WFS—, `allow_ballpark=False`, `allow_superseded=False` y red PROJ desactivada. Se archivarán para cada candidata su autoridad/código, nombre, definición completa (PROJJSON/WKT y pipeline si está disponible), `description`, `accuracy`, `area_of_use`, `best_available`, operaciones no disponibles y grids requeridas, disponibles y sus hashes. La inspección offline K1-R3-B encontró una operación disponible cuyo área de uso cubre el AOI administrativo; esto no certifica la extensión de la capa. La composición solo se congela si el entorno efectivo, la operación y su definición aprobada coinciden sin sustitución silenciosa; cualquier incompatibilidad produce HOLD, no selección automática de alternativa. Se conserva explícitamente que EPSG:1149 no requiere grid de datum; cualquier grid listada para otras etapas compuestas se registra por nombre, versión y hash. La inversa usada para devolver S1–S3 al CRS de métricas será la inversa de la misma operación fijada; si no está definida, se seleccionará y congelará una operación inversa explícita por separado. La cobertura efectiva de la capa frente al AOI se verifica prospectivamente en G1/G2 según §5.2.
+La enumeración K1-R4 se hizo en Perfil B con el AOI de estudio fijado en §5.2 —no con una supuesta extensión de la capa WFS— y `TransformerGroup(EPSG:25830, OGC:CRS84, always_xy=True, allow_ballpark=False, allow_superseded=False)`. El grupo devolvió una única operación disponible, cero no disponibles y `best_available=True`; Perfil A resolvió la misma operación y definición. El área de uso es Europa, `[west=-16.1°, south=33.26°, east=38.01°, north=84.73°]`, e incluye el AOI administrativo. La definición PROJJSON completa se incluye abajo; su SHA-256 es `2823A5E372D7C8B746B190E02AFA59DDB0F987291E977FF80DA67D53A84358F5`, calculado sobre UTF-8 de `json.dumps(to_json_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=False)`. El SHA-256 del WKT devuelto por `to_wkt()` codificado en UTF-8 es `D18080B9B82108BB612EC93D5CDC02AD3E31DCF318F792E725BE692EC22BF105`. Estos son hashes de serializaciones generadas por PyProj 3.7.2, no hashes de bytes de un archivo de catálogo. Este resultado comprueba cobertura del AOI por la operación en el `proj.db` B; no certifica la extensión de la capa WFS.
+
+La operación efectiva es `Inverse of UTM zone 30N + ETRS89 to WGS 84 (1) + axis order change (2D)`, exactitud declarada 1 m. El PROJJSON conserva la composición y el paso `DERIVED_FROM(EPSG):1149`, método `Geocentric translations (geog2D domain)`, con traslaciones X/Y/Z nulas, exactitud 1 m y sin grids. El pipeline numérico simplificado es `proj=pipeline step inv proj=utm zone=30 ellps=GRS80 step proj=unitconvert xy_in=rad xy_out=deg`: PROJ no expresa como paso numérico separado una transformación de datum con tres traslaciones nulas; por eso el pipeline no sustituye el PROJJSON ni los metadatos de operación. La definición inversa CRS84→EPSG:25830 observada fue `axis order change (2D) + Inverse of ETRS89 to WGS 84 (1) + UTM zone 30N`, pipeline `proj=pipeline step proj=unitconvert xy_in=deg xy_out=rad step proj=utm zone=30 ellps=GRS80`; `has_inverse=True`.
+
+El pipeline seleccionado se instanció con `Transformer.from_pipeline(definition)`, sin `always_xy` (esa API no lo acepta); su definición coincidió exactamente con la enumerada y sus salidas binarias coincidieron con el transformer seleccionado. La salida X/Y está gobernada por el pipeline explícito y por los CRS/ejes incluidos en el PROJJSON. Para cada transformación se exigió `errcheck=True`. Como prueba sintética se usaron exclusivamente `(440000.0, 4480000.0)` y `(500000.0, 4480000.0)` en EPSG:25830. El primero produjo `(-3.707765785287993, 40.46851104523366)` en CRS84 y la inversa `(440000.00000000006, 4479999.999999999)`, con residuo de cierre planar `9.331397911231848e-10 m`; el segundo produjo `(-2.9999999999999916, 40.47067797549126)` y la inversa `(500000.0, 4479999.999999999)`, con residuo `9.313225746154785e-10 m`. Ambos procesos B independientes dieron salidas binary64 idénticas bit a bit, tanto para el transformer enumerado como para `Transformer.from_pipeline`. Esa política de igualdad exacta se fijó antes de comparar las salidas; no se aplicó epsilon. Los residuos son solo cierre numérico de ida y vuelta en puntos sintéticos, no exactitud geodésica ni tolerancia, y no se comparan con la exactitud publicada de 1 m. La distorsión cartográfica es una magnitud distinta: el muestreo exploratorio del AOI ya registrado en §7 es independiente de esta prueba; la distorsión sobre geometrías WFS solo podrá calcularse tras una futura captura admitida.
+
+**PROJJSON íntegro generado en Perfil B** (misma definición en los dos procesos B; el digest del contenido corresponde al algoritmo descrito arriba):
+
+```json
+{
+  "$schema": "https://proj.org/schemas/v0.7/projjson.schema.json",
+  "type": "ConcatenatedOperation",
+  "name": "Inverse of UTM zone 30N + ETRS89 to WGS 84 (1) + axis order change (2D)",
+  "source_crs": {
+    "type": "ProjectedCRS",
+    "name": "ETRS89 / UTM zone 30N",
+    "base_crs": {
+      "name": "ETRS89",
+      "datum_ensemble": {
+        "name": "European Terrestrial Reference System 1989 ensemble",
+        "members": [
+          {
+            "name": "European Terrestrial Reference Frame 1989",
+            "id": {
+              "authority": "EPSG",
+              "code": 1178
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1990",
+            "id": {
+              "authority": "EPSG",
+              "code": 1179
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1991",
+            "id": {
+              "authority": "EPSG",
+              "code": 1180
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1992",
+            "id": {
+              "authority": "EPSG",
+              "code": 1181
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1993",
+            "id": {
+              "authority": "EPSG",
+              "code": 1182
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1994",
+            "id": {
+              "authority": "EPSG",
+              "code": 1183
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1996",
+            "id": {
+              "authority": "EPSG",
+              "code": 1184
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 1997",
+            "id": {
+              "authority": "EPSG",
+              "code": 1185
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 2000",
+            "id": {
+              "authority": "EPSG",
+              "code": 1186
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 2005",
+            "id": {
+              "authority": "EPSG",
+              "code": 1204
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 2014",
+            "id": {
+              "authority": "EPSG",
+              "code": 1206
+            }
+          },
+          {
+            "name": "European Terrestrial Reference Frame 2020",
+            "id": {
+              "authority": "EPSG",
+              "code": 1382
+            }
+          }
+        ],
+        "ellipsoid": {
+          "name": "GRS 1980",
+          "semi_major_axis": 6378137,
+          "inverse_flattening": 298.257222101
+        },
+        "accuracy": "0.1",
+        "id": {
+          "authority": "EPSG",
+          "code": 6258
+        }
+      },
+      "coordinate_system": {
+        "subtype": "ellipsoidal",
+        "axis": [
+          {
+            "name": "Geodetic latitude",
+            "abbreviation": "Lat",
+            "direction": "north",
+            "unit": "degree"
+          },
+          {
+            "name": "Geodetic longitude",
+            "abbreviation": "Lon",
+            "direction": "east",
+            "unit": "degree"
+          }
+        ]
+      },
+      "id": {
+        "authority": "EPSG",
+        "code": 4258
+      }
+    },
+    "conversion": {
+      "name": "UTM zone 30N",
+      "method": {
+        "name": "Transverse Mercator",
+        "id": {
+          "authority": "EPSG",
+          "code": 9807
+        }
+      },
+      "parameters": [
+        {
+          "name": "Latitude of natural origin",
+          "value": 0,
+          "unit": "degree",
+          "id": {
+            "authority": "EPSG",
+            "code": 8801
+          }
+        },
+        {
+          "name": "Longitude of natural origin",
+          "value": -3,
+          "unit": "degree",
+          "id": {
+            "authority": "EPSG",
+            "code": 8802
+          }
+        },
+        {
+          "name": "Scale factor at natural origin",
+          "value": 0.9996,
+          "unit": "unity",
+          "id": {
+            "authority": "EPSG",
+            "code": 8805
+          }
+        },
+        {
+          "name": "False easting",
+          "value": 500000,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8806
+          }
+        },
+        {
+          "name": "False northing",
+          "value": 0,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8807
+          }
+        }
+      ]
+    },
+    "coordinate_system": {
+      "subtype": "Cartesian",
+      "axis": [
+        {
+          "name": "Easting",
+          "abbreviation": "E",
+          "direction": "east",
+          "unit": "metre"
+        },
+        {
+          "name": "Northing",
+          "abbreviation": "N",
+          "direction": "north",
+          "unit": "metre"
+        }
+      ]
+    },
+    "id": {
+      "authority": "EPSG",
+      "code": 25830
+    }
+  },
+  "target_crs": {
+    "type": "GeographicCRS",
+    "name": "WGS 84 (CRS84)",
+    "datum_ensemble": {
+      "name": "World Geodetic System 1984 ensemble",
+      "members": [
+        {
+          "name": "World Geodetic System 1984 (Transit)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1166
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G730)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1152
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G873)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1153
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G1150)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1154
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G1674)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1155
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G1762)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1156
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G2139)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1309
+          }
+        },
+        {
+          "name": "World Geodetic System 1984 (G2296)",
+          "id": {
+            "authority": "EPSG",
+            "code": 1383
+          }
+        }
+      ],
+      "ellipsoid": {
+        "name": "WGS 84",
+        "semi_major_axis": 6378137,
+        "inverse_flattening": 298.257223563
+      },
+      "accuracy": "2.0",
+      "id": {
+        "authority": "EPSG",
+        "code": 6326
+      }
+    },
+    "coordinate_system": {
+      "subtype": "ellipsoidal",
+      "axis": [
+        {
+          "name": "Geodetic longitude",
+          "abbreviation": "Lon",
+          "direction": "east",
+          "unit": "degree"
+        },
+        {
+          "name": "Geodetic latitude",
+          "abbreviation": "Lat",
+          "direction": "north",
+          "unit": "degree"
+        }
+      ]
+    },
+    "id": {
+      "authority": "OGC",
+      "code": "CRS84"
+    }
+  },
+  "steps": [
+    {
+      "type": "Conversion",
+      "name": "Inverse of UTM zone 30N",
+      "method": {
+        "name": "Inverse of Transverse Mercator",
+        "id": {
+          "authority": "INVERSE(EPSG)",
+          "code": 9807
+        }
+      },
+      "parameters": [
+        {
+          "name": "Latitude of natural origin",
+          "value": 0,
+          "unit": "degree",
+          "id": {
+            "authority": "EPSG",
+            "code": 8801
+          }
+        },
+        {
+          "name": "Longitude of natural origin",
+          "value": -3,
+          "unit": "degree",
+          "id": {
+            "authority": "EPSG",
+            "code": 8802
+          }
+        },
+        {
+          "name": "Scale factor at natural origin",
+          "value": 0.9996,
+          "unit": "unity",
+          "id": {
+            "authority": "EPSG",
+            "code": 8805
+          }
+        },
+        {
+          "name": "False easting",
+          "value": 500000,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8806
+          }
+        },
+        {
+          "name": "False northing",
+          "value": 0,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8807
+          }
+        }
+      ],
+      "id": {
+        "authority": "INVERSE(EPSG)",
+        "code": 16030
+      }
+    },
+    {
+      "type": "Transformation",
+      "name": "ETRS89 to WGS 84 (1)",
+      "source_crs": {
+        "type": "GeographicCRS",
+        "name": "ETRS89",
+        "datum_ensemble": {
+          "name": "European Terrestrial Reference System 1989 ensemble",
+          "members": [
+            {
+              "name": "European Terrestrial Reference Frame 1989",
+              "id": {
+                "authority": "EPSG",
+                "code": 1178
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1990",
+              "id": {
+                "authority": "EPSG",
+                "code": 1179
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1991",
+              "id": {
+                "authority": "EPSG",
+                "code": 1180
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1992",
+              "id": {
+                "authority": "EPSG",
+                "code": 1181
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1993",
+              "id": {
+                "authority": "EPSG",
+                "code": 1182
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1994",
+              "id": {
+                "authority": "EPSG",
+                "code": 1183
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1996",
+              "id": {
+                "authority": "EPSG",
+                "code": 1184
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 1997",
+              "id": {
+                "authority": "EPSG",
+                "code": 1185
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 2000",
+              "id": {
+                "authority": "EPSG",
+                "code": 1186
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 2005",
+              "id": {
+                "authority": "EPSG",
+                "code": 1204
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 2014",
+              "id": {
+                "authority": "EPSG",
+                "code": 1206
+              }
+            },
+            {
+              "name": "European Terrestrial Reference Frame 2020",
+              "id": {
+                "authority": "EPSG",
+                "code": 1382
+              }
+            }
+          ],
+          "ellipsoid": {
+            "name": "GRS 1980",
+            "semi_major_axis": 6378137,
+            "inverse_flattening": 298.257222101
+          },
+          "accuracy": "0.1",
+          "id": {
+            "authority": "EPSG",
+            "code": 6258
+          }
+        },
+        "coordinate_system": {
+          "subtype": "ellipsoidal",
+          "axis": [
+            {
+              "name": "Geodetic latitude",
+              "abbreviation": "Lat",
+              "direction": "north",
+              "unit": "degree"
+            },
+            {
+              "name": "Geodetic longitude",
+              "abbreviation": "Lon",
+              "direction": "east",
+              "unit": "degree"
+            }
+          ]
+        },
+        "id": {
+          "authority": "EPSG",
+          "code": 4258
+        }
+      },
+      "target_crs": {
+        "type": "GeographicCRS",
+        "name": "WGS 84",
+        "datum_ensemble": {
+          "name": "World Geodetic System 1984 ensemble",
+          "members": [
+            {
+              "name": "World Geodetic System 1984 (Transit)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1166
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G730)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1152
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G873)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1153
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G1150)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1154
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G1674)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1155
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G1762)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1156
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G2139)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1309
+              }
+            },
+            {
+              "name": "World Geodetic System 1984 (G2296)",
+              "id": {
+                "authority": "EPSG",
+                "code": 1383
+              }
+            }
+          ],
+          "ellipsoid": {
+            "name": "WGS 84",
+            "semi_major_axis": 6378137,
+            "inverse_flattening": 298.257223563
+          },
+          "accuracy": "2.0",
+          "id": {
+            "authority": "EPSG",
+            "code": 6326
+          }
+        },
+        "coordinate_system": {
+          "subtype": "ellipsoidal",
+          "axis": [
+            {
+              "name": "Geodetic latitude",
+              "abbreviation": "Lat",
+              "direction": "north",
+              "unit": "degree"
+            },
+            {
+              "name": "Geodetic longitude",
+              "abbreviation": "Lon",
+              "direction": "east",
+              "unit": "degree"
+            }
+          ]
+        },
+        "id": {
+          "authority": "EPSG",
+          "code": 4326
+        }
+      },
+      "method": {
+        "name": "Geocentric translations (geog2D domain)",
+        "id": {
+          "authority": "EPSG",
+          "code": 9603
+        }
+      },
+      "parameters": [
+        {
+          "name": "X-axis translation",
+          "value": 0,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8605
+          }
+        },
+        {
+          "name": "Y-axis translation",
+          "value": 0,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8606
+          }
+        },
+        {
+          "name": "Z-axis translation",
+          "value": 0,
+          "unit": "metre",
+          "id": {
+            "authority": "EPSG",
+            "code": 8607
+          }
+        }
+      ],
+      "accuracy": "1.0",
+      "id": {
+        "authority": "DERIVED_FROM(EPSG)",
+        "code": 1149
+      },
+      "remarks": "ETRS89 and WGS 84 are realizations of ITRS coincident to within 1 metre. This transformation has an accuracy equal to the coincidence figure."
+    },
+    {
+      "type": "Conversion",
+      "name": "axis order change (2D)",
+      "method": {
+        "name": "Axis Order Reversal (2D)",
+        "id": {
+          "authority": "EPSG",
+          "code": 9843
+        }
+      },
+      "id": {
+        "authority": "EPSG",
+        "code": 15498
+      }
+    }
+  ],
+  "accuracy": "1",
+  "area": "Europe - onshore and offshore: Albania; Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Faroe Islands; Finland; France; Germany; Gibraltar; Greece; Hungary; Ireland; Italy; Kosovo; Latvia; Liechtenstein; Lithuania; Luxembourg; Malta; Moldova; Monaco; Montenegro; Netherlands; North Macedonia; Norway including Svalbard and Jan Mayen; Poland; Portugal - mainland; Romania; San Marino; Serbia; Slovakia; Slovenia; Spain - mainland and Balearic islands; Sweden; Switzerland; United Kingdom (UK) including Channel Islands and Isle of Man; Vatican City State.",
+  "bbox": {
+    "south_latitude": 33.26,
+    "west_longitude": -16.1,
+    "north_latitude": 84.73,
+    "east_longitude": 38.01
+  }
+}
+```
 
 La operación ejecutada se construirá desde su definición congelada, no mediante selección automática de `Transformer.from_crs` en cada ejecución. El manifiesto comparará la operación efectiva con el identificador y definición aprobados; cualquier diferencia, grid inesperada, operación alternativa, fallback, área fuera de uso o falta de exactitud declarada produce HOLD. EPSG:1149 tiene exactitud declarada de 1 m y alcance de aproximación; por ello los resultados son sobre cambios computacionales/topológicos del flujo, no una validación de posición absoluta submétrica. Si Q-GEO requiriera esa última afirmación, se necesitaría una operación con base de exactitud adecuada antes de congelar.
 
@@ -253,7 +939,7 @@ GO solo avanza al gate nombrado. La aprobación de diseño no equivale a autoriz
 | Resuelta en el diseño documental | SHA de bytes, fingerprint JCS estructural, fingerprint de derivado y equivalencia topológica tienen significados separados. | Ninguna equivalencia estructural o funcional reemplaza identidad de snapshot. |
 | Resuelta en el diseño documental | Cero nuevas invalideces es requisito duro para admitir una geometría candidata; inválidas S0 se ponen en cuarentena. | Métricas topológicas y asignaciones incompletas se marcan; no hay reparación implícita. |
 | Resuelta para el marco de estudio | AOI Q-GEO fijado por la geometría municipal versionada de §5.2; su topología y ajuste al área de uso de EPSG:25830/1149 se verificaron offline. La distorsión local se documenta como muestreo exploratorio. | No certifica extensión WFS, vigencia efectiva municipal ni exactitud posicional. Cobertura efectiva y entidades fuera/parciales se revisan en G1/G2 conforme a §5.2. |
-| Condicional a revisión técnica previa | La operación metodológica sigue siendo inversa UTM EPSG:25830 seguida de EPSG:1149 (exactitud publicada 1 m, sin grid de datum). Su operación local cubre el AOI, pero la discrepancia entre las bases `proj.db`, el pipeline efectivo y el entorno debe resolverse antes de congelar. | No afirmar exactitud posicional submétrica; cualquier operación distinta, fallback o contexto PROJ ambiguo produce HOLD. |
+| Verificada en runtime aislado; aún no congelada | El Perfil B de §4 fija en este host Python/PyProj/PROJ, `proj.db`, binarios, red, grids y operación; A y dos procesos B seleccionaron la misma definición. El `PROJ_LIB` externo de PostgreSQL no participa en B. | El control de versiones/hashes exactos debe repetirse antes de una captura; no es una declaración de portabilidad. G0 sigue HOLD por JCS/S3 pendientes y aprobación explícita. No afirmar exactitud posicional submétrica ni usar 1 m como tolerancia numérica. |
 | Condicional a evidencia previa | Identidad vigente de capa, licencia/condiciones, schema, CRS declarado/efectivo, límite máximo, completitud y semántica de revisión del servicio. | Si inconsistencia temporal o límite afecta la inferencia, adquisición HOLD. No se consultó el servicio en K1-R1. |
 | Condicional a evidencia previa | Reglas de admisión/clasificación predeclaradas deben contrastarse con schema y fuente autorizados; serializer y entorno exactos deben congelarse. | Sin coincidencia de esquema/IDs, no hay comparación admisible. |
 | Bloqueada | Snapshot H3 histórico esperado del 6-oct-2026, su manifiesto/contrato y respuesta WFS original. | H3 histórico **HOLD** permanente para esta versión; un snapshot distinto no lo sustituye. |
