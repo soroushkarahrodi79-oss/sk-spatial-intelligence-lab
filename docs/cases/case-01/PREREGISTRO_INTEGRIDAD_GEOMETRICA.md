@@ -1,6 +1,6 @@
 # CASE-01 — Prerregistro prospectivo de integridad geométrica
 
-**Versión documental:** 0.4.0 — revisión K1-R4 (aislamiento del runtime PROJ)
+**Versión documental:** 0.5.0 — revisión K1-R5 (contratos JCS/S3)
 **Estado:** DRAFT — NO CONGELADO
 **Preparado:** 2026-10-26 (Europe/Madrid)
 **Repositorio de destino:** `soroushkarahrodi79-oss/sk-spatial-intelligence-lab`
@@ -93,20 +93,32 @@ El cuerpo de respuesta se conserva exactamente como bytes de entidad antes de de
 
 Se mantendrán separados estos identificadores:
 
-1. **Hash de bytes de fuente:** SHA-256 del cuerpo WFS original, antes de parsear. Identifica esa secuencia exacta de bytes, no una geometría equivalente.
-2. **Fingerprint estructural de fuente:** SHA-256 de la representación canónica descrita en §3.1. No sustituye al hash de bytes fuente.
-3. **Hash de bytes del derivado:** SHA-256 del GeoJSON de salida serializado. Identifica el archivo exacto, incluyendo estructura, orden y formato.
-4. **Fingerprint estructural del derivado:** la misma regla canónica aplicada al derivado, ordenando entidades por el código exacto `ambito_code`; conserva el esquema aprobado y no sustituye al hash de bytes.
+1. **Hash de bytes WFS:** SHA-256 del cuerpo original, antes de decodificar o parsear. Identifica únicamente esa secuencia recibida.
+2. **Fingerprint estructural JCS:** SHA-256 de los bytes canónicos producidos después de parser y validaciones estrictas, para la colección fuente o derivada según se declare. No identifica los bytes fuente ni un archivo GeoJSON S3.
+3. **Hash de bytes S3:** SHA-256 de todos los bytes del GeoJSON serializado —incluido el LF final—. Identifica exactamente ese archivo, incluidas estructura, orden, representación numérica y formato.
+4. **Fingerprint JCS del derivado:** fingerprint estructural calculado separadamente sobre la colección derivada, ordenando solo `features` por el `ambito_code` exacto. No sustituye al SHA-256 de bytes S3.
 
-Ninguno sustituye a otro ni se presenta como identidad histórica. El manifiesto de procedencia enlazará los hashes de entrada, las respuestas de metadatos, revisión Git y SHA del código ejecutado, parámetros, entorno, conteos por etapa, excepciones y hashes de cada derivado. Si hay códigos ausentes, nulos o duplicados, se conserva el hash de bytes pero no se admite el fingerprint estructural ni pasa el gate de admisión.
+Son operaciones e identidades distintas; sus resultados no se igualan ni se reutilizan entre sí. El manifiesto de procedencia enlazará el hash WFS, los fingerprints JCS etiquetados por etapa, el SHA-256 S3, las respuestas de metadatos, revisión Git y SHA del código ejecutado, parámetros, entorno, conteos y excepciones. Si el parser o la validación de IDs falla, se conserva el hash WFS si los bytes están disponibles, pero no se emite fingerprint JCS ni se admite el derivado.
 
-### 3.1 Algoritmo de fingerprint estructural
+### 3.1 Parser estricto previo a JCS
 
-Se usará RFC 8785 (JCS) como serializador canónico de objetos JSON, sujeto a las reglas adicionales siguientes. Decodificar UTF-8 de forma estricta y rechazar BOM. El parser deberá detectar claves duplicadas después de desescapar sus nombres y antes de construir mapas; cualquier clave duplicada causa rechazo y **HOLD**, nunca “último valor gana”. Rechazar tokens no JSON (`NaN`, `Infinity`), overflow/no finito, underflow de token no-cero a cero, y cualquier token numérico cuyo signo sea negativo y cuyo valor parseado sea cero (`-0`, `-0.0`, `-0eN`, etc.); la detección usa el token numérico original, antes de perder su léxico. Rechazar cadenas Unicode inválidas y enteros fuera del rango seguro ±(2⁵³−1). Otros números finitos se interpretan y serializan como IEEE-754 binary64 conforme a ECMAScript/JCS. No se normaliza Unicode (NFC/NFD), no se cambia mayúsculas, no se recortan ni convierten IDs, y no se aceptan coerciones entre número y cadena.
+El candidato de canonicalización es **`rfc8785==0.1.4`**, wheel `rfc8785-0.1.4-py3-none-any.whl`, SHA-256 `520d690b448ecf0703691c76e1a34a24ddcd4fc5bc41d589cb7c58ec651bcd48`, obtenido del archivo de esa versión en PyPI. Se importó directamente desde el wheel verificado en procesos CPython **3.14.5** aislados, sin instalar ni extraerlo; la API ensayada es `rfc8785.dumps(value) -> bytes` (UTF-8 canónico). El metadata indica Python `>=3.8`, licencia Apache-2.0, wheel universal `py3-none-any` y ninguna dependencia base; los extras de desarrollo sí declaran dependencias opcionales. PyPI no publica provenance para este artefacto, por lo que el hash verifica coincidencia con el checksum de release, no una attestación del proceso de construcción. Es un candidato fijado y probado, aún sujeto a aprobación explícita.
 
-Para el fingerprint de colección: exigir `FeatureCollection` y que cada entidad tenga un identificador JSON de tipo string, no nulo, único y exacto (`properties.Etiqueta` en fuente; `properties.ambito_code` en derivado). Ordenar únicamente el array `features` por el valor de ID usando orden lexicográfico de unidades de código UTF-16 sin dependencia de locale, conforme al comparador de strings de JCS. Mantener el orden original de todo otro array: coordenadas, anillos, vértices, componentes y valores. Después aplicar JCS recursivamente al objeto FeatureCollection completo, preservar los restantes miembros y emitir UTF-8 sin BOM ni whitespace entre tokens. El fingerprint se define como SHA-256 de esos bytes canónicos.
+Antes de llamar a JCS, leer solo bytes UTF-8 estrictos, rechazar BOM y parsear con `json.loads(..., strict=True, object_pairs_hook=..., parse_int=..., parse_float=..., parse_constant=...)`. `object_pairs_hook` debe detectar nombres duplicados **después de desescapar** y antes de formar cada `dict`; nunca aplicar política “último valor gana”. `parse_constant` rechaza `NaN`, `Infinity` y `-Infinity`; `parse_float` inspecciona el token original con decimal exacto y su conversión binary64, rechazando overflow/no finito y cualquier decimal no cero que se convierta en cero; `parse_int` y `parse_float` rechazan cero negativo cuando el token comienza con `-` y representa cero. Aplicar también el límite de proyecto de enteros matemáticamente integrales dentro de ±(2⁵³−1), incluidos tokens con punto decimal o exponente. La prueba documental ejercitó `1e30` como vector RFC directamente contra JCS; el parser del proyecto lo rechaza por ese límite más estricto. Los números finitos admitidos se representan como binary64 antes de canonicalizar.
 
-IDs ausentes, duplicados o de tipo distinto a string y cualquiera de los casos inválidos anteriores hacen inadmisible el fingerprint estructural de colección; el hash de bytes original aún se conserva. El orden de entidades en la respuesta se ignora solo para este fingerprint; ningún orden de coordenadas se altera. JCS normaliza la representación JSON, no la forma geométrica: no prueba equivalencia topológica, igualdad de geometrías, identidad de snapshot ni identidad del archivo fuente. Una implementación y versión conformes, la política de errores y su SHA se fijarán antes de congelar.
+Recorrer recursivamente claves y valores de tipo string y rechazar surrogates aislados; un par UTF-16 válido se conserva como su punto de código Unicode. No aplicar NFC/NFD, recorte, case-folding, conversión de tipos ni ninguna otra normalización. Antes de canonicalizar, validar además el árbol de valores: solo `dict` con claves de tipo string exacto, `list`, strings Unicode válidos, `null`, booleanos, enteros admitidos y floats finitos; rechazar tuplas, objetos personalizados, claves no string y ciclos. Esto importa porque `rfc8785` acepta tuplas y las emite como arrays: la librería no reemplaza este validador.
+
+Validar el objeto raíz como `FeatureCollection`; cada feature debe tener el campo ID acordado, de tipo string exacto, no nulo y único después de decodificar escapes (`properties.Etiqueta` en fuente; `properties.ambito_code` en derivado). IDs ausentes, duplicados, nulos o no string causan rechazo y **HOLD**. La ordenación contractual del array `features` es por el valor exacto del ID usando bytes UTF-16BE —equivalente al orden lexicográfico de unidades UTF-16—, sin locale. No se reordenan propiedades por una regla CASE-01: JCS ordena recursivamente las claves de objetos. Se preserva el orden de todos los arrays salvo el `features` preparado expresamente; vértices, anillos, componentes y demás arrays permanecen intactos. `rfc8785.dumps()` produce los bytes JCS; el fingerprint es SHA-256 de esos bytes, sin BOM, espacios ni LF final. La ordenación previa de `features` es del contrato CASE-01, no del RFC.
+
+### 3.2 Calificación sintética del candidato JCS
+
+En memoria se verificaron el vector numérico/string de RFC 8785 §3.2.2–3.2.3 y el vector de orden de propiedades UTF-16, incluido un par surrogate válido. Dos FeatureCollections con las mismas entidades en distinto orden obtuvieron los mismos bytes JCS y fingerprint después de ordenar `features`. Cambiar coordenada, ID o estructura cambió el fingerprint; invertir el orden de vértices también lo cambió, sin normalización topológica. NFC y NFD se conservaron como strings distintas. Un ID con surrogate escape `"a"`/`"\u0061"` se decodificó al mismo string y fue rechazado como duplicado.
+
+El parser de calificación rechazó claves duplicadas literales y escapadas, `NaN`/`Infinity`/`-Infinity`, overflow, underflow no cero a cero, enteros fuera del límite, `-0`/`-0.0`/`-0e7`/`-0.00E-12`, surrogate aislado, BOM, UTF-8 inválido e IDs ausentes, duplicados, nulos o no string. El fingerprint de fixture `187bd6ad953ffa0c18b3727cac5d9ef720c00ad8aa2fa459e5319d4c4dcd6162` fue idéntico en dos procesos aislados; es solo un resultado sintético y no un hash de fuente CASE-01. Los vectores y fixtures seleccionados pasaron; no se afirma haber ejecutado el corpus exhaustivo de conformidad RFC.
+
+### 3.3 Compatibilidad con el fingerprint legacy
+
+El builder histórico fijado en `madrid-tourism-intelligence-lens`, commit `ba83f3ae4c2180dfa5f955ddd4b634b018b6f6ea`, archivo `scripts/build_planning_ambitos.py` (Git blob SHA `22513cc81549f8d1d80e7d97d913afa8b7d7c7cc`), usa `json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")` para su fingerprint legacy. Ordena el array derivado por `ambito_code` con el orden lexicográfico de Python. Ese método se denomina aquí `legacy-json-dumps-sort-keys-v1`; el nuevo es `case01-jcs-rfc8785-0.1.4-v1`. Una fixture sintética con claves BMP/suplementaria demostró que `sort_keys=True` de Python y JCS pueden producir órdenes y bytes distintos. No se compararon hashes de artefactos reales ni se afirma compatibilidad automática.
 
 ## 4. Entorno reproducible
 
@@ -147,7 +159,7 @@ Todas las etapas operan sobre copias en memoria y conservan el S0 inmutable.
 - **S0 — entrada:** bytes preservados, respuesta WFS cuyo CRS/orden de ejes pasó los controles de §2, entidad por código exacto. Fuente en EPSG:25830 significa X=easting, Y=northing según declaración WFS verificada; no es RFC 7946 solo por ser JSON con `coordinates`.
 - **S1 — reproyección:** EPSG:25830 → `OGC:CRS84` (WGS 84 lon/lat) con precisión binary64, interfaz X/Y (`always_xy=True` al enumerar la operación), usando exclusivamente el pipeline congelado en §5.1 y ejecución con `errcheck=True`. Sin reparación, redondeo ni simplificación; errores, no finitos o coordenadas fuera del rango del CRS causan HOLD.
 - **S2 — política de coordenadas:** aplicar por separado cada estrategia candidata, nunca encadenar una estrategia sobre la salida de otra. Para la estrategia B, redondear con la función incorporada `round(valor, 7)` cada ordenada X e Y de S1, de forma independiente, según la semántica de Python congelada para la ejecución. Antes de congelar se debe confirmar que las coordenadas son XY; una dimensión Z/M activa HOLD hasta que una regla se apruebe. No aplicar rejillas ni alterar la topología como operación de precisión.
-- **S3 — serialización y lectura:** congelar el serializador concreto, opciones, codificación UTF-8, tratamiento de valores no finitos, orden de propiedades, representación numérica y salto final antes de la captura. No se permite una segunda reducción de precisión. Volver a parsear y comparar estructura, coordenadas, conteos y validez con S2; calcular hash de bytes. S3 debe poder atribuir toda diferencia a la serialización declarada.
+- **S3 — serialización y lectura:** usar exclusivamente el contrato explícito de §5.3. No se permite una segunda reducción de precisión. Volver a leer con el parser estricto de §3.1 y comparar estructura, coordenadas, conteos, tipos, orden y validez con S2; calcular SHA-256 sobre todos los bytes S3, LF final incluido.
 
 ### 5.1 Operación de coordenadas y control de selección PROJ
 
@@ -837,6 +849,35 @@ Este AOI de estudio no equivale a la extensión oficial de `Ámbitos_Ordenación
 
 Regla prospectiva de cobertura, sin recorte ni exclusión: en G1 se archivarán, para la capa y versión identificadas, la evidencia de extensión espacial que el servicio o su catálogo declaren, su CRS y el schema que permita identificar la geometría; si la extensión no está declarada, su CRS es ambiguo o se anuncia fuera del AOI sin explicación de alcance, G1 queda **HOLD** hasta justificarlo con evidencia de fuente. En G2, tras una futura adquisición autorizada y verificación de CRS, cada ID exacto se clasificará frente al AOI como cubierto, parcialmente fuera, disjunto/fuera o no clasificable por invalidez. Se conservarán bytes e IDs y se informará cada discrepancia; está prohibido recortar, descartar o ampliar el AOI post hoc. Un elemento parcial/fuera o no clasificable sin explicación documentada mantiene en **HOLD** la inferencia de cobertura municipal y el avance del gate correspondiente. Esta regla no cambia el universo ni la admisión geométrica predeclarados de Q-GEO.
 
+### 5.3 Contrato S3 de serialización y lectura
+
+El runtime ensayado fue CPython 3.14.5, build `tags/v3.14.5:5607950`, MSC v.1944, 64-bit AMD64, en Windows 11 `10.0.26300-SP0`; se usa el módulo `json` de esa distribución estándar. El objeto JSON se construye explícitamente con `dict`/`list` y tipos JSON nativos. El orden de claves procede del orden de inserción declarado por el constructor del schema; el array `features` se prepara antes de serializar, ordenado por el ID exacto mediante el comparador UTF-16BE de §3.1. Se rechazan IDs duplicados. Ningún otro array, en particular coordenadas, anillos o componentes, se reordena.
+
+Antes de `json.dumps`, el validador S3 recorre todo el árbol y exige claves de tipo `str` exacto, `dict`, `list`, `str` Unicode válida, `null`, booleanos, enteros dentro del rango aprobado y floats finitos no negativos-cero. Rechaza claves no string, tuplas, tipos personalizados, ciclos, surrogates aislados, NaN/Infinity y cualquier coerción o valor numérico fuera de política. Esta validación es necesaria incluso con `skipkeys=False`: `json` convierte claves básicas `int`/`float`/`bool`/`None` a strings, y serializa tuplas como arrays. No se usa `default` ni encoder personalizado.
+
+Opciones congeladas para la candidatura S3:
+
+```python
+json.dumps(
+    objeto,
+    ensure_ascii=False,
+    separators=(",", ":"),
+    sort_keys=False,
+    allow_nan=False,
+    skipkeys=False,
+    indent=None,
+    check_circular=True,
+    default=None,
+    cls=None,
+)
+```
+
+`json.dumps` produce `str`; codificarla como UTF-8 estricto sin BOM y añadir exactamente un `b"\n"` final define el archivo S3. El SHA-256 de S3 se calcula sobre esos bytes completos. No se llama a JCS para escribir S3, no se redondean coordenadas durante S3 y su hash no se sustituye por ningún fingerprint JCS. Releer el contenido anterior al LF con `json.loads` y aplicar la validación estricta; comparar tipos, orden de claves y features, IDs, coordenadas (incluida igualdad de representación binary64), componentes y arrays con la estructura de entrada a S3.
+
+En fixtures sintéticos en memoria, cambiar `allow_nan=True` a `False` dejó idénticos los bytes de todos los valores válidos probados; `False` lanzó `ValueError` para NaN y ±Infinity. El round-trip `json.dumps`/`json.loads` conservó tipos, coordenadas, orden de claves, orden de features, y estructura `Polygon`/`MultiPolygon`. En dos procesos aislados se obtuvo la misma salida de 477 bytes con SHA-256 sintético `c4fb84d6a1f4dbfd5828ba9d2d8e71806e75675a6efe65367357bf2d57904892`; es una fixture de calificación, no un hash de respuesta WFS ni del derivado CASE-01.
+
+S3 puede cambiar bytes por escapes Unicode (`ensure_ascii`), espacios/separadores, orden de claves, sangría, número de LF finales, serialización binary64 o cambios de orden durante la construcción. Con `allow_nan=True` puede emitir tokens no JSON; sin validador, claves de tipos básicos se convierten y tuplas cambian a arrays. Estas opciones y conversiones son parte del formato y no equivalen a una transformación geométrica ni a canonicalización JCS. El builder histórico de §3.3 usaba `ensure_ascii=False`, separadores compactos y LF final, pero dejaba `allow_nan=True` por defecto; el contrato prospectivo S3 lo hace explícito y estricto.
+
 ### Estrategias que se compararán
 
 | Estrategia | Definición | Límite de uso propuesto |
@@ -937,11 +978,12 @@ GO solo avanza al gate nombrado. La aprobación de diseño no equivale a autoriz
 | Resuelta en el diseño documental | `hits` y conteo igual no prueban atomicidad ni versión; el hash identifica bytes recibidos. | No se atribuye identidad temporal al servicio sin token y semántica documentados. |
 | Resuelta en el diseño documental | GeoJSON RFC 7946 se separa de la respuesta WFS con CRS EPSG:25830 y de los ejes de cada CRS. | CRS/orden efectivos deben superar controles; un payload llamado GeoJSON no basta. |
 | Resuelta en el diseño documental | SHA de bytes, fingerprint JCS estructural, fingerprint de derivado y equivalencia topológica tienen significados separados. | Ninguna equivalencia estructural o funcional reemplaza identidad de snapshot. |
+| Candidato JCS/S3 calificado en K1-R5; DRAFT | `rfc8785` 0.1.4 con wheel SHA fijado, parser/validador previo y contrato CPython S3 explícito; fixtures RFC y sintéticos repetidos en dos procesos. | No se congela el diseño ni autoriza G1; debe aprobarse esta versión exacta y, antes de cualquier ejecución, identificarse el SHA del validador/construcción que efectivamente se ejecute. |
 | Resuelta en el diseño documental | Cero nuevas invalideces es requisito duro para admitir una geometría candidata; inválidas S0 se ponen en cuarentena. | Métricas topológicas y asignaciones incompletas se marcan; no hay reparación implícita. |
 | Resuelta para el marco de estudio | AOI Q-GEO fijado por la geometría municipal versionada de §5.2; su topología y ajuste al área de uso de EPSG:25830/1149 se verificaron offline. La distorsión local se documenta como muestreo exploratorio. | No certifica extensión WFS, vigencia efectiva municipal ni exactitud posicional. Cobertura efectiva y entidades fuera/parciales se revisan en G1/G2 conforme a §5.2. |
-| Verificada en runtime aislado; aún no congelada | El Perfil B de §4 fija en este host Python/PyProj/PROJ, `proj.db`, binarios, red, grids y operación; A y dos procesos B seleccionaron la misma definición. El `PROJ_LIB` externo de PostgreSQL no participa en B. | El control de versiones/hashes exactos debe repetirse antes de una captura; no es una declaración de portabilidad. G0 sigue HOLD por JCS/S3 pendientes y aprobación explícita. No afirmar exactitud posicional submétrica ni usar 1 m como tolerancia numérica. |
+| Verificada en runtime aislado; aún no congelada | El Perfil B de §4 fija en este host Python/PyProj/PROJ, `proj.db`, binarios, red, grids y operación; A y dos procesos B seleccionaron la misma definición. El `PROJ_LIB` externo de PostgreSQL no participa en B. | El control de versiones/hashes exactos debe repetirse antes de una captura; no es una declaración de portabilidad. G0 sigue HOLD hasta revisión científica y aprobación explícita. No afirmar exactitud posicional submétrica ni usar 1 m como tolerancia numérica. |
 | Condicional a evidencia previa | Identidad vigente de capa, licencia/condiciones, schema, CRS declarado/efectivo, límite máximo, completitud y semántica de revisión del servicio. | Si inconsistencia temporal o límite afecta la inferencia, adquisición HOLD. No se consultó el servicio en K1-R1. |
-| Condicional a evidencia previa | Reglas de admisión/clasificación predeclaradas deben contrastarse con schema y fuente autorizados; serializer y entorno exactos deben congelarse. | Sin coincidencia de esquema/IDs, no hay comparación admisible. |
+| Condicional a evidencia previa | Reglas de admisión/clasificación predeclaradas deben contrastarse con schema y fuente autorizados; el SHA de los módulos de parser, validación y construcción que se ejecuten debe quedar en el manifiesto antes de G1/G2. | Sin coincidencia de esquema/IDs o sin implementación identificable, no hay comparación admisible. |
 | Bloqueada | Snapshot H3 histórico esperado del 6-oct-2026, su manifiesto/contrato y respuesta WFS original. | H3 histórico **HOLD** permanente para esta versión; un snapshot distinto no lo sustituye. |
 | Bloqueada | Umbrales de área, desplazamiento, Hausdorff, cercanía al límite o cambio de asignación y elección de estrategia por aceptabilidad. | Se pueden presentar métricas exploratorias; no se selecciona precisión ni se declara error admisible sin base científica y aprobación previa. |
 | Bloqueada solo para Q-PIP | Fuente de puntos independiente, licencia, muestreo y tratamiento de puntos próximos a frontera. | Gate Q-PIP HOLD; Q-GEO puede seguir como estudio puramente geométrico bajo alcance limitado. |
@@ -951,6 +993,9 @@ GO solo avanza al gate nombrado. La aprobación de diseño no equivale a autoriz
 
 - IETF, [RFC 7946 — The GeoJSON Format](https://www.rfc-editor.org/rfc/rfc7946.html): referencia para WGS 84, grados y orden de posiciones GeoJSON; no valida la conformidad de una respuesta WFS concreta.
 - IETF, [RFC 8785 — JSON Canonicalization Scheme](https://www.rfc-editor.org/rfc/rfc8785.html), y [errata verificada 7920](https://www.rfc-editor.org/errata/eid7920): referencia de representación canónica, I-JSON y tratamiento de menos cero.
+- PyPI, [rfc8785 0.1.4](https://pypi.org/project/rfc8785/0.1.4/): metadata de Python mínimo, licencia, API, wheel universal y SHA-256 de release; el release no aporta provenance.
+- Python Software Foundation, [módulo `json` de CPython 3.14](https://docs.python.org/3.14/library/json.html): opciones de `dumps`, order preservation, claves que se convierten, y `allow_nan`.
+- Madrid Lens, [builder en el commit `ba83f3ae4c2180dfa5f955ddd4b634b018b6f6ea`](https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens/blob/ba83f3ae4c2180dfa5f955ddd4b634b018b6f6ea/scripts/build_planning_ambitos.py): referencia solo lectura del fingerprint legacy y writer histórico; no se ejecutó ni modificó.
 - PyProj, [Transformer API 3.7.2](https://pyproj4.github.io/pyproj/3.7.2/api/transformer.html): referencia para `always_xy`, operaciones, área de uso, exactitud, `TransformerGroup`, operaciones no disponibles y estado `best_available`.
 - Fichas del dataset EPSG mostradas por [EPSG:25830](https://epsg.io/25830) y [EPSG:1149](https://epsg.io/1149): definiciones técnicas consultadas de ETRS89 / UTM zone 30N y ETRS89 to WGS 84 (1). Son referencia CRS/operación, no evidencia de licencia del dataset municipal ni sustituto del registro oficial de catálogo.
 
