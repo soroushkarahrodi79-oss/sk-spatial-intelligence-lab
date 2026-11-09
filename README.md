@@ -1,22 +1,81 @@
 # SK Spatial Intelligence Lab
 
-An evidence-first geospatial research platform. The current public application is a static HTML showcase; it does not run an LLM, agent, Earth observation inference pipeline, or hosted model.
+**Independent, reproducible geospatial research and spatial evidence systems.**
+
+[![Validate](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/workflows/validate.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/workflows/validate.yml)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Space-blue)](https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab)
+![Version](https://img.shields.io/badge/version-0.1.0-informational)
+![Node](https://img.shields.io/badge/node-%E2%89%A522-339933)
+
+[**Live Space**](https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab) · [Roadmap](docs/architecture-roadmap.md) · [Changelog](CHANGELOG.md) · [Docs](docs/)
+
+> *Resumen en español:* laboratorio de investigación geoespacial con enfoque *evidence-first*. Los hechos espaciales salen de cálculos deterministas e inspeccionables; cualquier explicación generada por un modelo se mantiene separada de las observaciones y declara procedencia, alcance, incertidumbre y límites. El sitio público es bilingüe (ES/EN).
+
+---
+
+## What this is
+
+SK Spatial Intelligence Lab is a research and engineering project built on one rule: **spatial claims must be traceable to deterministic, inspectable calculations**. Model-generated text, where it is ever used, must stay distinct from observations and carry provenance, geographic and temporal scope, uncertainty, and interpretation limits.
+
+### Honest status
+
+| Component | State |
+|---|---|
+| Public Space | Static, bilingual HTML site on Hugging Face. |
+| Evidence Explorer V0.1 | Static search over a fixed 12-record catalog. Plain text search, not AI. |
+| Claim-to-Source Trace V0.1 | Draft. Exact line-range permalinks for three records. |
+| GeoImpact Evidence Copilot V0.1–V0.2.1 | Local, deterministic prototype. Draft. Verdict **HOLD**. |
+| Case 01: geometric integrity | Preregistered design. Acquisition gate G1 is a draft package, not an approval. |
+| LLM, agent, EO inference, hosted model | **None implemented.** Roadmap items are plans only. |
+
+Scores in this repository are measured on synthetic data and are not real-world accuracy.
+
+## Components
+
+### Static Space (`space/`)
+The Hugging Face Space root: a bilingual landing page plus the Evidence Explorer, with no build step and no runtime dependency.
+
+### Evidence Explorer V0.1 (`data/`)
+A commit-pinned catalog of 12 records, each with separate **provenance, reproducibility, validation and review** labels (there is deliberately no single "VERIFIED" badge). Limitations and HOLD states are shown, not hidden. Claim-level traces tie a claim, method and limitation to exact line ranges of pinned documents.
+See [Evidence Explorer V0.1](docs/evidence-explorer-v0.1.md) and [Claim-to-Source Trace V0.1](docs/claim-trace-v0.1.md).
+
+### GeoImpact Evidence Copilot (`geoimpact-copilot/`)
+A local, deterministic question-answering prototype over canonical GeoImpact-CI report V4/V5 JSON. It:
+
+- validates report structure and cross-field consistency;
+- ties every quantity to a typed report path and binds versions and identifiers to exact cited strings;
+- rejects a value attached to the wrong field, label or unit (V0.2 semantic claim binding);
+- **abstains** when the report cannot support the question.
+
+No LLM client, credentials, API or UI is included. A server-side adapter boundary is documented and fail-closed: a model could only select pre-authorized claim IDs while the application renders all facts and numbers.
+
+```sh
+npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question "Why did this report BLOCK?"
+```
+
+Details: [V0.1](docs/geoimpact-evidence-copilot-v0.1.md) · [V0.2](docs/geoimpact-evidence-copilot-v0.2.md) · [V0.2.1 review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md) · [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
+
+### Case 01: geometric integrity (`docs/cases/case-01/`)
+A preregistered geometry-integrity study (documents in Spanish). See the [preregistration](docs/cases/case-01/PREREGISTRO_INTEGRIDAD_GEOMETRICA.md), the [G0 internal approval record](docs/cases/case-01/G0_INTERNAL_APPROVAL_RECORD.md) and the [G1 acquisition authorization package](docs/cases/case-01/G1_ACQUISITION_AUTHORIZATION_PACKAGE.md) (draft).
 
 ## Repository layout
 
-- `space/` — Hugging Face Space root. The existing bilingual site is preserved here, with a small keyboard-accessibility improvement.
-- `docs/` — architecture roadmap, deployment/security guidance, release records, and architecture decisions.
-- `scripts/` — dependency-light content checks, live-link checks, a read-only Space deployment planner, and responsive browser checks.
-- `.github/workflows/validate.yml` — validation on pushes and pull requests.
-- `.github/workflows/deploy-space.yml` — manual-only Hugging Face deployment. It requires a previewed inventory, an explicit approval input, and a protected GitHub environment.
-- `backups/huggingface-space/da10c68f/` — exact snapshot of the four files at the currently deployed Hugging Face commit.
-- `geoimpact-copilot/` — local deterministic report parser and evidence-linked question-answering prototype. It is not an operating LLM or hosted service.
+```text
+space/                 Hugging Face Space root (static site)
+data/                  Evidence catalog, JSON schema, claim excerpts
+geoimpact-copilot/     Deterministic report parser and evidence-linked Q&A prototype
+scripts/               Content checks, link checks, deploy planner, browser checks
+tests/                 Test suites
+docs/                  Roadmap, ADRs, deployment, security, release and review records
+backups/               Exact snapshot of the deployed Space at commit da10c68f
+.github/workflows/     validate.yml (CI) and deploy-space.yml (manual, approval-gated)
+```
 
-Only `space/README.md`, `space/index.html`, and `space/style.css` are in the deployment allowlist. The action excludes `.gitattributes`; the workflow disables deletion so that the existing destination copy is retained. Unexpected destination files or metadata drift stop preflight.
+Architecture decisions are recorded as ADRs in [`docs/architecture-decisions/`](docs/architecture-decisions/).
 
-## Local validation
+## Getting started
 
-Requires Node.js 22 or newer. Dependencies are development-only and pinned in `package-lock.json`.
+Requires **Node.js 22+**. Dependencies are development-only and pinned in `package-lock.json`.
 
 ```sh
 npm ci
@@ -28,32 +87,25 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-`npm test` runs all validation, copilot, link, and browser checks after Chromium is installed. CI runs these checks on GitHub Actions; no build step or runtime package is needed to serve the static site.
+`npm test` runs every check once Chromium is installed. CI runs the same checks on GitHub Actions. Serving the site needs no build step.
 
-## Evidence Explorer V0.1
+## Deployment and safety
 
-The Space includes a static, bilingual evidence index (`data/evidence-catalog.json`, 12 commit-pinned records) with separate provenance, reproducibility, validation and review labels. It is plain text search over a fixed catalog, not AI. See [Evidence Explorer V0.1](docs/evidence-explorer-v0.1.md). GeoAI-2B (draft) adds claim-to-source traces with exact line-range permalinks for three records: see [Claim-to-Source Evidence Trace V0.1](docs/claim-trace-v0.1.md).
+Deployment to Hugging Face is **manual only**: no push trigger, a previewed inventory, an explicit approval input, a protected GitHub environment, a three-file allowlist (`space/README.md`, `space/index.html`, `space/style.css`), and deletion disabled. Unexpected destination files or metadata drift stop preflight.
 
-## GeoImpact Evidence Copilot V0.1 and V0.2 hardening
+Read before enabling production sync: [deployment and first-run approval](docs/deployment.md) · [credential setup](docs/security-and-credentials.md) · [change inventory](docs/pre-deployment-inventory.md) · [rollback](docs/rollback.md).
 
-The local deterministic prototype accepts canonical GeoImpact-CI report V4/V5 JSON and answers a narrow set of questions about policy verdicts, relationship changes, primary geometry differences, metrics, provenance, and evidence limits. It validates report structure and cross-field consistency, ties quantities to typed report paths, binds versions and digit-bearing identifiers to exact cited strings, and abstains when the report cannot support a question. Hand-authored fixtures and generated CLI reports use synthetic inputs; none are research observations.
+## Research integrity principles
 
-```sh
-npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question "Why did this report BLOCK?"
-npm run test:copilot
-npm run evaluate:copilot
-```
+1. Spatial facts come from deterministic, inspectable calculations.
+2. Model output is never presented as observation.
+3. Every claim carries provenance, scope, uncertainty and limits.
+4. Status is multi-dimensional; unreviewed means unreviewed.
+5. Systems abstain rather than guess.
+6. Roadmap items are never described as implemented.
 
-The default path is deterministic. No LLM client, model credentials, API, or user interface is included. A server-side adapter boundary is documented and fail-closed; it may only select pre-authorized claim IDs, while the application renders all factual text and numbers. See [the V0.1 architecture, threat model, evaluation, limitations, and recommendation](docs/geoimpact-evidence-copilot-v0.1.md).
+## Contributing and license
 
-V0.2 (draft) adds field-level semantic claim binding, so a value attached to the wrong field, label or unit is rejected even when every number and citation is individually valid, plus a synthetic evaluation framework with adversarial cases, development and held-out splits, an intake path for rights-cleared external reports, and an offline specification for a possible future Claude provider. No model is integrated and no API is called. Scores are measured on synthetic reports only and are not real-world accuracy. See [GeoImpact Evidence Copilot V0.2](docs/geoimpact-evidence-copilot-v0.2.md) and the [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
+Issues and discussion are welcome through GitHub. Please keep changes consistent with the principles above and run `npm test` before opening a pull request. No license file is currently published, so all rights are reserved by default until one is added.
 
-V0.2.1 (draft) prepares an independent review without performing one: a [review packet](docs/review/geoimpact-v0.2.1-review-packet.md), hardened review-record checks, an evidence intake for genuine reports, an independent test-set protocol and the exact prerequisites for a first Sonnet pilot. **Verdict: HOLD.** Every review is still UNREVIEWED, no genuine report has been evaluated and no model is called. See [V0.2.1 independent review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md).
-
-## Deployment
-
-Read [deployment and first-run approval](docs/deployment.md), [credential setup](docs/security-and-credentials.md), the [captured change inventory](docs/pre-deployment-inventory.md), and [rollback instructions](docs/rollback.md) before enabling production sync. The workflow has no push trigger and was not run as part of this work.
-
-## Research integrity
-
-Spatial facts must come from deterministic, inspectable calculations. Model-generated explanations must stay distinct from observations and include provenance, geographic and temporal scope, uncertainty, and interpretation limits. The roadmap is planning only; proposed AI systems are not represented as implemented.
+**Author:** Soroush Karahrodi
