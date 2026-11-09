@@ -25,7 +25,6 @@ SK Spatial Intelligence Lab is a research and engineering project built on one r
 | Evidence Explorer V0.1 | Static search over a fixed 12-record catalog. Plain text search, not AI. |
 | Claim-to-Source Trace V0.1 | Draft. Exact line-range permalinks for three records. |
 | GeoImpact Evidence Copilot V0.1–V0.2.1 | Local, deterministic prototype. Draft. Verdict **HOLD**. |
-| Case 01: geometric integrity | Preregistered design. Acquisition gate G1 is a draft package, not an approval. |
 | LLM, agent, EO inference, hosted model | **None implemented.** Roadmap items are plans only. |
 
 Scores in this repository are measured on synthetic data and are not real-world accuracy.
@@ -55,8 +54,6 @@ npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question 
 
 Details: [V0.1](docs/geoimpact-evidence-copilot-v0.1.md) · [V0.2](docs/geoimpact-evidence-copilot-v0.2.md) · [V0.2.1 review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md) · [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
 
-### Case 01: geometric integrity (`docs/cases/case-01/`)
-A preregistered geometry-integrity study (documents in Spanish). See the [preregistration](docs/cases/case-01/PREREGISTRO_INTEGRIDAD_GEOMETRICA.md), the [G0 internal approval record](docs/cases/case-01/G0_INTERNAL_APPROVAL_RECORD.md) and the [G1 acquisition authorization package](docs/cases/case-01/G1_ACQUISITION_AUTHORIZATION_PACKAGE.md) (draft).
 
 ## Repository layout
 
