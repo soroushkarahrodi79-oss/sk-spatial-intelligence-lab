@@ -25,6 +25,7 @@ SK Spatial Intelligence Lab is a research and engineering project built on one r
 | Evidence Explorer V0.1 | Static search over a fixed 12-record catalog. Plain text search, not AI. |
 | Claim-to-Source Trace V0.1 | Draft. Exact line-range permalinks for three records. |
 | GeoImpact Evidence Copilot V0.1–V0.2.1 | Local, deterministic prototype. Draft. Verdict **HOLD**. |
+| Madrid Evidence MCP v0 | Local, read-only stdio server over two Madrid Urban Evidence Lens registry queries. Draft. Not scientifically validated. |
 | LLM, agent, EO inference, hosted model | **None implemented.** Roadmap items are plans only. |
 
 Scores in this repository are measured on synthetic data and are not real-world accuracy.
@@ -55,12 +56,16 @@ npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question 
 Details: [V0.1](docs/geoimpact-evidence-copilot-v0.1.md) · [V0.2](docs/geoimpact-evidence-copilot-v0.2.md) · [V0.2.1 review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md) · [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
 
 
+### Madrid Evidence MCP v0 (`mcp/madrid-evidence/`)
+A read-only stdio MCP server exposing two deterministic queries that Madrid Urban Evidence Lens already resolves (`AMBITO_AT_POINT`, `SOURCE_PROVENANCE`). It reuses Lens's registry code at a pinned commit and adds no model. See [its README](mcp/madrid-evidence/README.md).
+
 ## Repository layout
 
 ```text
 space/                 Hugging Face Space root (static site)
 data/                  Evidence catalog, JSON schema, claim excerpts
 geoimpact-copilot/     Deterministic report parser and evidence-linked Q&A prototype
+mcp/madrid-evidence/   Local read-only MCP server over the Madrid Lens evidence registry
 scripts/               Content checks, link checks, deploy planner, browser checks
 tests/                 Test suites
 docs/                  Roadmap, ADRs, deployment, security, release and review records
