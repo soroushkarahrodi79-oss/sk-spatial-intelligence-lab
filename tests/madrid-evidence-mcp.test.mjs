@@ -69,11 +69,22 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
   const lensRequire = createRequire(lensFile("package.json"));
   const R = lensRequire("./js/evidence-registry.js");
   const planning = await import(pathToFileURL(lensFile("js/planning-ambito.js")).href);
-  const planningIndex = planning.createPlanningIndex({ geometry: readJson("data/planning/madrid_ambitos.geojson") });
+  const change = await import(pathToFileURL(lensFile("js/ambito-change.js")).href);
+  const adapter = await import(pathToFileURL(lensFile("js/ambito-comparison-adapter.js")).href);
+  const STATE = readJson("data/planning/madrid_ambito_state.json");
+  const CD = STATE.change_detection;
+  const planningIndex = planning.createPlanningIndex({ geometry: readJson("data/planning/madrid_ambitos.geojson"), state: STATE });
   const direct = R.createEvidenceRegistry({
     registry: readJson("data/source_registry.json"),
     planningIndex,
     planningModule: { AMBITO_STATE: planning.AMBITO_STATE, AVAILABILITY: planning.AVAILABILITY },
+    ambitoEditionDiff: (code) =>
+      change.buildAmbitoComparison({
+        previous: { reference_date: CD.previous.reference_date, families: CD.previous.families },
+        current: { reference_date: CD.current.reference_date, families: CD.current.families },
+        exactCode: code,
+      }),
+    ambitoEditionCodeKnown: (code) => adapter.ambitoEditionContainsCode(code, STATE),
   });
   // Same normalisation MCP applies on the wire (JSON round trip: frozen objects, undefined).
   const wire = (value) => JSON.parse(JSON.stringify(value));
@@ -91,6 +102,22 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
     }
   }
   assert.ok(inside, "test setup: found a point inside some ámbito");
+
+  // Real points (ring average of an ámbito) for each outcome combination in the pinned artifacts.
+  const cases = {};
+  for (const entry of planningIndex.entries) {
+    let ring = entry.geometry.coordinates;
+    while (Array.isArray(ring[0][0])) ring = ring[0];
+    const lon = ring.reduce((a, p) => a + p[0], 0) / ring.length;
+    const lat = ring.reduce((a, p) => a + p[1], 0) / ring.length;
+    const at = direct.query("AMBITO_AT_POINT", { lon, lat });
+    if (at.kind !== "EVIDENCE") continue;
+    const code = at.value.ambitoCode;
+    const key = [direct.query("AMBITO_PHASES", { code }), direct.query("AMBITO_EDITION_DIFF", { code })]
+      .map((r) => r.reason || r.kind)
+      .join("|");
+    cases[key] ??= { lon, lat, code };
+  }
   const OUTSIDE = { lon: -3.7038, lat: 40.4168 }; // Puerta del Sol: no planning ámbito here
 
   // --- MCP client over stdio -------------------------------------------------------
@@ -106,9 +133,9 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
   const call = (name, args) => client.callTool({ name, arguments: args });
   const sha = (rel) => createHash("sha256").update(readFileSync(lensFile(rel))).digest("hex");
 
-  await t.test("lists exactly the two read-only tools", async () => {
+  await t.test("lists exactly the three read-only tools", async () => {
     const { tools } = await client.listTools();
-    assert.deepEqual(tools.map((tool) => tool.name).sort(), ["ambito_at_point", "source_provenance"]);
+    assert.deepEqual(tools.map((tool) => tool.name).sort(), ["ambito_at_point", "ambito_snapshot_at_point", "source_provenance"]);
     for (const tool of tools) assert.equal(tool.annotations.readOnlyHint, true);
   });
 
@@ -147,6 +174,77 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
     assert.equal(expected.kind, "ABSTENTION");
     assert.deepEqual(res.structuredContent.result, wire(expected));
     assert.equal(res.structuredContent.result.reason, "OUTSIDE_SOURCE_UNIVERSE");
+  });
+
+  const snapshot = async (point) => {
+    const res = await call("ambito_snapshot_at_point", { lon: point.lon, lat: point.lat });
+    assert.ok(!res.isError, JSON.stringify(res.content));
+    assert.deepEqual(JSON.parse(res.content[0].text), res.structuredContent);
+    return res.structuredContent;
+  };
+
+  await t.test("ambito_snapshot_at_point: all three Lens answers for a point with an ámbito", async () => {
+    const point = cases["EVIDENCE|EVIDENCE"];
+    assert.ok(point, "test setup: an ámbito with published state and an edition diff exists");
+    const out = await snapshot(point);
+    const at = direct.query("AMBITO_AT_POINT", point);
+    assert.equal(out.queriedCode, at.value.ambitoCode);
+    assert.deepEqual(out.ambitoAtPoint, wire(at));
+    assert.deepEqual(out.ambitoPhases, wire(direct.query("AMBITO_PHASES", { code: at.value.ambitoCode })));
+    assert.deepEqual(out.ambitoEditionDiff, wire(direct.query("AMBITO_EDITION_DIFF", { code: at.value.ambitoCode })));
+    assert.equal(out.ambitoPhases.kind, "EVIDENCE");
+    assert.equal(out.ambitoEditionDiff.derivation, "EDITION_DIFF");
+    assert.equal(out.notQueried, null);
+    // reading names the hashed files that back each result, and the hashes are real.
+    assert.deepEqual(Object.keys(out.reading.supports), ["AMBITO_AT_POINT", "AMBITO_PHASES", "AMBITO_EDITION_DIFF"]);
+    const listed = new Set(out.reading.files.map((f) => f.path));
+    for (const paths of Object.values(out.reading.supports)) for (const p of paths) assert.ok(listed.has(p), p);
+    assert.ok(out.reading.supports.AMBITO_PHASES.includes("data/planning/madrid_ambito_state.json"));
+    assert.ok(out.reading.supports.AMBITO_EDITION_DIFF.includes("js/ambito-change.js"));
+    for (const file of out.reading.files) assert.equal(file.sha256, sha(file.path), file.path);
+  });
+
+  await t.test("ambito_snapshot_at_point: a point with no ámbito keeps its abstention and queries nothing else", async () => {
+    const out = await snapshot(OUTSIDE);
+    assert.deepEqual(out.ambitoAtPoint, wire(direct.query("AMBITO_AT_POINT", OUTSIDE)));
+    assert.equal(out.ambitoAtPoint.reason, "NO_EVIDENCE_FOR_SCOPE");
+    assert.equal(out.queriedCode, null);
+    assert.equal(out.ambitoPhases, null);
+    assert.equal(out.ambitoEditionDiff, null);
+    assert.match(out.notQueried, /not queried/);
+    assert.deepEqual(Object.keys(out.reading.supports), ["AMBITO_AT_POINT"]);
+  });
+
+  await t.test("ambito_snapshot_at_point: Lens abstentions from the later queries are preserved", async () => {
+    // Both abstain: known ámbito, no published state, code absent from both editions.
+    const both = cases["NO_EVIDENCE_FOR_SCOPE|OUTSIDE_SOURCE_UNIVERSE"];
+    assert.ok(both, "test setup: such an ámbito exists in the pinned artifacts");
+    const a = await snapshot(both);
+    assert.equal(a.ambitoAtPoint.kind, "EVIDENCE");
+    assert.deepEqual(a.ambitoPhases, wire(direct.query("AMBITO_PHASES", { code: both.code })));
+    assert.deepEqual(a.ambitoEditionDiff, wire(direct.query("AMBITO_EDITION_DIFF", { code: both.code })));
+    assert.equal(a.ambitoPhases.reason, "NO_EVIDENCE_FOR_SCOPE");
+    assert.equal(a.ambitoEditionDiff.reason, "OUTSIDE_SOURCE_UNIVERSE");
+
+    // Mixed: no published state, but an edition diff exists.
+    const mixed = cases["NO_EVIDENCE_FOR_SCOPE|EVIDENCE"];
+    assert.ok(mixed, "test setup: such an ámbito exists in the pinned artifacts");
+    const b = await snapshot(mixed);
+    assert.equal(b.ambitoPhases.kind, "ABSTENTION");
+    assert.equal(b.ambitoEditionDiff.kind, "EVIDENCE");
+    assert.deepEqual(b.ambitoEditionDiff, wire(direct.query("AMBITO_EDITION_DIFF", { code: mixed.code })));
+  });
+
+  await t.test("ambito_snapshot_at_point rejects extra fields such as a code", async () => {
+    for (const args of [{ ...inside, code: "AOE.00.08" }, { lon: 999, lat: 40 }, { lon: -3.7 }]) {
+      let rejected = false;
+      try {
+        rejected = (await call("ambito_snapshot_at_point", args)).isError === true;
+      } catch {
+        rejected = true;
+      }
+      assert.ok(rejected, JSON.stringify(args));
+    }
   });
 
   await t.test("reports commit and SHA-256 of the files actually read", async () => {

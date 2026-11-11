@@ -68,6 +68,8 @@ export async function loadLens(lensRoot) {
   const sandbox = mkdtempSync(path.join(tmpdir(), "madrid-evidence-lens-"));
   let registryApi;
   let planning;
+  let change;
+  let comparisonAdapter;
   try {
     const codeFiles = PIN.files.filter((f) => f.role === "code");
     for (const { path: rel } of codeFiles) {
@@ -76,7 +78,10 @@ export async function loadLens(lensRoot) {
       writeFileSync(target, files.get(rel).content, { mode: 0o444 });
     }
     registryApi = createRequire(path.join(sandbox, "package.json"))("./js/evidence-registry.js");
-    planning = await import(pathToFileURL(path.join(sandbox, "js", "planning-ambito.js")).href);
+    const fromSandbox = (rel) => import(pathToFileURL(path.join(sandbox, ...rel.split("/"))).href);
+    planning = await fromSandbox("js/planning-ambito.js");
+    change = await fromSandbox("js/ambito-change.js");
+    comparisonAdapter = await fromSandbox("js/ambito-comparison-adapter.js");
     // Everything Node loaded came from these files; confirm they still hold the verified bytes.
     for (const { path: rel, sha256: expected } of codeFiles) {
       const after = sha256(readFileSync(path.join(sandbox, ...rel.split("/"))));
@@ -86,26 +91,54 @@ export async function loadLens(lensRoot) {
     rmSync(sandbox, { recursive: true, force: true });
   }
 
-  const planningIndex = planning.createPlanningIndex({ geometry: json("data/planning/madrid_ambitos.geojson") });
+  const stateArtifact = json("data/planning/madrid_ambito_state.json");
+  const planningIndex = planning.createPlanningIndex({
+    geometry: json("data/planning/madrid_ambitos.geojson"),
+    state: stateArtifact,
+  });
   if (!planningIndex) throw new Error("Lens planning ámbito geometry is unusable");
 
+  // Wired exactly as Lens's own tests wire AMBITO_EDITION_DIFF (tests/evidence_registry.test.mjs):
+  // the two editions come from the state artifact's change_detection block.
+  const cd = stateArtifact.change_detection;
+  const edition = (side) => ({ reference_date: side.reference_date, families: side.families });
   const registry = registryApi.createEvidenceRegistry({
     registry: json("data/source_registry.json"),
     planningIndex,
     planningModule: { AMBITO_STATE: planning.AMBITO_STATE, AVAILABILITY: planning.AVAILABILITY },
+    ambitoEditionDiff: (code) =>
+      change.buildAmbitoComparison({ previous: edition(cd.previous), current: edition(cd.current), exactCode: code }),
+    ambitoEditionCodeKnown: (code) => comparisonAdapter.ambitoEditionContainsCode(code, stateArtifact),
   });
 
-  const CODE = PIN.files.filter((f) => f.role === "code").map((f) => f.path);
-  const reading = (dataPaths) => ({
+  const REGISTRY = "data/source_registry.json";
+  const GEOMETRY = "data/planning/madrid_ambitos.geojson";
+  const STATE = "data/planning/madrid_ambito_state.json";
+  const RESOLVER = ["js/evidence-registry.js", "js/evidence-scope.js"];
+  const PLANNING = ["js/planning-ambito.js", "js/geography.js"];
+  // Files that support each Lens query: what its resolver actually consults.
+  const SUPPORT = {
+    AMBITO_AT_POINT: [GEOMETRY, REGISTRY, ...RESOLVER, ...PLANNING],
+    SOURCE_PROVENANCE: [REGISTRY, ...RESOLVER, ...PLANNING],
+    AMBITO_PHASES: [STATE, GEOMETRY, REGISTRY, ...RESOLVER, ...PLANNING],
+    AMBITO_EDITION_DIFF: [STATE, REGISTRY, ...RESOLVER, "js/ambito-change.js", "js/ambito-comparison-adapter.js"],
+  };
+  const reading = (shapes) => ({
     lensRepository: PIN.repository,
     lensCommit: PIN.commit,
     commitVerifiedByGit,
     sha256Note:
       "SHA-256 computed by SK Lab over the bytes it read from the Lens checkout and matched against lens-pin.json before use. Data was parsed from those bytes; code was loaded from a private copy of them and re-hashed after loading. This shows the code and data match the pinned files; it does not show the Lens results are correct. Lens's source_registry.json declares a sha256 for only some sources, so these are not registry-declared hashes.",
-    files: [...dataPaths, ...CODE].map((p) => {
-      const { path: filePath, role, sha256: hash, bytes } = files.get(p);
-      return { path: filePath, role, sha256: hash, bytes };
-    }),
+    // Union of the files behind the queries actually run, data first, in pin order.
+    files: PIN.files
+      .filter((f) => shapes.some((s) => SUPPORT[s].includes(f.path)))
+      .sort((a, b) => (a.role === b.role ? 0 : a.role === "data" ? -1 : 1))
+      .map((f) => {
+        const { path: filePath, role, sha256: hash, bytes } = files.get(f.path);
+        return { path: filePath, role, sha256: hash, bytes };
+      }),
+    // Which of those files back each Lens result returned.
+    supports: Object.fromEntries(shapes.map((s) => [s, SUPPORT[s]])),
   });
 
   return {
@@ -114,7 +147,7 @@ export async function loadLens(lensRoot) {
         shape: "AMBITO_AT_POINT",
         input: { lon, lat },
         result: registry.query("AMBITO_AT_POINT", { lon, lat }),
-        reading: reading(["data/planning/madrid_ambitos.geojson", "data/source_registry.json"]),
+        reading: reading(["AMBITO_AT_POINT"]),
       };
     },
     sourceProvenance({ sourceId }) {
@@ -122,7 +155,32 @@ export async function loadLens(lensRoot) {
         shape: "SOURCE_PROVENANCE",
         input: { sourceId },
         result: registry.query("SOURCE_PROVENANCE", { sourceId }),
-        reading: reading(["data/source_registry.json"]),
+        reading: reading(["SOURCE_PROVENANCE"]),
+      };
+    },
+    // Composition of three existing Lens queries. The ámbito code passed to the
+    // second and third is exactly the one AMBITO_AT_POINT returned; when the point
+    // resolves no ámbito nothing further is queried (no code is invented, no
+    // neighbouring ámbito is consulted). Each Lens answer is returned unmodified.
+    ambitoSnapshotAtPoint({ lon, lat }) {
+      const ambitoAtPoint = registry.query("AMBITO_AT_POINT", { lon, lat });
+      const code =
+        ambitoAtPoint.kind === "EVIDENCE" && typeof ambitoAtPoint.value?.ambitoCode === "string"
+          ? ambitoAtPoint.value.ambitoCode
+          : null;
+      const ran = code === null ? ["AMBITO_AT_POINT"] : ["AMBITO_AT_POINT", "AMBITO_PHASES", "AMBITO_EDITION_DIFF"];
+      return {
+        composition: ["AMBITO_AT_POINT", "AMBITO_PHASES", "AMBITO_EDITION_DIFF"],
+        input: { lon, lat },
+        queriedCode: code,
+        ambitoAtPoint,
+        ambitoPhases: code === null ? null : registry.query("AMBITO_PHASES", { code }),
+        ambitoEditionDiff: code === null ? null : registry.query("AMBITO_EDITION_DIFF", { code }),
+        notQueried:
+          code === null
+            ? "AMBITO_AT_POINT returned no ámbito code, so AMBITO_PHASES and AMBITO_EDITION_DIFF were not queried."
+            : null,
+        reading: reading(ran),
       };
     },
   };

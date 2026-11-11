@@ -59,5 +59,36 @@ server.registerTool(
   async ({ sourceId }) => respond(lens.sourceProvenance({ sourceId }))
 );
 
+const lensResult = z.looseObject({ kind: z.enum(["EVIDENCE", "ABSTENTION"]) });
+
+server.registerTool(
+  "ambito_snapshot_at_point",
+  {
+    title: "Planning ámbito at a point: identity, published state, edition difference",
+    description:
+      "Composes three existing Lens queries for one WGS84 point: AMBITO_AT_POINT, then AMBITO_PHASES and AMBITO_EDITION_DIFF using exactly the ámbito code that the first returned. The three Lens answers are returned separately and unmodified (evidence or abstention, explicit nulls preserved). If the point resolves no ámbito, the later queries are not run and queriedCode is null. An edition difference is a classification of two published snapshots; it is not progress, a ranking or a recommendation. Not a legal or planning determination.",
+    inputSchema: z.strictObject({
+      lon: z.number().min(-180).max(180).describe("Longitude, WGS84 decimal degrees"),
+      lat: z.number().min(-90).max(90).describe("Latitude, WGS84 decimal degrees"),
+    }),
+    outputSchema: z.looseObject({
+      composition: z.tuple([z.literal("AMBITO_AT_POINT"), z.literal("AMBITO_PHASES"), z.literal("AMBITO_EDITION_DIFF")]),
+      input: z.strictObject({ lon: z.number(), lat: z.number() }),
+      queriedCode: z.string().nullable(),
+      ambitoAtPoint: lensResult,
+      ambitoPhases: lensResult.nullable(),
+      ambitoEditionDiff: lensResult.nullable(),
+      notQueried: z.string().nullable(),
+      reading: z.looseObject({
+        lensCommit: z.string(),
+        files: z.array(z.looseObject({ path: z.string(), sha256: z.string() })),
+        supports: z.record(z.string(), z.array(z.string())),
+      }),
+    }),
+    annotations: READ_ONLY,
+  },
+  async ({ lon, lat }) => respond(lens.ambitoSnapshotAtPoint({ lon, lat }))
+);
+
 await server.connect(new StdioServerTransport());
 console.error(`madrid-evidence MCP ready (Lens ${PIN.commit.slice(0, 7)})`);

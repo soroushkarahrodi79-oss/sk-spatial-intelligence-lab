@@ -5,11 +5,50 @@
   "commitDate": "2026-11-09T14:31:28-08:00",
   "note": "The server refuses to start unless every listed file under the Lens checkout has exactly this SHA-256. These hashes were computed by SK Lab from the files at the commit above; they are not read from Lens's source_registry.json.",
   "files": [
-    { "path": "js/evidence-registry.js", "role": "code", "sha256": "c59132a3b347fb57635c0076f3dcd0269182fc4268aff3d893f1655dd9307cb7" },
-    { "path": "js/evidence-scope.js", "role": "code", "sha256": "6cd1c44ad794503bb7f1dd9fbafb9cd59b6f803386200c1f5599f8c530c13998" },
-    { "path": "js/planning-ambito.js", "role": "code", "sha256": "5f4fa88841fd3f2d7fcff359ae15cd10629c576a89fe180af50f755191394682" },
-    { "path": "js/geography.js", "role": "code", "sha256": "ac99a82ef1bf20f0c74b39dbab51312d02f20e82fad768f51cd643a65d74bdee" },
-    { "path": "data/source_registry.json", "role": "data", "sha256": "658e394c29d99808fbdaad711d25efa18b85dacf5839264eee4220931516dfd8" },
-    { "path": "data/planning/madrid_ambitos.geojson", "role": "data", "sha256": "0233062c15193d042c8570a495000abf4c38519c11faa41bafeb1b6f79b6efc8" }
+    {
+      "path": "js/evidence-registry.js",
+      "role": "code",
+      "sha256": "c59132a3b347fb57635c0076f3dcd0269182fc4268aff3d893f1655dd9307cb7"
+    },
+    {
+      "path": "js/evidence-scope.js",
+      "role": "code",
+      "sha256": "6cd1c44ad794503bb7f1dd9fbafb9cd59b6f803386200c1f5599f8c530c13998"
+    },
+    {
+      "path": "js/planning-ambito.js",
+      "role": "code",
+      "sha256": "5f4fa88841fd3f2d7fcff359ae15cd10629c576a89fe180af50f755191394682"
+    },
+    {
+      "path": "js/geography.js",
+      "role": "code",
+      "sha256": "ac99a82ef1bf20f0c74b39dbab51312d02f20e82fad768f51cd643a65d74bdee"
+    },
+    {
+      "path": "data/source_registry.json",
+      "role": "data",
+      "sha256": "658e394c29d99808fbdaad711d25efa18b85dacf5839264eee4220931516dfd8"
+    },
+    {
+      "path": "data/planning/madrid_ambitos.geojson",
+      "role": "data",
+      "sha256": "0233062c15193d042c8570a495000abf4c38519c11faa41bafeb1b6f79b6efc8"
+    },
+    {
+      "path": "js/ambito-change.js",
+      "role": "code",
+      "sha256": "51c81cd622cba57b142f2e6f5e955f8095de05a3644797f48c5ef5bb7176b3ef"
+    },
+    {
+      "path": "js/ambito-comparison-adapter.js",
+      "role": "code",
+      "sha256": "2f80d0c4745988c9efa627e445e7fee80f4f8cd6ecaa6a3ee07adf9fc2b38fd8"
+    },
+    {
+      "path": "data/planning/madrid_ambito_state.json",
+      "role": "data",
+      "sha256": "bb85d12db9f0fe2cf8248fa0519cc21f3cc294d534d488dc286fa929ebe97657"
+    }
   ]
 }
