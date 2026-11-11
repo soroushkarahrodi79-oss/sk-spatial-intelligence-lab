@@ -66,4 +66,5 @@ Lens's registry (points with all three answers, with no ámbito, with phases and
   bytes (not from the checkout), re-hashed after loading, and the copy is deleted. A mismatch blocks startup. This
   shows the code and data match the pinned files; it does not prove Lens's results are correct, and a process
   running as the same OS user could still tamper with the temporary copy during the few milliseconds of loading.
+- A `NO_EVIDENCE_FOR_SCOPE` abstention for a point is a known absence in the published ámbito layer. It does not say why no ámbito is there, which zoning or land class applies at the point, or which ámbito is nearest; the server has no proximity query. (Added after an agent pilot in which the agent explained two such absences with unsourced zoning claims.)
 - Only the three tools above (four Lens shapes); no other Lens shape, no GeoParquet/DuckDB, no hosted deployment.

@@ -30,7 +30,7 @@ server.registerTool(
   {
     title: "Official planning ámbito at a point",
     description:
-      "Lens shape AMBITO_AT_POINT. Given WGS84 lon/lat, returns the official Madrid planning ámbito that contains the point (point-in-polygon), or Lens's own abstention (e.g. NO_EVIDENCE_FOR_SCOPE when none contains it). Deterministic; `result` is Lens's evidence object verbatim. `reading.verifiedAtStartup` lists every pinned file the server verified (same for every call); `reading.supports` lists, with hashes, only the files behind this result. Not a legal or planning determination.",
+      "Lens shape AMBITO_AT_POINT. Given WGS84 lon/lat, returns the official Madrid planning ámbito that contains the point (point-in-polygon), or Lens's own abstention (e.g. NO_EVIDENCE_FOR_SCOPE when none contains it). An abstention is a known absence in the published ámbito layer: it says nothing about why no ámbito is there, which zoning or land class applies, or which ámbito is nearest. Deterministic; `result` is Lens's evidence object verbatim. `reading.verifiedAtStartup` lists every pinned file the server verified (same for every call); `reading.supports` lists, with hashes, only the files behind this result. Not a legal or planning determination.",
     inputSchema: z.strictObject({
       lon: z.number().min(-180).max(180).describe("Longitude, WGS84 decimal degrees"),
       lat: z.number().min(-90).max(90).describe("Latitude, WGS84 decimal degrees"),
@@ -66,7 +66,7 @@ server.registerTool(
   {
     title: "Planning ámbito at a point: identity, published state, edition difference",
     description:
-      "Composes three existing Lens queries for one WGS84 point: AMBITO_AT_POINT, then AMBITO_PHASES and AMBITO_EDITION_DIFF using exactly the ámbito code that the first returned. The three Lens answers are returned separately and unmodified (evidence or abstention, explicit nulls preserved). If the point resolves no ámbito, the later queries are not run and queriedCode is null. An edition difference is a classification of two published snapshots; it is not progress, a ranking or a recommendation. `reading.supports` lists, with hashes, the verified files behind each Lens result returned; `reading.verifiedAtStartup` lists every file the server verified. Not a legal or planning determination.",
+      "Composes three existing Lens queries for one WGS84 point: AMBITO_AT_POINT, then AMBITO_PHASES and AMBITO_EDITION_DIFF using exactly the ámbito code that the first returned. The three Lens answers are returned separately and unmodified (evidence or abstention, explicit nulls preserved). If the point resolves no ámbito, the later queries are not run and queriedCode is null; that abstention is a known absence in the published ámbito layer and says nothing about why, which zoning or land class applies, or which ámbito is nearest. An edition difference is a classification of two published snapshots; it is not progress, a ranking or a recommendation. `reading.supports` lists, with hashes, the verified files behind each Lens result returned; `reading.verifiedAtStartup` lists every file the server verified. Not a legal or planning determination.",
     inputSchema: z.strictObject({
       lon: z.number().min(-180).max(180).describe("Longitude, WGS84 decimal degrees"),
       lat: z.number().min(-90).max(90).describe("Latitude, WGS84 decimal degrees"),
