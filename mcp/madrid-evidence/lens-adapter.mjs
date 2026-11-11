@@ -123,22 +123,28 @@ export async function loadLens(lensRoot) {
     AMBITO_PHASES: [STATE, GEOMETRY, REGISTRY, ...RESOLVER, ...PLANNING],
     AMBITO_EDITION_DIFF: [STATE, REGISTRY, ...RESOLVER, "js/ambito-change.js", "js/ambito-comparison-adapter.js"],
   };
+  // Every pinned file, in pin order, with the SHA-256 verified at startup. This is
+  // the same list for every call: it says what the server loaded, not what a given
+  // result rests on.
+  const verifiedAtStartup = PIN.files.map((f) => {
+    const { path: filePath, role, sha256: hash, bytes } = files.get(f.path);
+    return { path: filePath, role, sha256: hash, bytes };
+  });
+  const supportFor = (shape) => SUPPORT[shape].map((p) => ({ path: p, sha256: files.get(p).sha256 }));
   const reading = (shapes) => ({
     lensRepository: PIN.repository,
     lensCommit: PIN.commit,
     commitVerifiedByGit,
+    verifiedAtStartup: {
+      note: `All ${verifiedAtStartup.length} files the server ever reads, hashed and matched against lens-pin.json before startup (the server does not start otherwise). The same list for every call; not every file backs every result.`,
+      files: verifiedAtStartup,
+    },
+    // For each Lens result returned, the verified files its resolver consults, with
+    // the hash verified at startup. A file verified at startup but absent here was
+    // loaded but not consulted for that result.
+    supports: Object.fromEntries(shapes.map((s) => [s, supportFor(s)])),
     sha256Note:
       "SHA-256 computed by SK Lab over the bytes it read from the Lens checkout and matched against lens-pin.json before use. Data was parsed from those bytes; code was loaded from a private copy of them and re-hashed after loading. This shows the code and data match the pinned files; it does not show the Lens results are correct. Lens's source_registry.json declares a sha256 for only some sources, so these are not registry-declared hashes.",
-    // Union of the files behind the queries actually run, data first, in pin order.
-    files: PIN.files
-      .filter((f) => shapes.some((s) => SUPPORT[s].includes(f.path)))
-      .sort((a, b) => (a.role === b.role ? 0 : a.role === "data" ? -1 : 1))
-      .map((f) => {
-        const { path: filePath, role, sha256: hash, bytes } = files.get(f.path);
-        return { path: filePath, role, sha256: hash, bytes };
-      }),
-    // Which of those files back each Lens result returned.
-    supports: Object.fromEntries(shapes.map((s) => [s, SUPPORT[s]])),
   });
 
   return {

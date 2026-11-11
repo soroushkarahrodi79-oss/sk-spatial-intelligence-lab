@@ -12,9 +12,13 @@ does not reimplement Lens's spatial or provenance logic: it loads Lens's own mod
 | `ambito_snapshot_at_point` | `AMBITO_AT_POINT` → `AMBITO_PHASES` + `AMBITO_EDITION_DIFF` | `lon`, `lat` | the three Lens answers, separately and unmodified. The ámbito code from the first is the only code passed to the other two; if the point resolves no ámbito, `queriedCode` is `null` and nothing else is queried |
 | `source_provenance` | `SOURCE_PROVENANCE` | `sourceId` | provenance, freshness and interpretation ceiling of a registered source, or Lens's abstention |
 
-`ambito_at_point` and `source_provenance` respond with `{ shape, input, result, reading }`; `ambito_snapshot_at_point` with `{ composition, input, queriedCode, ambitoAtPoint, ambitoPhases, ambitoEditionDiff, notQueried, reading }`, where `reading.supports` lists which hashed files back each Lens result. An edition difference classifies two published snapshots (here 2025-07-01 and 2026-01-01); it is not progress or a recommendation. `result` is Lens's evidence object or abstention
-**verbatim** (explicit `null`s preserved). `reading` gives the Lens commit and the SHA-256 of every file the
-server read, computed by SK Lab; Lens's `source_registry.json` itself declares a hash for only some sources.
+`ambito_at_point` and `source_provenance` respond with `{ shape, input, result, reading }`; `ambito_snapshot_at_point` with `{ composition, input, queriedCode, ambitoAtPoint, ambitoPhases, ambitoEditionDiff, notQueried, reading }`. An edition difference classifies two published snapshots (here 2025-07-01 and 2026-01-01); it is not progress or a recommendation. `result` is Lens's evidence object or abstention
+**verbatim** (explicit `null`s preserved).
+
+`reading` keeps two lists apart, both with SHA-256 computed by SK Lab (Lens's `source_registry.json` itself declares a hash for only some sources):
+
+- `reading.verifiedAtStartup.files`: the nine pinned files the server verified before it would start. The same list in every response; it says what was loaded, not what a result rests on.
+- `reading.supports[<shape>]`: for each Lens result returned, only the files its resolver consults, each with the hash verified at startup. For example `AMBITO_AT_POINT` is backed by the geometry and the registry but not by the state artifact; `SOURCE_PROVENANCE` by the registry alone among the data files.
 
 ## Pinned Lens checkout
 

@@ -195,13 +195,19 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
     assert.equal(out.ambitoPhases.kind, "EVIDENCE");
     assert.equal(out.ambitoEditionDiff.derivation, "EDITION_DIFF");
     assert.equal(out.notQueried, null);
-    // reading names the hashed files that back each result, and the hashes are real.
+    // reading names, with real hashes, the verified files that back each result.
     assert.deepEqual(Object.keys(out.reading.supports), ["AMBITO_AT_POINT", "AMBITO_PHASES", "AMBITO_EDITION_DIFF"]);
-    const listed = new Set(out.reading.files.map((f) => f.path));
-    for (const paths of Object.values(out.reading.supports)) for (const p of paths) assert.ok(listed.has(p), p);
-    assert.ok(out.reading.supports.AMBITO_PHASES.includes("data/planning/madrid_ambito_state.json"));
-    assert.ok(out.reading.supports.AMBITO_EDITION_DIFF.includes("js/ambito-change.js"));
-    for (const file of out.reading.files) assert.equal(file.sha256, sha(file.path), file.path);
+    const verified = new Set(out.reading.verifiedAtStartup.files.map((f) => f.path));
+    for (const entries of Object.values(out.reading.supports)) {
+      for (const { path: p, sha256 } of entries) {
+        assert.ok(verified.has(p), p);
+        assert.equal(sha256, sha(p), p);
+      }
+    }
+    const paths = (shape) => out.reading.supports[shape].map((f) => f.path);
+    assert.ok(paths("AMBITO_PHASES").includes("data/planning/madrid_ambito_state.json"));
+    assert.ok(paths("AMBITO_EDITION_DIFF").includes("js/ambito-change.js"));
+    assert.ok(!paths("AMBITO_AT_POINT").includes("data/planning/madrid_ambito_state.json"));
   });
 
   await t.test("ambito_snapshot_at_point: a point with no ámbito keeps its abstention and queries nothing else", async () => {
@@ -247,18 +253,31 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
     }
   });
 
-  await t.test("reports commit and SHA-256 of the files actually read", async () => {
+  await t.test("reading separates the files verified at startup from the files behind each result", async () => {
     const res = await call("ambito_at_point", inside);
     const { reading } = res.structuredContent;
     assert.equal(reading.lensCommit, PIN.commit);
-    const byPath = new Map(reading.files.map((f) => [f.path, f]));
-    assert.ok(byPath.has("data/planning/madrid_ambitos.geojson"));
-    assert.ok(byPath.has("data/source_registry.json"));
-    for (const file of reading.files) assert.equal(file.sha256, sha(file.path), file.path);
+    // verifiedAtStartup: every pinned file, in pin order, with its real hash (same for every call).
+    assert.deepEqual(
+      reading.verifiedAtStartup.files.map((f) => ({ path: f.path, role: f.role, sha256: f.sha256 })),
+      PIN.files.map((f) => ({ path: f.path, role: f.role, sha256: sha(f.path) }))
+    );
+    assert.match(reading.verifiedAtStartup.note, new RegExp(`All ${PIN.files.length} files`));
+    // supports: only the files behind this result, each with the hash verified at startup.
+    assert.deepEqual(Object.keys(reading.supports), ["AMBITO_AT_POINT"]);
+    const support = new Map(reading.supports.AMBITO_AT_POINT.map((f) => [f.path, f.sha256]));
+    assert.ok(support.has("data/planning/madrid_ambitos.geojson"));
+    assert.ok(support.has("data/source_registry.json"));
+    assert.ok(!support.has("data/planning/madrid_ambito_state.json"), "state is not consulted for AMBITO_AT_POINT");
+    for (const [p, hash] of support) assert.equal(hash, sha(p), p);
+    assert.ok(support.size < reading.verifiedAtStartup.files.length, "the two lists must differ");
 
     const prov = await call("source_provenance", { sourceId: "planning_ambito_geometry" });
+    const provReading = prov.structuredContent.reading;
+    assert.deepEqual(provReading.verifiedAtStartup.files.map((f) => f.path), PIN.files.map((f) => f.path));
+    const provRole = new Map(provReading.verifiedAtStartup.files.map((f) => [f.path, f.role]));
     assert.deepEqual(
-      prov.structuredContent.reading.files.filter((f) => f.role === "data").map((f) => f.path),
+      provReading.supports.SOURCE_PROVENANCE.filter((f) => provRole.get(f.path) === "data").map((f) => f.path),
       ["data/source_registry.json"]
     );
   });
