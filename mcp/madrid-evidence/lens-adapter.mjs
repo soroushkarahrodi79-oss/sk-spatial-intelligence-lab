@@ -8,10 +8,16 @@
 //
 // Only the files listed in lens-pin.json are ever read. No client input is used
 // to build a path, a query string or code.
+//
+// Verified code is what runs: the pinned bytes are hashed once, written to a
+// private temporary directory, imported from THERE (never from the Lens checkout,
+// so the checkout cannot change between hash and import), re-hashed after the
+// import, and the directory is deleted. Any mismatch aborts startup.
 
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync, realpathSync, statSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -58,9 +64,27 @@ export async function loadLens(lensRoot) {
   // Data is parsed from the very bytes that were hashed above.
   const json = (rel) => JSON.parse(files.get(rel).content.toString("utf8"));
 
-  const requireFromLens = createRequire(path.join(root, "package.json"));
-  const registryApi = requireFromLens("./js/evidence-registry.js");
-  const planning = await import(pathToFileURL(path.join(root, "js", "planning-ambito.js")).href);
+  // Load the verified bytes from a private copy, not from the checkout.
+  const sandbox = mkdtempSync(path.join(tmpdir(), "madrid-evidence-lens-"));
+  let registryApi;
+  let planning;
+  try {
+    const codeFiles = PIN.files.filter((f) => f.role === "code");
+    for (const { path: rel } of codeFiles) {
+      const target = path.join(sandbox, ...rel.split("/"));
+      mkdirSync(path.dirname(target), { recursive: true });
+      writeFileSync(target, files.get(rel).content, { mode: 0o444 });
+    }
+    registryApi = createRequire(path.join(sandbox, "package.json"))("./js/evidence-registry.js");
+    planning = await import(pathToFileURL(path.join(sandbox, "js", "planning-ambito.js")).href);
+    // Everything Node loaded came from these files; confirm they still hold the verified bytes.
+    for (const { path: rel, sha256: expected } of codeFiles) {
+      const after = sha256(readFileSync(path.join(sandbox, ...rel.split("/"))));
+      if (after !== expected) throw new Error(`${rel} changed while it was being loaded`);
+    }
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
 
   const planningIndex = planning.createPlanningIndex({ geometry: json("data/planning/madrid_ambitos.geojson") });
   if (!planningIndex) throw new Error("Lens planning ámbito geometry is unusable");
@@ -77,7 +101,7 @@ export async function loadLens(lensRoot) {
     lensCommit: PIN.commit,
     commitVerifiedByGit,
     sha256Note:
-      "Computed by SK Lab over the exact bytes it read. Lens's source_registry.json declares a sha256 for only some sources, so these are not registry-declared hashes.",
+      "SHA-256 computed by SK Lab over the bytes it read from the Lens checkout and matched against lens-pin.json before use. Data was parsed from those bytes; code was loaded from a private copy of them and re-hashed after loading. This shows the code and data match the pinned files; it does not show the Lens results are correct. Lens's source_registry.json declares a sha256 for only some sources, so these are not registry-declared hashes.",
     files: [...dataPaths, ...CODE].map((p) => {
       const { path: filePath, role, sha256: hash, bytes } = files.get(p);
       return { path: filePath, role, sha256: hash, bytes };

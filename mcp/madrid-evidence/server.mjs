@@ -8,12 +8,6 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { loadLens, PIN } from "./lens-adapter.mjs";
 
-// Lens's .js modules are untyped ES modules; Node's reparse notice is harmless.
-process.removeAllListeners("warning");
-process.on("warning", (warning) => {
-  if (warning.code !== "MODULE_TYPELESS_PACKAGE_JSON") console.error(`${warning.name}: ${warning.message}`);
-});
-
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
 
 let lens;

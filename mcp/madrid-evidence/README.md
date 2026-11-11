@@ -51,13 +51,15 @@ MADRID_LENS_ROOT=../lens-pinned npm run test:madrid-mcp
 
 Starts the real server, calls both tools through an MCP client and compares each result with a direct query of
 Lens's registry (a point inside an ámbito, a point with none, a known and an unknown `sourceId`, hash checks,
-input rejection). Without `MADRID_LENS_ROOT` the test is skipped and says so; it is not part of `npm test`.
+input rejection). Without `MADRID_LENS_ROOT` the command **fails** (it is never green by omission). It also checks that the server refuses to start with a missing checkout or a modified verified file. It is not part of `npm test`; the PR workflow (`validate.yml`) checks out Lens at the pinned commit and runs it as a step of the job (a failing step fails the workflow).
 
 ## Limits
 
 - Draft engineering prototype; **not scientifically validated**. Answers are exactly as good as Lens's committed
   artifacts and carry Lens's interpretation ceiling (the geometry has no declared reference date and is not a
   legal or planning determination).
-- Content hashes are checked at startup; Node later loads Lens's JS modules from disk, so a file changed after
-  startup is not detected.
+- At startup the pinned bytes are hashed, the JS modules are loaded from a private temporary copy of exactly those
+  bytes (not from the checkout), re-hashed after loading, and the copy is deleted. A mismatch blocks startup. This
+  shows the code and data match the pinned files; it does not prove Lens's results are correct, and a process
+  running as the same OS user could still tamper with the temporary copy during the few milliseconds of loading.
 - Only the two shapes above; no other Lens shape, no GeoParquet/DuckDB, no hosted deployment.

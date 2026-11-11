@@ -6,11 +6,13 @@
 //
 //   MADRID_LENS_ROOT=/path/to/lens npm run test:madrid-mcp
 //
-// Without MADRID_LENS_ROOT the suite is skipped and says so.
+// Without MADRID_LENS_ROOT the suite FAILS; it is never green by omission.
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
 import path from "node:path";
 import test from "node:test";
@@ -22,9 +24,45 @@ const LENS_ROOT = process.env.MADRID_LENS_ROOT;
 const SERVER = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "mcp", "madrid-evidence", "server.mjs");
 const PIN = JSON.parse(readFileSync(new URL("../mcp/madrid-evidence/lens-pin.json", import.meta.url), "utf8"));
 
-const skip = LENS_ROOT ? false : "MADRID_LENS_ROOT is not set; skipping Madrid Evidence MCP integration tests";
+const startServer = (lensRoot) =>
+  spawnSync(process.execPath, [SERVER], {
+    input: "",
+    encoding: "utf8",
+    timeout: 30000,
+    env: lensRoot === undefined ? { ...process.env, MADRID_LENS_ROOT: "" } : { ...process.env, MADRID_LENS_ROOT: lensRoot },
+  });
 
-test("Madrid Evidence MCP against the pinned Lens registry", { skip }, async (t) => {
+test("server refuses to start without a Lens checkout", () => {
+  for (const missing of [undefined, path.join(tmpdir(), "madrid-evidence-no-such-lens")]) {
+    const run = startServer(missing);
+    assert.notEqual(run.status, 0, "must exit non-zero");
+    assert.equal(run.stdout, "", "must not speak MCP");
+    assert.match(run.stderr, /madrid-evidence: /);
+  }
+});
+
+test("server refuses to start when a verified file is modified", { skip: !LENS_ROOT && "needs MADRID_LENS_ROOT (reported by the test below)" }, (t) => {
+  for (const rel of ["data/source_registry.json", "js/planning-ambito.js"]) {
+    const copy = mkdtempSync(path.join(tmpdir(), "madrid-evidence-tampered-"));
+    t.after(() => rmSync(copy, { recursive: true, force: true }));
+    for (const { path: p } of PIN.files) {
+      mkdirSync(path.dirname(path.join(copy, p)), { recursive: true });
+      cpSync(path.join(LENS_ROOT, ...p.split("/")), path.join(copy, ...p.split("/")));
+    }
+    const target = path.join(copy, ...rel.split("/"));
+    writeFileSync(target, readFileSync(target, "utf8") + "\n");
+    const run = startServer(copy);
+    assert.notEqual(run.status, 0, rel);
+    assert.equal(run.stdout, "");
+    assert.ok(run.stderr.includes(`${rel} does not match the pinned Lens commit`), run.stderr);
+  }
+});
+
+test("MADRID_LENS_ROOT is set to the pinned Lens checkout", () => {
+  assert.ok(LENS_ROOT, "MADRID_LENS_ROOT is not set: the Madrid Evidence MCP integration test needs a Lens checkout at the commit in mcp/madrid-evidence/lens-pin.json");
+});
+
+test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT && "no MADRID_LENS_ROOT (failure reported above)" }, async (t) => {
   // --- direct Lens registry, wired the way Lens's own tests wire it ----------------
   const lensFile = (rel) => path.join(LENS_ROOT, ...rel.split("/"));
   const readJson = (rel) => JSON.parse(readFileSync(lensFile(rel), "utf8"));

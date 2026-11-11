@@ -28,6 +28,20 @@ jobs:
       - run: npm run check:trace:online
       - run: npm run test:trace
       - run: npm run test:copilot
+      - name: Read pinned Lens commit
+        id: lens-pin
+        run: echo "commit=$(node -p "require('./mcp/madrid-evidence/lens-pin.json').commit")" >> "$GITHUB_OUTPUT"
+      - name: Check out pinned Lens
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: soroushkarahrodi79-oss/madrid-tourism-intelligence-lens
+          ref: ${{ steps.lens-pin.outputs.commit }}
+          path: lens-pinned
+          persist-credentials: false
+      - name: Madrid Evidence MCP integration test
+        run: npm run test:madrid-mcp
+        env:
+          MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
       - run: npm run check:review-record
