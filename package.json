@@ -30,7 +30,9 @@
     "check:evidence:online": "node scripts/evidence-catalog.mjs --online",
     "check:trace:online": "node scripts/evidence-catalog.mjs --trace-online",
     "build:trace-excerpts": "node scripts/claim-trace.mjs --write-excerpts",
-    "test:trace": "node --test tests/claim-trace.test.mjs"
+    "test:trace": "node --test tests/claim-trace.test.mjs",
+    "mcp:madrid-evidence": "node mcp/madrid-evidence/server.mjs",
+    "test:madrid-mcp": "node --test tests/madrid-evidence-mcp.test.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
@@ -38,5 +40,9 @@
     "html-validate": "11.17.0",
     "playwright": "1.64.1",
     "yaml": "2.9.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
   }
 }
