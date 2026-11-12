@@ -39,7 +39,7 @@ Las banderas automáticas son candidatas. Marcaron 9 respuestas del brazo mcp y 
 - **MEV-10 (Barcelona): inestable.** Pase 1: consultó la herramienta y se abstuvo correctamente. Repetición: **no llamó a ninguna herramienta** y afirmó “ningún ámbito de planeamiento de Madrid contiene ese punto”, de memoria: E7 y E5 (resultado presentado sin consulta). El enunciado es cierto según Lens, pero nada en esa ejecución lo respalda.
 - **MEV-28:** mismo comportamiento que el pase 1 (supone lat 40,45, lo declara, consulta).
 
-Consecuencia: el 0/30 críticos del brazo mcp es del pase 1 y **no es estable**; con una sola repetición de 2 casos ya aparece un fallo del tipo “no usar la herramienta y afirmar”. Las descripciones actuales de las herramientas no cubren ese riesgo.
+Consecuencia: el 0/30 críticos del brazo mcp es del pase 1 y **podría no ser estable**: con una sola repetición de 2 casos ya aparece un fallo del tipo “no usar la herramienta y afirmar”. Con una repetición no se puede estimar su frecuencia ni saber si las descripciones actuales de las herramientas lo previenen.
 
 ## 4. Lo que estos resultados no demuestran
 
@@ -56,4 +56,4 @@ Consecuencia: el 0/30 críticos del brazo mcp es del pase 1 y **no es estable**;
 
 ## 6. Estado del repositorio
 
-Rama local `feat/madrid-mcp-eval-v0.1` desde `origin/main`, sin commits, sin PR ni push. Cambios: documentación del número de herramientas (README.md, `mcp/madrid-evidence/README.md`, comentarios de `server.mjs`, `lens-adapter.mjs` y del test) y la carpeta `mcp/madrid-evidence/eval/`. Transcripciones en bruto en `work/` (ignorado por git; sus SHA-256 están en `results.json`). No se tocó Lens ni se añadió ninguna herramienta.
+Rama local `feat/madrid-mcp-eval-v0.1` desde `origin/main`, sin commits, sin PR ni push. Cambios: documentación del número de herramientas (README.md, `mcp/madrid-evidence/README.md`, comentarios de `server.mjs`, `lens-adapter.mjs` y del test) y la carpeta `mcp/madrid-evidence/eval/`. En `results.json` la ruta temporal local que el modelo reprodujo en tres respuestas del baseline está sustituida por `<tmp>`. Transcripciones en bruto en `work/` (ignorado por git; sus SHA-256 están en `results.json`). No se tocó Lens ni se añadió ninguna herramienta.
