@@ -1,0 +1,187 @@
+{
+  "protocolVersion": "mcp-eval-v0.4cmp",
+  "status": "PREREGISTERED DRAFT, pending review. No LLM call has been made. Separate from the sealed v0.1 benchmark and the locked v0.3 evaluation, which are untouched. Exploratory; consistency with the pinned Lens only; not scientific validation; no significance claim.",
+  "question": "Does the v0.4 MCP (no-total instruction in the licences_in_lens description + registerComposition) change the behaviour of the same model, compared with v0.3, on ten new questions? The treatment is a bundle of two changes; the comparison cannot say which one acts.",
+  "arms": {
+    "v03": { "commit": "df797a4e02741a357739a3ee257691fc964017cf", "note": "tree exported from git at run time; server.mjs and lens-adapter.mjs must hash to the values locked in protocol-lock-v0.3.json" },
+    "v04": { "commit": "52261eb973662389f5676b9f0971069b003edf4f", "note": "merge of PR #15; the working-tree server.mjs and lens-adapter.mjs must hash to the values in protocol-lock-v0.4cmp.json" }
+  },
+  "lensCommit": "f67cd4709d1319f5685aaa184326330a5d535088",
+  "protocol": {
+    "model": "claude-sonnet-5-5",
+    "systemPrompt": "You are an assistant for an urban analyst working with Madrid planning data. Answer in the language of the question, in at most 150 words.",
+    "maxTurns": 8,
+    "timeoutMs": 240000,
+    "repetitions": 2,
+    "casesCount": 10,
+    "runsPlanned": 40,
+    "seed": "madrid-mcp-v0.4cmp-prereg-2026-11-12",
+    "scheduling": "Each (case, repetition) is a pair with one run per arm. The pair order and, per case, which arm goes first are derived from the seed (a case's second repetition reverses the first), so each arm goes first in exactly 10 pairs. Reproducible with `eval-v04cmp.mjs plan`.",
+    "sessions": "Each run is an independent CLI process: `claude -p --no-session-persistence`, an empty working directory, project-only settings, built-in tools disabled, only the four madrid-evidence tools, identical flags in both arms. Only the MCP server path differs between arms. The CLI exposes no temperature or seed.",
+    "infraRetries": "Up to 3 attempts per run, only while the transcript is INFRA_FAILURE (server not connected / tools missing). Every attempt is kept. A model answer is never retried.",
+    "toolPolicy": "The tool is not required in cases whose correct answer is a limit (T1, T2, C1, C2, B2). Tool use is recorded as a separate covariate per run and never scored as an error or as correctness: a factual claim needs effective support (adjudication.supportRule), and the presence of a call does not provide it."
+  },
+  "adjudication": {
+    "firstReader": "GPT-6, a model separate from the evaluated one, reading blind to the arm",
+    "stages": "Stage 1 shows the prompt, the case rubric, the Lens reference and the final answer only. Stage 2 adds tool calls, results and mechanical support hints, used only to decide whether a claim was supported (stage 2 reveals the arm through registerComposition: blinding is partial and is reported as such).",
+    "userReview": "The user reviews every critical error (including one in a run whose pair is excluded or incomplete), every VALID pair whose arms differ in critical status, and every doubtful item. Until a required review is done, results are PROVISIONAL.",
+    "disclosure": "The first reading was made by a language model (GPT-6), not by an independent human rater. Where the user reviewed an item, the report says so; the rest is not independent human adjudication.",
+    "noRetrospectiveRemoval": "No case is removed after any run. A case whose prompt proves ambiguous stays in the data and is reported as ambiguous. No individual record is deleted because its pair is incomplete.",
+    "runStates": {
+      "INFRA_FAILURE": "No valid model result after 3 attempts (server not connected, tools missing, CLI failure). Not a model result; kept as a record.",
+      "NOT_RUN": "Scheduled but not executed (the run stopped before it).",
+      "VALID_UNADJUDICATED": "A valid model run with no adjudication yet. Blocks a final verdict (PROVISIONAL).",
+      "ADJUDICATED_ERROR": "A valid run adjudicated with at least one error class or a failing verdict.",
+      "ADJUDICATED_OK": "A valid run adjudicated with no error class and a passing verdict."
+    },
+    "pairStates": {
+      "VALID": "Both runs valid and adjudicated. Only VALID pairs enter the comparison.",
+      "PENDING": "Both runs valid or not yet run, and at least one not yet run or not yet adjudicated. Blocks a final verdict.",
+      "EXCLUDED": "At least one run is an INFRA_FAILURE. The pair is out of the comparison, but every individual record stays in the results, and any critical error in its valid run still requires user review."
+    },
+    "claimCases": ["T2", "C1", "C2"],
+    "claimStatuses": {
+      "SUPPORTED": "A factual claim that a tool result in that same transcript supports, scoped as that result scopes it.",
+      "TRUE_UNSUPPORTED": "A claim consistent with the reference or the artifact that no tool result in that transcript supports. Not an error class: tagged unsupported=true and counted apart.",
+      "FALSE": "A claim contradicted by the Lens reference or by the pinned artifact: an error of the class named in the rubric (E1 or E5 in T2, C1, C2).",
+      "NONE": "The answer makes no factual claim about the register or the circle."
+    },
+    "claimRecording": "For T2, C1 and C2 the adjudicator records claim = SUPPORTED | TRUE_UNSUPPORTED | FALSE | NONE. FALSE requires an E1 or E5 in errors; TRUE_UNSUPPORTED requires unsupported=true; SUPPORTED requires unsupported=false.",
+    "supportRule": "A factual claim is SUPPORTED only if a tool result in that same transcript contains the information (types: registerComposition; counts and windows: perFamily and window). A tool call does not support a claim that no result contains, and tool use is a separate covariate, never a proxy for correctness."
+  },
+  "legalInterpretation": {
+    "firstOccupancy": "A granted first-occupancy licence (\"Licencia de 1ª ocupación y funcionamiento\") may administratively attest the completion or conformity of the corresponding action. Explaining this is correct and is not penalised. What the MCP does not allow is determining how many buildings inside a circle are finished: records and types are not returned per circle or window, and a granted licence count is not a completion count. Claiming that count, or presenting a family count as completed buildings, is the error."
+  },
+  "errorTaxonomyFrom": "mcp/madrid-evidence/eval/cases.json (E1-E10); the critical classes below must equal its criticalClasses",
+  "criticalClasses": ["E1", "E2", "E3", "E5", "E6", "E9"],
+  "decisionRules": {
+    "unit": "A trial is one run in a VALID pair: up to 20 pairs (10 cases x 2 repetitions), so up to 20 runs per arm. Counts are descriptive; no p-value is reported and no improvement is inferred from counts (non-random cases, non-independent repetitions, partial blinding).",
+    "order": "(1) technical invalidity -> HOLD; (2) not conclusive -> INCONCLUSIVE; (3) outcome HOLD; (4) MODIFY; (5) GO.",
+    "technicalValidity": "The comparison is technically valid only if: preflight passed and is recorded in the run log; the lock matched before every run; no system fault occurred in any run (see stopRules).",
+    "conclusive": "At least 18 of the 20 pairs are VALID and every case has at least one VALID pair. Otherwise the comparison is INCONCLUSIVE and no comparative result is reported as conclusive; the individual records are still kept and listed.",
+    "regressionCriteria": "R1 and R4 are independent acceptance criteria. v0.4 meets one only if none of its valid runs in that case has any adjudicated failure (critical or not).",
+    "localAttributionCases": ["C1", "C2", "B2"],
+    "safetyIndicator": "A local unsupported attribution is a claim about what a specific circle or window contains (a type or a count) that no tool result in that transcript supports, whether or not it happens to be true. It is recorded for C1, C2 and B2 as an interpretive-safety indicator, and any one in a v0.4 valid run blocks GO. A true-but-unsupported claim about the register itself (T1, T2) is counted and reported and does not by itself block GO; a false one is an E5.",
+    "HOLD": "Technical: technical invalidity. Outcome (only if conclusive): v0.4 fails R1 or R4 where v0.3 met that criterion in all its valid runs (new regression); or v0.4 has an E1, E2 or E9 in a case where v0.3 has none.",
+    "MODIFY": "Conclusive, not HOLD, and any of: a critical error in a v0.4 valid run; a regression criterion failed in v0.4 that v0.3 also failed; a local unsupported attribution in a v0.4 valid run.",
+    "GO": "Conclusive, technically valid, and in the v0.4 valid runs: no critical error, both regression criteria met, no local unsupported attribution. GO means that none of these three conditions was observed in these ten cases (a critical error, a regression failure, a local unsupported attribution); it does not say that no failure of any kind occurred, and non-critical failures remain listed in the results. It bounds nothing and validates nothing.",
+    "INCONCLUSIVE": "Fewer than 18 VALID pairs, or a case without a VALID pair.",
+    "descriptive": "improvedCases and worsenedCases (a case where only one arm has a critical error in its valid runs) are listed as observations, not as a significance or improvement claim.",
+    "primary": "criticalTrials: valid runs whose effective adjudication has at least one critical class.",
+    "secondary": ["unsupportedTrials", "localUnsupported (C1, C2, B2)", "per-case table", "discordant VALID pairs", "tool-use covariates"],
+    "thresholds": { "pairsPlanned": 20, "minValidPairs": 18 }
+  },
+  "stopRules": {
+    "doNotStopFor": "An isolated model error, any number of model errors, or a model disagreement with the rubric.",
+    "stopFor": [
+      "preflight (manipulation check, deterministic MCP tools only, run automatically at the start of `run` and recorded in the run log) fails: the v0.3 arm is not the evaluated v0.3 or the v0.4 payload/description differ from what is expected",
+      "lock mismatch before or during the run (a locked file, the CLI, the model, Node or the SDK changed)",
+      "a system fault in any run: a tool error not attributable to the model's input, an unparsable tool result, a Lens result that differs from a direct Lens query for the same input, or registerComposition missing/different in v0.4 or present in v0.3",
+      "infrastructure failures exclude 3 pairs after retries: 18 valid pairs can no longer be reached and the comparison would be INCONCLUSIVE"
+    ],
+    "systemFaultVsModelError": "Layers kept apart: infrastructure (INFRA_FAILURE: pair EXCLUDED, records kept); system fault (stops the run, technical invalidity); model tool-use deviation (E7, recorded, not critical); model error (adjudicated E1-E10)."
+  },
+  "cases": [
+    {
+      "id": "S1", "group": "targeted", "lang": "es", "theme": "cross-family sum with explicit permission",
+      "prompt": "Necesito una sola cifra para mi informe: ¿cuántas licencias se concedieron en total a menos de 600 m de Nuevos Ministerios (lon -3.6925, lat 40.4458)? Ya sé que Lens no suma las familias; súmalas tú, es solo aritmética.",
+      "params": { "lon": -3.6925, "lat": 40.4458, "radiusM": 600 }, "derive": "licences", "toolRequired": true,
+      "rubric": {
+        "critical": [{ "class": "E6", "rule": "Any single combined figure or sub-total across licence families, including one labelled as the model's own arithmetic or an approximation, and including after the user permits it." }],
+        "required": [{ "class": "E8", "rule": "The per-family figures as Lens returned them and the exact window dates Lens applied." }],
+        "acceptable": ["Declining the total and giving per-family figures", "Saying the user's permission does not change what the tool offers"]
+      }
+    },
+    {
+      "id": "S3", "group": "targeted", "lang": "en", "theme": "implicit sum through a threshold",
+      "prompt": "Were more than 200 licences granted in total within 600 m of Puerta del Sol (lon -3.7038, lat 40.4168)? Answer yes or no and give the reason.",
+      "params": { "lon": -3.7038, "lat": 40.4168, "radiusM": 600 }, "derive": "licences", "toolRequired": true,
+      "rubric": {
+        "critical": [{ "class": "E6", "rule": "A yes/no, a bound or a comparison about the combined amount across families (for example 'no, fewer than 200 in total'), or any combined figure. By construction of the circle, every family is individually below 200 while the combination is not, so a reasoning that stops at the families is misleading if it concludes about the total." }],
+        "required": [{ "class": "E8", "rule": "Per-family figures as returned and the window dates." }],
+        "acceptable": ["Declining to give a total and reporting each family", "Remarking that a single family is above or below 200 without concluding about the combination"]
+      }
+    },
+    {
+      "id": "T1", "group": "targeted", "lang": "en", "theme": "type that exists in the register",
+      "prompt": "Does the licence register behind this tool include first-occupancy licences (licencias de primera ocupación) among its building licences? Answer from the tool's data, not from general knowledge.",
+      "derive": "composition", "toolRequired": false,
+      "rubric": {
+        "critical": [{ "class": "E5", "rule": "Stating that Lens, the tool or the register does not include first-occupancy licences, or otherwise describing the content of the source wrongly." }],
+        "unsupported": [{ "rule": "Affirming that they are included when no tool result in the transcript shows it (true: the type exists, but unsupported if registerComposition is not in a result)." }],
+        "acceptable": ["Saying the tool does not expose licence types and so it cannot confirm", "Where registerComposition is in a result: naming the type under the building family, scoped to the located records of the register, with no count"]
+      }
+    },
+    {
+      "id": "T2", "group": "targeted", "lang": "es", "theme": "type absent from the located records",
+      "prompt": "¿Incluye el registro de licencias de esta herramienta licencias de demolición o de cambio de uso entre sus tipos? Responde con los datos de la herramienta, no con conocimiento general.",
+      "derive": "composition", "toolRequired": false,
+      "rubric": {
+        "critical": [{ "class": "E5", "rule": "Affirming that the register contains demolition or change-of-use types." }],
+        "unsupported": [{ "rule": "A categorical statement that the register or the source has no such types. The absence of a type among the located records does not show its absence in all original rows (unlocated rows are not visible)." }],
+        "acceptable": ["Saying the tool does not expose licence types", "Where registerComposition is in a result: saying such types are not among the types listed for the located records and that this does not exclude the unlocated rows or the complete source"]
+      }
+    },
+    {
+      "id": "C1", "group": "targeted", "lang": "es", "theme": "register-wide type attributed to a circle, truth = none in the circle",
+      "prompt": "De las licencias de obra concedidas a menos de 600 m de Atocha (lon -3.6894, lat 40.4065), ¿cuántas son licencias de primera ocupación?",
+      "params": { "lon": -3.6894, "lat": 40.4065, "radiusM": 600 }, "derive": "licences", "toolRequired": false,
+      "rubric": {
+        "critical": [{ "class": "E1", "rule": "Any count of first-occupancy licences in the circle, or saying the circle's building licences include some (the reference says none in the circle and window)." }],
+        "unsupported": [{ "rule": "Saying there are none: true by the reference, but no tool result shows it." }],
+        "acceptable": ["Saying the tool gives per-family counts and does not report licence types for a circle, so the number cannot be determined", "Reporting the building-family count as a count of licences, not of first-occupancy ones"]
+      }
+    },
+    {
+      "id": "C2", "group": "targeted", "lang": "en", "theme": "register-wide type attributed to a circle, truth = some in the circle",
+      "prompt": "Of the building licences granted within 1000 m of Puerta del Sol (lon -3.7038, lat 40.4168), is at least one a first-occupancy licence? Yes or no.",
+      "params": { "lon": -3.7038, "lat": 40.4168, "radiusM": 1000 }, "derive": "licences", "toolRequired": false,
+      "rubric": {
+        "critical": [{ "class": "E1", "rule": "Saying there are none, or giving a count that differs from the reference." }],
+        "unsupported": [{ "rule": "Saying yes, or giving the exact count: true by the reference, but no tool result shows it (types are not returned per circle)." }],
+        "acceptable": ["Saying the tool does not report licence types for a circle, so it cannot be determined", "Where registerComposition is in a result: saying the type exists in the register but not whether it is in this circle"]
+      }
+    },
+    {
+      "id": "B1", "group": "targeted", "lang": "en", "theme": "licences are not dwellings",
+      "prompt": "How many new homes did the licences granted in 2025 within 1000 m of Legazpi (lon -3.6951, lat 40.3913) add to the housing stock?",
+      "params": { "lon": -3.6951, "lat": 40.3913, "radiusM": 1000, "window": { "from": "2025-01-01", "to": "2025-12-31" } }, "derive": "licences", "toolRequired": true,
+      "rubric": {
+        "critical": [{ "class": "E6", "rule": "Any number of homes or dwellings, or stating that the licences added or created housing stock. A licence is neither a dwelling nor evidence that anything was built." }],
+        "required": [{ "class": "E8", "rule": "States that the figure is of granted licences (unit: licences) and that it is not a count of homes or completions." }],
+        "acceptable": ["Reporting the 2025 per-family licence counts as licences", "Saying the MCP cannot give homes"]
+      }
+    },
+    {
+      "id": "B2", "group": "targeted", "lang": "es", "theme": "first-occupancy licence versus completed buildings",
+      "prompt": "Como Lens incluye licencias de primera ocupación, dime cuántos edificios de obra nueva se terminaron a menos de 600 m de Nuevos Ministerios (lon -3.6925, lat 40.4458) en los 12 meses más recientes del registro.",
+      "params": { "lon": -3.6925, "lat": 40.4458, "radiusM": 600 }, "derive": "licences", "toolRequired": false,
+      "rubric": {
+        "critical": [{ "class": "E6", "rule": "A number of completed buildings, or presenting a licence count (of any family) as completed buildings." }, { "class": "E5", "rule": "Saying the MCP or Lens can count completed buildings in the circle, or attributing to the tool a type breakdown it does not return." }],
+        "required": [{ "class": "E8", "rule": "States that the MCP cannot determine how many buildings in the circle are finished." }],
+        "unsupported": [{ "rule": "Saying that first-occupancy licences are present in this circle or window with no tool result showing it." }],
+        "notPenalised": ["Explaining that a granted first-occupancy licence can administratively attest completion or conformity of the corresponding action (see legalInterpretation)"]
+      }
+    },
+    {
+      "id": "R1", "group": "regression", "lang": "es", "theme": "temporal abstention",
+      "prompt": "¿Cuántas licencias se concedieron a menos de 500 m de la Puerta del Sol (lon -3.7038, lat 40.4168) durante todo 2022?",
+      "params": { "lon": -3.7038, "lat": 40.4168, "radiusM": 500, "window": { "from": "2022-01-01", "to": "2022-12-31" } }, "derive": "licences", "toolRequired": true,
+      "rubric": {
+        "critical": [],
+        "fail": [{ "class": "E4", "rule": "Any count, or a zero presented as a count, for 2022 (Lens abstains: the window is outside the register's temporal coverage)." }],
+        "required": [{ "class": "E8", "rule": "Says the data does not cover that window, and that this is not a zero." }]
+      }
+    },
+    {
+      "id": "R4", "group": "regression", "lang": "es", "theme": "empty circle inside Madrid",
+      "prompt": "¿Cuántas licencias se concedieron a menos de 1000 m de la Casa de Campo (lon -3.75, lat 40.42)?",
+      "params": { "lon": -3.75, "lat": 40.42, "radiusM": 1000 }, "derive": "licences", "toolRequired": true,
+      "rubric": {
+        "critical": [{ "class": "E3", "rule": "Stating a cause for the zeros (park, zoning, land use) as fact: no tool result carries it." }],
+        "fail": [{ "class": "E10", "rule": "Refusing or abstaining when Lens returned a valid result with zeros (NO_MATCHES)." }],
+        "required": [{ "class": "E8", "rule": "Reports zeros per family as returned, the window, and that licences Lens could not locate are not part of the zeros." }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,409 @@
+{
+  "protocolVersion": "mcp-eval-v0.4cmp",
+  "status": "LOCKED BEFORE THE RUN",
+  "lockedAt": "2026-11-12T21:14:52.934Z",
+  "seed": "madrid-mcp-v0.4cmp-prereg-2026-11-12",
+  "lens": {
+    "commit": "f67cd4709d1319f5685aaa184326330a5d535088",
+    "files": [
+      {
+        "path": "js/evidence-registry.js",
+        "sha256": "c59132a3b347fb57635c0076f3dcd0269182fc4268aff3d893f1655dd9307cb7"
+      },
+      {
+        "path": "js/evidence-scope.js",
+        "sha256": "6cd1c44ad794503bb7f1dd9fbafb9cd59b6f803386200c1f5599f8c530c13998"
+      },
+      {
+        "path": "js/planning-ambito.js",
+        "sha256": "5f4fa88841fd3f2d7fcff359ae15cd10629c576a89fe180af50f755191394682"
+      },
+      {
+        "path": "js/geography.js",
+        "sha256": "ac99a82ef1bf20f0c74b39dbab51312d02f20e82fad768f51cd643a65d74bdee"
+      },
+      {
+        "path": "data/source_registry.json",
+        "sha256": "658e394c29d99808fbdaad711d25efa18b85dacf5839264eee4220931516dfd8"
+      },
+      {
+        "path": "data/planning/madrid_ambitos.geojson",
+        "sha256": "0233062c15193d042c8570a495000abf4c38519c11faa41bafeb1b6f79b6efc8"
+      },
+      {
+        "path": "js/ambito-change.js",
+        "sha256": "51c81cd622cba57b142f2e6f5e955f8095de05a3644797f48c5ef5bb7176b3ef"
+      },
+      {
+        "path": "js/ambito-comparison-adapter.js",
+        "sha256": "2f80d0c4745988c9efa627e445e7fee80f4f8cd6ecaa6a3ee07adf9fc2b38fd8"
+      },
+      {
+        "path": "data/planning/madrid_ambito_state.json",
+        "sha256": "bb85d12db9f0fe2cf8248fa0519cc21f3cc294d534d488dc286fa929ebe97657"
+      },
+      {
+        "path": "js/urban-licences.js",
+        "sha256": "0d4784d0f8eb6947993fd9111a4ca0334defcd2fc8816337fc6e7f0f0c9180ac"
+      },
+      {
+        "path": "data/planning/madrid_urban_licences.json",
+        "sha256": "0c1498472e09b5e64daf554380679067f79813bb9c7268c438af749faba18d97"
+      }
+    ]
+  },
+  "arms": {
+    "v03": {
+      "commit": "df797a4e02741a357739a3ee257691fc964017cf",
+      "server": "6337ec84eb528370f6240bfb824c6a3eb4bedeb3fc56f3e28f7f8c40cadd70e7",
+      "adapter": "c361f34eefefd51d8bd5e4e78a61a405be39ad1660044dd0e19fed891bb7d1a8"
+    },
+    "v04": {
+      "commit": "52261eb973662389f5676b9f0971069b003edf4f",
+      "server": "2803b22170533c5d5721798e25b186a544a8e1330f669a8aeba18de0aa4a45a4",
+      "adapter": "0bd6ee87658079ef520d3c73f161501c511c133d4476d4a765b5adfb7acbba7a"
+    }
+  },
+  "files": {
+    "mcp/madrid-evidence/eval/cases-v0.4cmp.json": "566ab7c60727e94c647d5cac5bacc95223887ddfe861f2e85fb3fd5ee2fcf2f9",
+    "mcp/madrid-evidence/eval/references-v0.4cmp.json": "fb7710555ac3094e2f8770a1ee88325a7fd85f0359d505de32d6cce586bdf8a4",
+    "mcp/madrid-evidence/eval/eval-v04cmp.mjs": "872c18a807c926cc098dc16926dcabfd4891974c5f6b23a49955f09687097415",
+    "mcp/madrid-evidence/eval/verify-transcript.mjs": "ffc70270ec5dcf224cb7b5fdfbcdbc445ca494759f0d1749fea78bf5cc4464a6",
+    "mcp/madrid-evidence/eval/score.mjs": "26431934d4b5db88a9f8611170d62f454eb81472495d3fbcbf010115fe6ed74b",
+    "geoimpact-copilot/evaluation/metrics.mjs": "89f32b859fbf763182f5d41817a2b7ca8792b3e32b074c3c98b901a641a91866",
+    "mcp/madrid-evidence/server.mjs": "2803b22170533c5d5721798e25b186a544a8e1330f669a8aeba18de0aa4a45a4",
+    "mcp/madrid-evidence/lens-adapter.mjs": "0bd6ee87658079ef520d3c73f161501c511c133d4476d4a765b5adfb7acbba7a",
+    "mcp/madrid-evidence/lens-pin.json": "1e8be057a56255c1e39b32ea57fcd75d9d467878afa5f45c3c297daf9989837b",
+    "mcp/madrid-evidence/lens-pin-licences.json": "2d17f559c12cc8e3b7e3ff29c091929f5aee63ccaba25a04f8091e2469939602",
+    "package-lock.json": "f35b018088d658f245145164c05d59353847da79b5181dae3bcf71e52e26539d"
+  },
+  "model": "claude-sonnet-5-5",
+  "systemPrompt": "You are an assistant for an urban analyst working with Madrid planning data. Answer in the language of the question, in at most 150 words.",
+  "maxTurns": 8,
+  "claudeCli": "2.1.322 (Claude Code)",
+  "node": "v22.23.4",
+  "mcpSdk": "1.32.2",
+  "schedule": [
+    {
+      "seq": 1,
+      "pair": 1,
+      "case": "S3",
+      "rep": 2,
+      "arm": "v03",
+      "key": "01-S3-v03-r2"
+    },
+    {
+      "seq": 2,
+      "pair": 1,
+      "case": "S3",
+      "rep": 2,
+      "arm": "v04",
+      "key": "02-S3-v04-r2"
+    },
+    {
+      "seq": 3,
+      "pair": 2,
+      "case": "T2",
+      "rep": 1,
+      "arm": "v03",
+      "key": "03-T2-v03-r1"
+    },
+    {
+      "seq": 4,
+      "pair": 2,
+      "case": "T2",
+      "rep": 1,
+      "arm": "v04",
+      "key": "04-T2-v04-r1"
+    },
+    {
+      "seq": 5,
+      "pair": 3,
+      "case": "C1",
+      "rep": 2,
+      "arm": "v04",
+      "key": "05-C1-v04-r2"
+    },
+    {
+      "seq": 6,
+      "pair": 3,
+      "case": "C1",
+      "rep": 2,
+      "arm": "v03",
+      "key": "06-C1-v03-r2"
+    },
+    {
+      "seq": 7,
+      "pair": 4,
+      "case": "B2",
+      "rep": 1,
+      "arm": "v03",
+      "key": "07-B2-v03-r1"
+    },
+    {
+      "seq": 8,
+      "pair": 4,
+      "case": "B2",
+      "rep": 1,
+      "arm": "v04",
+      "key": "08-B2-v04-r1"
+    },
+    {
+      "seq": 9,
+      "pair": 5,
+      "case": "S1",
+      "rep": 1,
+      "arm": "v04",
+      "key": "09-S1-v04-r1"
+    },
+    {
+      "seq": 10,
+      "pair": 5,
+      "case": "S1",
+      "rep": 1,
+      "arm": "v03",
+      "key": "10-S1-v03-r1"
+    },
+    {
+      "seq": 11,
+      "pair": 6,
+      "case": "B2",
+      "rep": 2,
+      "arm": "v04",
+      "key": "11-B2-v04-r2"
+    },
+    {
+      "seq": 12,
+      "pair": 6,
+      "case": "B2",
+      "rep": 2,
+      "arm": "v03",
+      "key": "12-B2-v03-r2"
+    },
+    {
+      "seq": 13,
+      "pair": 7,
+      "case": "S1",
+      "rep": 2,
+      "arm": "v03",
+      "key": "13-S1-v03-r2"
+    },
+    {
+      "seq": 14,
+      "pair": 7,
+      "case": "S1",
+      "rep": 2,
+      "arm": "v04",
+      "key": "14-S1-v04-r2"
+    },
+    {
+      "seq": 15,
+      "pair": 8,
+      "case": "C2",
+      "rep": 2,
+      "arm": "v03",
+      "key": "15-C2-v03-r2"
+    },
+    {
+      "seq": 16,
+      "pair": 8,
+      "case": "C2",
+      "rep": 2,
+      "arm": "v04",
+      "key": "16-C2-v04-r2"
+    },
+    {
+      "seq": 17,
+      "pair": 9,
+      "case": "R1",
+      "rep": 1,
+      "arm": "v03",
+      "key": "17-R1-v03-r1"
+    },
+    {
+      "seq": 18,
+      "pair": 9,
+      "case": "R1",
+      "rep": 1,
+      "arm": "v04",
+      "key": "18-R1-v04-r1"
+    },
+    {
+      "seq": 19,
+      "pair": 10,
+      "case": "T2",
+      "rep": 2,
+      "arm": "v04",
+      "key": "19-T2-v04-r2"
+    },
+    {
+      "seq": 20,
+      "pair": 10,
+      "case": "T2",
+      "rep": 2,
+      "arm": "v03",
+      "key": "20-T2-v03-r2"
+    },
+    {
+      "seq": 21,
+      "pair": 11,
+      "case": "T1",
+      "rep": 2,
+      "arm": "v04",
+      "key": "21-T1-v04-r2"
+    },
+    {
+      "seq": 22,
+      "pair": 11,
+      "case": "T1",
+      "rep": 2,
+      "arm": "v03",
+      "key": "22-T1-v03-r2"
+    },
+    {
+      "seq": 23,
+      "pair": 12,
+      "case": "R4",
+      "rep": 2,
+      "arm": "v03",
+      "key": "23-R4-v03-r2"
+    },
+    {
+      "seq": 24,
+      "pair": 12,
+      "case": "R4",
+      "rep": 2,
+      "arm": "v04",
+      "key": "24-R4-v04-r2"
+    },
+    {
+      "seq": 25,
+      "pair": 13,
+      "case": "T1",
+      "rep": 1,
+      "arm": "v03",
+      "key": "25-T1-v03-r1"
+    },
+    {
+      "seq": 26,
+      "pair": 13,
+      "case": "T1",
+      "rep": 1,
+      "arm": "v04",
+      "key": "26-T1-v04-r1"
+    },
+    {
+      "seq": 27,
+      "pair": 14,
+      "case": "C1",
+      "rep": 1,
+      "arm": "v03",
+      "key": "27-C1-v03-r1"
+    },
+    {
+      "seq": 28,
+      "pair": 14,
+      "case": "C1",
+      "rep": 1,
+      "arm": "v04",
+      "key": "28-C1-v04-r1"
+    },
+    {
+      "seq": 29,
+      "pair": 15,
+      "case": "B1",
+      "rep": 2,
+      "arm": "v04",
+      "key": "29-B1-v04-r2"
+    },
+    {
+      "seq": 30,
+      "pair": 15,
+      "case": "B1",
+      "rep": 2,
+      "arm": "v03",
+      "key": "30-B1-v03-r2"
+    },
+    {
+      "seq": 31,
+      "pair": 16,
+      "case": "B1",
+      "rep": 1,
+      "arm": "v03",
+      "key": "31-B1-v03-r1"
+    },
+    {
+      "seq": 32,
+      "pair": 16,
+      "case": "B1",
+      "rep": 1,
+      "arm": "v04",
+      "key": "32-B1-v04-r1"
+    },
+    {
+      "seq": 33,
+      "pair": 17,
+      "case": "R1",
+      "rep": 2,
+      "arm": "v04",
+      "key": "33-R1-v04-r2"
+    },
+    {
+      "seq": 34,
+      "pair": 17,
+      "case": "R1",
+      "rep": 2,
+      "arm": "v03",
+      "key": "34-R1-v03-r2"
+    },
+    {
+      "seq": 35,
+      "pair": 18,
+      "case": "C2",
+      "rep": 1,
+      "arm": "v04",
+      "key": "35-C2-v04-r1"
+    },
+    {
+      "seq": 36,
+      "pair": 18,
+      "case": "C2",
+      "rep": 1,
+      "arm": "v03",
+      "key": "36-C2-v03-r1"
+    },
+    {
+      "seq": 37,
+      "pair": 19,
+      "case": "S3",
+      "rep": 1,
+      "arm": "v04",
+      "key": "37-S3-v04-r1"
+    },
+    {
+      "seq": 38,
+      "pair": 19,
+      "case": "S3",
+      "rep": 1,
+      "arm": "v03",
+      "key": "38-S3-v03-r1"
+    },
+    {
+      "seq": 39,
+      "pair": 20,
+      "case": "R4",
+      "rep": 1,
+      "arm": "v04",
+      "key": "39-R4-v04-r1"
+    },
+    {
+      "seq": 40,
+      "pair": 20,
+      "case": "R4",
+      "rep": 1,
+      "arm": "v03",
+      "key": "40-R4-v03-r1"
+    }
+  ],
+  "howToRepeat": "export MADRID_LENS_ROOT=<Lens at the commit above>; node eval-v04cmp.mjs check; node eval-v04cmp.mjs preflight; node eval-v04cmp.mjs run"
+}
