@@ -102,3 +102,36 @@ test("malformed lines are ignored", () => {
   const t = `garbage\n${jsonl(init(), call("a", "ambito_at_point", {}), result("a", ABSTENTION), answer("Ningún ámbito."))}\n{broken`;
   assert.equal(verifyTranscript(t).status, "BACKED");
 });
+
+// ---- v0.3: licences_in_lens. Historical three-tool transcripts keep their verdicts; four-tool ones opt in.
+import { EXPECTED_TOOLS_V03 } from "../mcp/madrid-evidence/eval/verify-transcript.mjs";
+
+const TOOLS4 = EXPECTED_TOOLS_V03.map((n) => TOOL_PREFIX + n);
+const LICENCES = { shape: "LICENCES_IN_LENS", result: { kind: "EVIDENCE", value: { perFamily: { ACTIVITY_LICENCE_FAMILY: 245 } } }, recordsOmitted: true };
+
+test("v0.3: a historical three-tool transcript verifies as before and is INFRA_FAILURE only for a v0.3 run", () => {
+  const t = jsonl(init("connected", TOOLS), answer("Hola."));
+  assert.equal(verifyTranscript(t).status, "NO_LENS_CLAIM");
+  const v03 = verifyTranscript(t, { expectedTools: EXPECTED_TOOLS_V03 });
+  assert.equal(v03.status, "INFRA_FAILURE");
+  assert.match(v03.reason, /licences_in_lens/);
+});
+
+test("v0.3: a four-tool transcript passes both the default and the v0.3 preflight", () => {
+  const t = jsonl(init("connected", TOOLS4), answer("Hola."));
+  assert.equal(verifyTranscript(t).status, "NO_LENS_CLAIM");
+  assert.equal(verifyTranscript(t, { expectedTools: EXPECTED_TOOLS_V03 }).status, "NO_LENS_CLAIM");
+});
+
+test("v0.3: a licences_in_lens result backs a licence answer; without a call the answer is UNBACKED", () => {
+  const opts = { expectedTools: EXPECTED_TOOLS_V03 };
+  const backed = verifyTranscript(jsonl(init("connected", TOOLS4), call("a", "licences_in_lens", { lon: -3.7, lat: 40.4, radiusM: 500 }), result("a", LICENCES), answer("Hay 245 licencias de actividad concedidas en el círculo.")), opts);
+  assert.equal(backed.status, "BACKED");
+  assert.equal(backed.backingCalls, 1);
+  const none = verifyTranscript(jsonl(init("connected", TOOLS4), answer("Se concedieron unas 300 licencias en ese radio.")), opts);
+  assert.equal(none.status, "UNBACKED");
+});
+
+test("v0.3: the licence vocabulary does not change the verdict of a historical (default) verification", () => {
+  assert.equal(verifyTranscript(jsonl(init(), answer("No puedo contar licencias concedidas con estas herramientas."))).status, "NO_LENS_CLAIM");
+});

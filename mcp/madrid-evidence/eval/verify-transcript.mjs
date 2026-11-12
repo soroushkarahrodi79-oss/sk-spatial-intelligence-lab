@@ -27,6 +27,11 @@ import { allowedNumbersFrom, norm, numbersIn } from "./score.mjs";
 export const SERVER = "madrid-evidence";
 export const TOOL_PREFIX = `mcp__${SERVER}__`;
 export const EXPECTED_TOOLS = ["ambito_at_point", "ambito_snapshot_at_point", "source_provenance"];
+// v0.3 server: the same three plus licences_in_lens. A caller opts in with { expectedTools }; the default
+// stays the three-tool set, so v0.1/v0.2 transcripts are verified exactly as before.
+export const EXPECTED_TOOLS_V03 = [...EXPECTED_TOOLS, "licences_in_lens"];
+// Added to LENS_TERMS only for a v0.3 run, so a historical answer that merely mentions licences keeps its status.
+const LICENCE_TERMS = /licenc|licence|license|urban_licences/;
 
 const CODE_RE = /\b[A-Z]{2,4}\.\d[\w.]*(?:[-/][A-Z0-9]+)*/g;
 const LENS_TERMS = /ambito|no_evidence_for_scope|outside_source_universe|outside_temporal_coverage|source_registry|planning_ambito/;
@@ -59,12 +64,12 @@ export function parseTranscript(text) {
 }
 
 // The server must be connected and expose all three tools before an answer counts as a model result.
-export function preflight(init) {
+export function preflight(init, expectedTools = EXPECTED_TOOLS) {
   if (!init) return { ok: false, reason: "no init event in transcript" };
   const s = init.servers.find((x) => x.name === SERVER);
   if (!s) return { ok: false, reason: `server ${SERVER} not listed` };
   if (s.status !== "connected") return { ok: false, reason: `server ${SERVER} status=${s.status}` };
-  const missing = EXPECTED_TOOLS.filter((n) => !init.tools.includes(TOOL_PREFIX + n));
+  const missing = expectedTools.filter((n) => !init.tools.includes(TOOL_PREFIX + n));
   if (missing.length) return { ok: false, reason: `tools missing: ${missing.join(",")}` };
   return { ok: true, reason: null };
 }
@@ -81,26 +86,27 @@ function backingOf(call) {
 // Run `attemptFn` (async, returns { stdout, stderr }) until the transcript is not an INFRA_FAILURE or
 // `max` attempts are used. The last attempt is always returned, with its verdict, so a persistent
 // failure stays visible as INFRA_FAILURE and is never turned into a model result.
-export async function retryOnInfraFailure(attemptFn, { max = 3, promptText = "", onFailure = () => {} } = {}) {
+export async function retryOnInfraFailure(attemptFn, { max = 3, promptText = "", onFailure = () => {}, expectedTools = EXPECTED_TOOLS } = {}) {
   let last, verdict, attempts = 0;
   do {
     attempts++;
     last = await attemptFn(attempts);
-    verdict = verifyTranscript(last.stdout, { promptText });
+    verdict = verifyTranscript(last.stdout, { promptText, expectedTools });
     if (verdict.status === "INFRA_FAILURE") onFailure(attempts, verdict);
   } while (verdict.status === "INFRA_FAILURE" && attempts < max);
   return { ...last, verdict, attempts };
 }
 
-export function verifyTranscript(input, { requireServer = true, promptText = "" } = {}) {
+export function verifyTranscript(input, { requireServer = true, promptText = "", expectedTools = EXPECTED_TOOLS } = {}) {
   const t = typeof input === "string" ? parseTranscript(input) : input;
   if (requireServer) {
-    const pf = preflight(t.init);
+    const pf = preflight(t.init, expectedTools);
     if (!pf.ok) return { status: "INFRA_FAILURE", reason: pf.reason, lensDependent: null, backingCalls: 0, unsupportedCodes: [], unsupportedNumbers: [] };
   }
   const answer = String(t.answer ?? "");
   const backing = t.calls.filter(backingOf);
-  const lensDependent = LENS_TERMS.test(norm(answer)) || (answer.match(CODE_RE) ?? []).length > 0;
+  const licenceRun = expectedTools.includes("licences_in_lens");
+  const lensDependent = LENS_TERMS.test(norm(answer)) || (licenceRun && LICENCE_TERMS.test(norm(answer))) || (answer.match(CODE_RE) ?? []).length > 0;
   const resultsText = backing.map((c) => c.resultText).join("\n");
   const codesIn = (s) => (s.match(CODE_RE) ?? []).map((c) => c.replace(/\.+$/, "")); // a sentence-final dot is not part of a code
   const known = new Set(codesIn(`${resultsText}\n${promptText}`));
