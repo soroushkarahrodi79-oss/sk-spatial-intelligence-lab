@@ -3,9 +3,11 @@
 // anonymity and the separation of system faults from model errors, using synthetic transcripts.
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
-import { blindIds, checkAll, decide, inputValid, schedule, summarize, systemFaults, toolUseOf, validateAdjudication } from "../mcp/madrid-evidence/eval/eval-v04cmp.mjs";
+import { blindIds, checkAll, decide, inputValid, runWithRecords, schedule, summarize, systemFaults, toolUseOf, validateAdjudication } from "../mcp/madrid-evidence/eval/eval-v04cmp.mjs";
 import { EXPECTED_TOOLS_V03, TOOL_PREFIX } from "../mcp/madrid-evidence/eval/verify-transcript.mjs";
 
 const read = (rel) => JSON.parse(readFileSync(new URL(`../mcp/madrid-evidence/eval/${rel}`, import.meta.url), "utf8"));
@@ -97,6 +99,32 @@ const mkKey = () => {
   add("B07", "C2", 4, "v03"); add("B08", "C2", 4, "v04");
   return k;
 };
+
+test("families over the schema maximum of three are invalid and their rejection is a model input error, not a system fault", () => {
+  const F = ["BUILDING_URBANISTIC_LICENCE_FAMILY", "ACTIVITY_LICENCE_FAMILY", "TEMPORARY_ACTIVITY_FAMILY"];
+  const base = { lon: -3.7, lat: 40.4, radiusM: 500 };
+  assert.equal(inputValid({ ...base, families: [...F] }), true, "three families are valid");
+  assert.equal(inputValid({ ...base, families: [...F, F[0]] }), false, "four elements (even a repeated enum value) exceed max(3)");
+  assert.deepEqual(systemFaults(transcript({ ...base, families: [...F, F[0]] }, "too_big", { isError: true }), "v04", {}), [], "rejection of a four-element list is not a server defect");
+  assert.match(systemFaults(transcript({ ...base, families: F }, "boom", { isError: true }), "v04", {})[0], /schema-valid input/, "the same error on a valid list is a system fault");
+});
+
+test("infrastructure failures are saved per attempt, at most three attempts, and a valid answer is never repeated", async () => {
+  const infra = (n) => ({ stdout: `{"type":"system","subtype":"init","mcp_servers":[{"name":"madrid-evidence","status":"failed"}],"tools":[]}\n{"type":"harness","exit":1,"n":${n}}\n`, stderr: "" });
+  const valid = { stdout: transcript({ lon: -3.7, lat: 40.4, radiusM: 500 }, { shape: "LICENCES_IN_LENS", result: refs.S3.lens }), stderr: "" };
+  const run = async (script) => {
+    const out = mkdtempSync(path.join(tmpdir(), "v04cmp-test-")); let calls = 0;
+    const res = await runWithRecords({ attemptFn: async (n) => { calls++; return script(n); }, key: "01-X-v03-r1", out, promptText: "p" });
+    return { res, calls, files: [1, 2, 3, 4].filter((n) => existsSync(path.join(out, `01-X-v03-r1.attempt${n}.jsonl`))), out };
+  };
+  const a = await run((n) => (n < 3 ? infra(n) : valid));
+  assert.deepEqual([a.res.verdict.status, a.res.attempts, a.calls, a.files], ["BACKED", 3, 3, [1, 2]], "failed attempts 1 and 2 are kept; the valid third is returned");
+  assert.equal(readFileSync(path.join(a.out, "01-X-v03-r1.attempt2.jsonl"), "utf8"), infra(2).stdout, "each attempt is stored byte for byte");
+  const b = await run((n) => infra(n));
+  assert.deepEqual([b.res.verdict.status, b.res.attempts, b.calls, b.files], ["INFRA_FAILURE", 3, 3, [1, 2, 3]], "the limit is three attempts, all kept");
+  const c = await run(() => valid);
+  assert.deepEqual([c.res.attempts, c.calls, c.files], [1, 1, []], "a valid model answer is not repeated and leaves no attempt file");
+});
 
 test("summarize: run and pair states are explicit and no record of an incomplete pair is dropped", () => {
   const key = mkKey();

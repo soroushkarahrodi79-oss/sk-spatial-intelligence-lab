@@ -65,7 +65,7 @@ export function inputValid(i) {
   if (Object.keys(i).some((k) => !["lon", "lat", "radiusM", "families", "window"].includes(k))) return false;
   const num = (v, lo, hi) => typeof v === "number" && v >= lo && v <= hi;
   if (!num(i.lon, -180, 180) || !num(i.lat, -90, 90) || !(typeof i.radiusM === "number" && i.radiusM > 0 && i.radiusM <= 3000)) return false;
-  if ("families" in i && !(Array.isArray(i.families) && i.families.length && i.families.every((f) => FAMILIES.includes(f)))) return false;
+  if ("families" in i && !(Array.isArray(i.families) && i.families.length >= 1 && i.families.length <= FAMILIES.length && i.families.every((f) => FAMILIES.includes(f)))) return false; // schema: z.array(z.enum(FAMILIES)).min(1).max(FAMILIES.length)
   if ("window" in i) { const w = i.window; if (!w || Object.keys(w).sort().join() !== "from,to" || ![w.from, w.to].every((d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d)))) return false; }
   return true;
 }
@@ -294,6 +294,15 @@ async function cmdPreflight() {
 
 const claudeArgs = (lock, mcp, prompt) => ["-p", "--model", lock.model, "--system-prompt", lock.systemPrompt, "--strict-mcp-config", "--setting-sources", "project", "--disable-slash-commands", "--no-session-persistence",
   "--tools", "", "--permission-prompts", "none", "--max-turns", String(lock.maxTurns), "--output-format", "stream-json", "--verbose", "--mcp-config", mcp, `--allowedTools=${TOOL_PREFIX}*`, "--", prompt];
+// Up to 3 attempts, only while the transcript is INFRA_FAILURE; a valid model answer is never repeated. Each INFRA_FAILURE transcript is saved as
+// <key>.attemptN.jsonl before the next attempt starts. The last attempt is returned (and stored by the caller as <key>.jsonl).
+export async function runWithRecords({ attemptFn, key, out, promptText, onFailure = () => {} }) {
+  let last;
+  return retryOnInfraFailure((n) => attemptFn(n).then((x) => (last = x)), {
+    max: 3, promptText, expectedTools: EXPECTED_TOOLS_V03,
+    onFailure: (n, v) => { writeFileSync(path.join(out, `${key}.attempt${n}.jsonl`), last.stdout); onFailure(n, v); },
+  });
+}
 const attemptOnce = (args, timeoutMs) => new Promise((resolve) => {
   const env = { ...process.env }; delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
   const child = spawn("claude", args, { cwd: mkdtempSync(path.join(tmpdir(), "madrid-cmp-")), env, stdio: ["ignore", "pipe", "pipe"] });
@@ -324,7 +333,7 @@ async function cmdRun(opt, flag) {
     if (existsSync(rawFile) && log.runs[r.key] && log.runs[r.key].status !== "INFRA_FAILURE") { console.log(`skip ${r.key} (exists)`); continue; }
     verifyLock();
     const mcp = mcpConfig(armServer(r.arm, lock, cache)), prompt = byId[r.case].prompt;
-    const res = await retryOnInfraFailure((n) => attemptOnce(claudeArgs(lock, mcp, prompt), cases.protocol.timeoutMs), { promptText: prompt, expectedTools: EXPECTED_TOOLS_V03, onFailure: (n, v) => console.log(`INFRA_FAILURE ${r.key} attempt ${n}: ${v.reason}`) });
+    const res = await runWithRecords({ attemptFn: () => attemptOnce(claudeArgs(lock, mcp, prompt), cases.protocol.timeoutMs), key: r.key, out, promptText: prompt, onFailure: (n, v) => console.log(`INFRA_FAILURE ${r.key} attempt ${n}: ${v.reason}`) });
     writeFileSync(rawFile, res.stdout);
     if (res.stderr.trim()) writeFileSync(path.join(out, `${r.key}.stderr.txt`), res.stderr.slice(0, 20000));
     const faults = res.verdict.status === "INFRA_FAILURE" ? [] : systemFaults(res.stdout, r.arm, { lensQuery, composition: typesByFamily });

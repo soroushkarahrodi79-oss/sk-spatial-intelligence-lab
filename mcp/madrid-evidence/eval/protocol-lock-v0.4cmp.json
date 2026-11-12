@@ -1,7 +1,7 @@
 {
   "protocolVersion": "mcp-eval-v0.4cmp",
   "status": "LOCKED BEFORE THE RUN",
-  "lockedAt": "2026-11-12T21:00:01.307Z",
+  "lockedAt": "2026-11-12T21:14:52.934Z",
   "seed": "madrid-mcp-v0.4cmp-prereg-2026-11-12",
   "lens": {
     "commit": "f67cd4709d1319f5685aaa184326330a5d535088",
@@ -65,9 +65,9 @@
     }
   },
   "files": {
-    "mcp/madrid-evidence/eval/cases-v0.4cmp.json": "a63c8c73857a75b88035d3706486ed1faae31436bafb3e062187e30e06a96e74",
+    "mcp/madrid-evidence/eval/cases-v0.4cmp.json": "566ab7c60727e94c647d5cac5bacc95223887ddfe861f2e85fb3fd5ee2fcf2f9",
     "mcp/madrid-evidence/eval/references-v0.4cmp.json": "fb7710555ac3094e2f8770a1ee88325a7fd85f0359d505de32d6cce586bdf8a4",
-    "mcp/madrid-evidence/eval/eval-v04cmp.mjs": "98d36f8708ab1406c6b6f7e22580bb6cd5738ebdaf6ba0d169d48d0eadd37399",
+    "mcp/madrid-evidence/eval/eval-v04cmp.mjs": "872c18a807c926cc098dc16926dcabfd4891974c5f6b23a49955f09687097415",
     "mcp/madrid-evidence/eval/verify-transcript.mjs": "ffc70270ec5dcf224cb7b5fdfbcdbc445ca494759f0d1749fea78bf5cc4464a6",
     "mcp/madrid-evidence/eval/score.mjs": "26431934d4b5db88a9f8611170d62f454eb81472495d3fbcbf010115fe6ed74b",
     "geoimpact-copilot/evaluation/metrics.mjs": "89f32b859fbf763182f5d41817a2b7ca8792b3e32b074c3c98b901a641a91866",
