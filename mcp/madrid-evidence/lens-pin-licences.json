@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens",
+  "commit": "f67cd4709d1319f5685aaa184326330a5d535088",
+  "note": "Additive pin for the licences_in_lens tool (v0.3). It extends lens-pin.json without modifying it, so the sealed v0.1 benchmark is untouched. Same Lens commit as lens-pin.json (the adapter refuses a different one). The server refuses to start unless each file has exactly this SHA-256; hashes were computed by SK Lab from the files at that commit.",
+  "files": [
+    {
+      "path": "js/urban-licences.js",
+      "role": "code",
+      "sha256": "0d4784d0f8eb6947993fd9111a4ca0334defcd2fc8816337fc6e7f0f0c9180ac"
+    },
+    {
+      "path": "data/planning/madrid_urban_licences.json",
+      "role": "data",
+      "sha256": "0c1498472e09b5e64daf554380679067f79813bb9c7268c438af749faba18d97"
+    }
+  ]
+}

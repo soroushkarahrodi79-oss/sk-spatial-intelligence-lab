@@ -33,7 +33,8 @@
     "test:trace": "node --test tests/claim-trace.test.mjs",
     "mcp:madrid-evidence": "node mcp/madrid-evidence/server.mjs",
     "test:madrid-mcp": "node --test tests/madrid-evidence-mcp.test.mjs",
-    "test:madrid-verifier": "node --test tests/madrid-evidence-verifier.test.mjs"
+    "test:madrid-verifier": "node --test tests/madrid-evidence-verifier.test.mjs",
+    "test:madrid-licences": "node --test tests/madrid-evidence-licences.test.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",

@@ -23,6 +23,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 const LENS_ROOT = process.env.MADRID_LENS_ROOT;
 const SERVER = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "mcp", "madrid-evidence", "server.mjs");
 const PIN = JSON.parse(readFileSync(new URL("../mcp/madrid-evidence/lens-pin.json", import.meta.url), "utf8"));
+const LICENCE_PIN = JSON.parse(readFileSync(new URL("../mcp/madrid-evidence/lens-pin-licences.json", import.meta.url), "utf8"));
 
 const startServer = (lensRoot) =>
   spawnSync(process.execPath, [SERVER], {
@@ -133,9 +134,9 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
   const call = (name, args) => client.callTool({ name, arguments: args });
   const sha = (rel) => createHash("sha256").update(readFileSync(lensFile(rel))).digest("hex");
 
-  await t.test("lists exactly the three read-only tools", async () => {
+  await t.test("lists exactly the four read-only tools", async () => {
     const { tools } = await client.listTools();
-    assert.deepEqual(tools.map((tool) => tool.name).sort(), ["ambito_at_point", "ambito_snapshot_at_point", "source_provenance"]);
+    assert.deepEqual(tools.map((tool) => tool.name).sort(), ["ambito_at_point", "ambito_snapshot_at_point", "licences_in_lens", "source_provenance"]);
     for (const tool of tools) assert.equal(tool.annotations.readOnlyHint, true);
   });
 
@@ -257,12 +258,14 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
     const res = await call("ambito_at_point", inside);
     const { reading } = res.structuredContent;
     assert.equal(reading.lensCommit, PIN.commit);
-    // verifiedAtStartup: every pinned file, in pin order, with its real hash (same for every call).
+    // verifiedAtStartup: every pinned file (lens-pin.json, then the additive lens-pin-licences.json),
+    // in pin order, with its real hash (same for every call).
+    const ALL_PINNED = [...PIN.files, ...LICENCE_PIN.files];
     assert.deepEqual(
       reading.verifiedAtStartup.files.map((f) => ({ path: f.path, role: f.role, sha256: f.sha256 })),
-      PIN.files.map((f) => ({ path: f.path, role: f.role, sha256: sha(f.path) }))
+      ALL_PINNED.map((f) => ({ path: f.path, role: f.role, sha256: sha(f.path) }))
     );
-    assert.match(reading.verifiedAtStartup.note, new RegExp(`All ${PIN.files.length} files`));
+    assert.match(reading.verifiedAtStartup.note, new RegExp(`All ${ALL_PINNED.length} files`));
     // supports: only the files behind this result, each with the hash verified at startup.
     assert.deepEqual(Object.keys(reading.supports), ["AMBITO_AT_POINT"]);
     const support = new Map(reading.supports.AMBITO_AT_POINT.map((f) => [f.path, f.sha256]));
@@ -274,7 +277,7 @@ test("Madrid Evidence MCP against the pinned Lens registry", { skip: !LENS_ROOT 
 
     const prov = await call("source_provenance", { sourceId: "planning_ambito_geometry" });
     const provReading = prov.structuredContent.reading;
-    assert.deepEqual(provReading.verifiedAtStartup.files.map((f) => f.path), PIN.files.map((f) => f.path));
+    assert.deepEqual(provReading.verifiedAtStartup.files.map((f) => f.path), ALL_PINNED.map((f) => f.path));
     const provRole = new Map(provReading.verifiedAtStartup.files.map((f) => [f.path, f.role]));
     assert.deepEqual(
       provReading.supports.SOURCE_PROVENANCE.filter((f) => provRole.get(f.path) === "data").map((f) => f.path),
