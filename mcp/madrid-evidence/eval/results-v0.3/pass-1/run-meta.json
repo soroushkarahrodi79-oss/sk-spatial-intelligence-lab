@@ -1,0 +1,23 @@
+{
+  "protocolVersion": "mcp-eval-v0.3-licences",
+  "lockSha256": "47623f492f6f277989f6fbabe175f411ca454f18e3634bdbdac9db8f6b4a703b",
+  "model": "claude-sonnet-5-5",
+  "claudeCli": "2.1.322 (Claude Code)",
+  "lensCommit": "f67cd4709d1319f5685aaa184326330a5d535088",
+  "lensRoot": "<MADRID_LENS_ROOT>",
+  "arm": "mcp",
+  "startedAt": "2026-11-12T15:41:13.506Z",
+  "attempts": {
+    "LIC-01": 1,
+    "LIC-02": 1,
+    "LIC-03": 1,
+    "LIC-04": 1,
+    "LIC-05": 1,
+    "LIC-06": 1,
+    "LIC-07": 1,
+    "LIC-08": 1,
+    "LIC-09": 1,
+    "LIC-10": 1
+  },
+  "finishedAt": "2026-11-12T15:42:10.370Z"
+}

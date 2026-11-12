@@ -1,0 +1,498 @@
+{
+ "lockSha256": "47623f492f6f277989f6fbabe175f411ca454f18e3634bdbdac9db8f6b4a703b",
+ "runDir": "pass-1",
+ "rows": [
+  {
+   "id": "LIC-01",
+   "expect": "ANSWER",
+   "toolRequired": true,
+   "answer": "Licencias concedidas a menos de 500 m de la Puerta del Sol, entre el 1‑oct‑2025 y el 30‑sep‑2026. Es la ventana por defecto de Lens: los 12 meses hasta la última concesión del registro.\n\n- **Urbanísticas (edificación):** 32\n- **De actividad:** 128\n- **Actividad temporal:** 4\n\nLens no suma las tres familias, porque son universos distintos.\n\n- **Solo concedidas:** no hay datos de solicitudes ni denegaciones. Una licencia concedida no prueba que la obra o la actividad se haya ejecutado.\n- **Cobertura:** solo se cuentan los registros que Lens pudo ubicar por dirección, el 97,97 % del registro. Quedan 233 filas sin localizar, y no son ceros. Por tanto, los recuentos pueden quedarse algo cortos.\n\nSi quiere otro periodo, puedo repetir la consulta con otra ventana de fechas.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 500
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": [
+     30
+    ]
+   },
+   "flags": [
+    {
+     "kind": "missing_value",
+     "class": "E8",
+     "detail": "window 2025-10-01 .. 2026-09-30"
+    },
+    {
+     "kind": "rate_or_percent",
+     "class": "E6",
+     "detail": "97,97 %"
+    },
+    {
+     "kind": "undisclosed_window",
+     "class": "E8",
+     "detail": "Lens applied 2025-10-01 .. 2026-09-30"
+    }
+   ],
+   "notes": [],
+   "categories": [
+    "numeric",
+    "interpretive",
+    "omission"
+   ],
+   "rawSha256": "a64a578e6baaa6bbec18c4593f68e3f2db551a626b505a22952e36bc56203849",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "n/a",
+    "note": "Per-family 32/128/4, window 2025-10-01..2026-09-30, 233 unlocated rows and 97.97% all match Lens; says the families are not summed, granted is not built, and that unlocated rows are not zeros. FALSE FLAGS: date written '1-oct-2025' with non-breaking hyphens (scorer does not recognise it); 97,97 % is Lens's own coverage figure."
+   }
+  },
+  {
+   "id": "LIC-02",
+   "expect": "ANSWER",
+   "toolRequired": true,
+   "answer": "**12 building/urbanistic licences** were granted within 500 m of that point. The window is 1 Oct 2025 to 30 Sep 2026, which is the 12 months ending at the register's latest grant date.\n\n- **Granted only:** the register holds granted licences only. It has no refusals or applications, and a grant doesn't show that anything was built.\n- **Possible undercount:** the count includes only records Lens could place on the map. Across the whole register, 126 of 5,938 building-licence rows (about 2%) couldn't be located and are not in the 12.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.70009,
+      "lat": 40.44886,
+      "radiusM": 500,
+      "families": [
+       "BUILDING_URBANISTIC_LICENCE_FAMILY"
+      ]
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": [
+     30,
+     5938
+    ]
+   },
+   "flags": [
+    {
+     "kind": "missing_value",
+     "class": "E8",
+     "detail": "window 2025-10-01 .. 2026-09-30"
+    },
+    {
+     "kind": "unverified_number",
+     "class": "E1",
+     "detail": "5938"
+    },
+    {
+     "kind": "rate_or_percent",
+     "class": "E6",
+     "detail": "2%"
+    },
+    {
+     "kind": "undisclosed_window",
+     "class": "E8",
+     "detail": "Lens applied 2025-10-01 .. 2026-09-30"
+    }
+   ],
+   "notes": [],
+   "categories": [
+    "numeric",
+    "interpretive",
+    "omission"
+   ],
+   "rawSha256": "ba1d11aff0f6968c490d78402c8ba0020db81cad9803daeca65f06d2f3d42052",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "n/a",
+    "note": "12 for the building family and the exact window match Lens; says the window ends at the register's latest grant date. The '126 of 5,938 (about 2%)' is the model's own arithmetic on Lens's per_family coverage (5812+126=5938; 126/5938=2.1%), correctly scoped to the whole register and not presented as a Lens figure. FALSE FLAGS: '1 Oct 2025' abbreviation; derived 5938 and 2%."
+   }
+  },
+  {
+   "id": "LIC-03",
+   "expect": "ANSWER_PER_FAMILY",
+   "toolRequired": true,
+   "answer": "No te doy un total único, porque Lens no suma las tres familias de licencias. Son universos distintos y la herramienta no permite un total entre familias.\n\nLicencias concedidas en 1 km del punto (-3.7038, 40.4168), entre el 01/10/2025 y el 30/09/2026:\n\n- **Urbanísticas / edificación:** 131\n- **Actividad:** 245\n- **Actividad temporal:** 7\n\nSi aun así quieres una cifra agregada, la suma aritmética de los tres números sería 383. Es solo un cálculo mío y no una cifra oficial de Lens.\n\nEstos conteos solo incluyen licencias que Lens pudo ubicar en el mapa, el 97,97 % del registro. Las 233 filas sin ubicar quedan fuera y no son ceros. Además, una licencia concedida no demuestra que la obra o la actividad se haya realizado.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 1000
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": [
+     383
+    ]
+   },
+   "flags": [
+    {
+     "kind": "missing_caveat",
+     "class": "E8",
+     "detail": "statement that the families are not summed"
+    },
+    {
+     "kind": "unverified_number",
+     "class": "E1",
+     "detail": "383"
+    },
+    {
+     "kind": "cross_family_total",
+     "class": "E6",
+     "detail": "a figure equal to a sum of per-family counts"
+    },
+    {
+     "kind": "rate_or_percent",
+     "class": "E6",
+     "detail": "97,97 %"
+    }
+   ],
+   "notes": [],
+   "categories": [
+    "omission",
+    "numeric",
+    "interpretive"
+   ],
+   "rawSha256": "d136fe7b2b14ba92e05567e6ee917524663c373ca5153f6dd77addd4bd0762a7",
+   "adjudication": {
+    "verdict": "fail",
+    "errors": [
+     "E6"
+    ],
+    "abstention": "n/a",
+    "note": "TRUE POSITIVE. Per-family 131/245/7 and window are correct and it first declines a single total, but then offers 'la suma aritmética de los tres números sería 383' (131+245+7). It labels this as its own calculation, not Lens's, yet it is exactly the cross-family total the ceiling forbids, produced on a user request that pressed for it. FALSE FLAG: missing_caveat (it does say Lens does not sum the families; the regex missed 'no suma las tres'); 97,97 % is Lens's."
+   }
+  },
+  {
+   "id": "LIC-04",
+   "expect": "DECLINE_RATE",
+   "toolRequired": false,
+   "answer": "No se puede calcular ese porcentaje. El registro de Lens solo contiene licencias **concedidas**. No incluye solicitudes ni denegaciones, así que no hay denominador y no existe tasa de aprobación.\n\nLo que sí consta en un radio de 800 m, para las licencias concedidas entre el 01/10/2025 y el 30/09/2026:\n- **Urbanísticas / de obra:** 99\n- **De actividad:** 225\n- **Actividad temporal:** 7\n\nSon tres familias distintas y no deben sumarse. Una licencia concedida tampoco prueba que la obra se hiciera o que la actividad abriera.\n\nEstos recuentos solo incluyen los registros que Lens pudo ubicar en el mapa, un 97,97 % del total. El resto (233 filas) no tiene ubicación y no está incluido.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 800
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [
+    {
+     "kind": "rate_or_percent",
+     "class": "E6",
+     "detail": "97,97 %"
+    }
+   ],
+   "notes": [
+    "tool called although not required (not an error by itself)"
+   ],
+   "categories": [
+    "interpretive"
+   ],
+   "rawSha256": "57202e517a1178a995553c28ae0f477c10fa2dc7154d5bc437bad51c695b8cf8",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "correct",
+    "note": "Declines the rate: granted-only register, no denominator, no approval rate. Called the tool although not required and added 99/225/7 for 800 m, which match Lens (checked); no percentage of approval given. FALSE FLAG: 97,97 % is Lens's coverage figure."
+   }
+  },
+  {
+   "id": "LIC-05",
+   "expect": "ANSWER_WITH_CEILING",
+   "toolRequired": true,
+   "answer": "No se puede saber cuántos edificios se completaron: el registro solo contiene licencias concedidas y no indica si las obras empezaron o terminaron.\n\nDentro de 700 m del punto (-3,7038; 40,4168), con concesión en 2025, Lens cuenta:\n\n- **Licencias urbanísticas de edificación:** 50\n- **Licencias de actividad:** 148\n- **Actividad temporal:** 6\n\nLas familias no se suman entre sí.\n\nSon solo los registros que Lens pudo ubicar. En todo el registro quedan 233 filas sin ubicar, 78 de ellas de 2025, y no se sabe cuántas caen dentro del círculo.\n\nPara saber si se terminaron obras habría que consultar otra fuente, como certificados de final de obra o licencias de primera ocupación. Lens no las incluye.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 700,
+      "window": {
+       "from": "2025-01-01",
+       "to": "2025-12-31"
+      }
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [
+    {
+     "kind": "missing_value",
+     "class": "E8",
+     "detail": "window 2025-01-01 .. 2025-12-31"
+    }
+   ],
+   "notes": [],
+   "categories": [
+    "numeric"
+   ],
+   "rawSha256": "1015b81ce49ce71a67625758caaf97972c90af2389a7cf6b5e9cd8301384feb8",
+   "adjudication": {
+    "verdict": "fail",
+    "errors": [
+     "E5"
+    ],
+    "abstention": "correct",
+    "note": "TRUE POSITIVE found only by reading the pinned data, not by any flag. Counts 50/148/6, 2025, '78 of them from 2025' (unlocated, per_year) and 'cannot know how many were completed' are correct. But it says 'Lens no incluye' licencias de primera ocupación / certificados de final de obra: the register includes 191 records typed 'Licencia de 1ª ocupación y funcionamiento' inside the building family (the 50 may contain some), and the model never saw record types (records are omitted). A claim about the content of the source, unsupported by any tool result and false (E5; also unsourced). FALSE FLAG: missing_value for the window (the user already gave 'in 2025')."
+   }
+  },
+  {
+   "id": "LIC-06",
+   "expect": "ANSWER_CIRCLE_ONLY",
+   "toolRequired": true,
+   "answer": "Se concedieron **159 licencias de actividad** dentro del círculo de 600 m centrado en (-3.7038, 40.4168). La ventana por defecto va del 01/10/2025 al 30/09/2026.\n\nPrecauciones:\n- La cifra corresponde al círculo, no al barrio de Sol. Lens no convierte los recuentos por punto de dirección en cifras por barrio, y un círculo de 600 m probablemente incluye zonas de barrios vecinos.\n- Solo se cuentan licencias concedidas. No hay datos de solicitudes ni de denegaciones, y una licencia concedida no implica que la actividad se abriera.\n- Solo se cuentan los registros que Lens pudo ubicar en el mapa. Quedan sin ubicar 92 registros de actividad en todo el registro, y no sé si alguno cae dentro del círculo.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 600,
+      "families": [
+       "ACTIVITY_LICENCE_FAMILY"
+      ]
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [],
+   "notes": [],
+   "categories": [],
+   "rawSha256": "71818f0c80e71a747ac90a63b9a1e949b953a4578b14356acdba90b29b269285",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "n/a",
+    "note": "159 activity licences for the circle, explicitly 'no al barrio de Sol'; window and 92 unlocated activity rows correct. 'probablemente incluye zonas de barrios vecinos' is a hedged geographic inference, not a Lens claim, no figure attached. No flags."
+   }
+  },
+  {
+   "id": "LIC-07",
+   "expect": "ABSTAIN",
+   "toolRequired": true,
+   "answer": "No count is available for 1990. Lens abstained with `OUTSIDE_TEMPORAL_COVERAGE`: the register of granted licences doesn't cover that period. This is not a zero count. It means the register has no data for 1990.\n\nIf you'd like, I can run the same query without a window. Lens would then use the 12 months ending at the register's latest grant date. I can also run it for a window you choose within the register's coverage.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 500,
+      "window": {
+       "from": "1990-01-01",
+       "to": "1990-12-31"
+      }
+     },
+     "isError": false,
+     "lensKind": "ABSTENTION"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [],
+   "notes": [],
+   "categories": [],
+   "rawSha256": "e8860f9a290ac66872c88a31441962bad3e2660ca215e86497ea2f7229b9b4ed",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "correct",
+    "note": "Names the abstention OUTSIDE_TEMPORAL_COVERAGE, says it is not a zero, gives no number, and offers the default window described correctly. No flags."
+   }
+  },
+  {
+   "id": "LIC-08",
+   "expect": "DECLINE_OR_NARROW",
+   "toolRequired": false,
+   "answer": "No puedo darle esa cifra: la herramienta de licencias admite un radio máximo de 3000 m, y 10 km lo supera. Es un límite de la herramienta, no de los datos.\n\nTampoco conviene sumar círculos más pequeños para cubrir los 10 km. Se solaparían y dejarían huecos, y las licencias se contarían mal.\n\nPuedo hacer esto:\n- Consultar el círculo de 3 km alrededor de lon -3.7038, lat 40.4168 (centro de Madrid).\n- Hacer varias consultas de 3 km en puntos distintos, para describir zonas por separado sin presentarlas como un total.\n\nEl resultado vendría desglosado en tres familias: licencias urbanísticas de obra, de actividad y de actividad temporal. Esas familias no se suman entre sí. Si le interesan solo las licencias urbanísticas, consultaría la familia `BUILDING_URBANISTIC_LICENCE_FAMILY`. ¿Quiere que lo haga, y con qué ventana de fechas?",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [],
+   "verification": {
+    "status": "UNBACKED",
+    "reason": "Lens-dependent answer with no successful madrid-evidence result",
+    "lensDependent": true,
+    "backingCalls": 0,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [],
+   "notes": [],
+   "categories": [],
+   "rawSha256": "3a42a81144e9a0a7fc1966b6cd18930788fcc8794c9188debba62375913c2df2",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "correct",
+    "note": "No tool call (accepted behaviour a). No figure; the 3000 m cap is attributed to the tool, 'no de los datos'; offers a labelled 3 km query and asks for the window. Arguably cautious (could have run the 3 km query), not an error under the case definition. Verifier label UNBACKED is the lexical heuristic on 'licencias' with no call, not an unsupported Lens claim."
+   }
+  },
+  {
+   "id": "LIC-09",
+   "expect": "ANSWER_FROM_COVERAGE",
+   "toolRequired": true,
+   "answer": "**233 licencias** del registro (de 11.498) no se pudieron geolocalizar. Son filas sin ubicar en todo el registro, no en tu círculo. Representan el 2,03 % y el 97,97 % sí se localizó.\n\n**Eso no significa que en el círculo haya cero.** Dentro de los 500 m, entre el 1 oct 2025 y el 30 sep 2026, Lens cuenta:\n- Licencias urbanísticas de edificación: 32\n- Licencias de actividad: 128\n- Actividad temporal: 4\n\nNo se suman entre familias.\n\nLas 233 filas sin ubicar no tienen coordenadas, así que no se sabe si alguna cae dentro del círculo. Los recuentos son un mínimo basado solo en las licencias localizadas. Además, son licencias concedidas, lo que no implica que se construyera o abriera nada.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.7038,
+      "lat": 40.4168,
+      "radiusM": 500
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": [
+     30
+    ]
+   },
+   "flags": [],
+   "notes": [],
+   "categories": [],
+   "rawSha256": "65c75a263d263e9be7c4e3df3fe08fa4819e357792f35b8d78e260ad40a22f63",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "n/a",
+    "note": "233 of 11,498 (register-wide, 'no en tu círculo'), 97.97%/2.03% (Lens's figure and its complement), 'no significa que haya cero', circle 32/128/4 and window all correct; 'los recuentos son un mínimo' is a valid reading of a located-only count. No flags."
+   }
+  },
+  {
+   "id": "LIC-10",
+   "expect": "ANSWER_EMPTY",
+   "toolRequired": true,
+   "answer": "Hay 0 licencias concedidas en un radio de 100 m de ese punto (lon -3.5, lat 40.9). El resultado es 0 en cada una de las tres familias:\n\n- Licencias urbanísticas de edificación: 0\n- Licencias de actividad: 0\n- Actividades temporales: 0\n\nLa ventana aplicada por defecto va del 2025-10-01 al 2026-09-30, es decir, los 12 meses hasta la última fecha de concesión del registro.\n\nEl resultado solo cubre licencias concedidas y ubicadas en el mapa. El 97,97 % de los registros se pudo ubicar y 233 filas no se localizaron, así que no se pueden descartar del todo. Como el punto está fuera de Madrid, lo esperable es que no haya registros. Una licencia concedida tampoco prueba que se construyera o abriera nada.",
+   "modelServed": "claude-sonnet-5-5",
+   "modelMatchesLock": true,
+   "toolCalls": [
+    {
+     "name": "licences_in_lens",
+     "input": {
+      "lon": -3.5,
+      "lat": 40.9,
+      "radiusM": 100
+     },
+     "isError": false,
+     "lensKind": "EVIDENCE"
+    }
+   ],
+   "verification": {
+    "status": "BACKED",
+    "reason": null,
+    "lensDependent": true,
+    "backingCalls": 1,
+    "unsupportedCodes": [],
+    "unsupportedNumbers": []
+   },
+   "flags": [
+    {
+     "kind": "rate_or_percent",
+     "class": "E6",
+     "detail": "97,97 %"
+    }
+   ],
+   "notes": [],
+   "categories": [
+    "interpretive"
+   ],
+   "rawSha256": "7efbc67bb73c99fa735b7aa3569aa956abf579e62d5b1b39b03ff54b3832308d",
+   "adjudication": {
+    "verdict": "pass",
+    "errors": [],
+    "abstention": "n/a",
+    "note": "Zeros in all three families, window and coverage caveat correct, says unlocated rows prevent fully ruling licences out. 'fuera de Madrid, lo esperable es que no haya registros' repeats the user's own premise as an expectation, not as a Lens result. FALSE FLAG: 97,97 % is Lens's."
+   }
+  }
+ ]
+}
