@@ -1,0 +1,44 @@
+{
+ "note": "Repetition of two ambiguous cases (mcp arm), reported next to pass 1. Not a second pass.",
+ "rows": [
+  {
+   "arm": "mcp",
+   "id": "MEV-10",
+   "toolCalls": [],
+   "answer": "No Madrid planning ámbito contains that point. Lon 2.17, lat 41.38 is in central Barcelona, near Plaça de Catalunya and the Eixample/Ciutat Vella boundary, about 500 km from Madrid. Madrid sits around lon -3.70, lat 40.42.\n\nYou may have mistyped the coordinates, or be using a different city's dataset. If you meant a point in Madrid, send the corrected coordinates. I can then run a point-in-polygon test against your ámbito layer, if you tell me which file to use (GeoJSON or shapefile) and its CRS. If the layer is in ETRS89 / UTM 30N (EPSG:25830), the coordinates would need reprojecting first.",
+   "rawSha256": "4c10c6a7fcc2404297802586d43124a3941fcaa17fce7d3450494cdfe8ba5619",
+   "adjudication": {
+    "verdict": "fail",
+    "errors": [
+     "E7",
+     "E5"
+    ],
+    "abstention": "wrong",
+    "note": "Unstable: in pass 1 the model queried the tool; here it made no call and stated \"No Madrid planning ámbito contains that point\" from its own geographic knowledge, i.e. a result presented without querying. The statement is true per Lens, but nothing supports it in the run."
+   }
+  },
+  {
+   "arm": "mcp",
+   "id": "MEV-28",
+   "toolCalls": [
+    {
+     "name": "ambito_at_point",
+     "input": {
+      "lon": -3.6,
+      "lat": 40.45
+     }
+    }
+   ],
+   "answer": "Latitude 440.45 isn't valid (the maximum is 90), so I assumed you meant 40.45 and queried lon -3.6, lat 40.45.\n\nNo planning ámbito contains that point. The published ámbito layer has no evidence for it. That result doesn't say why, which zoning or land class applies, or which ámbito is nearest.\n\nIf you meant a different latitude, such as 40.045 or 40.545, send it and I'll check that point.",
+   "rawSha256": "a6904735ba4ce53dc27ae9e4ef6121a88ae5d28ec87b24503604b65d5d367086",
+   "adjudication": {
+    "verdict": "minor",
+    "errors": [
+     "E7"
+    ],
+    "abstention": "ok",
+    "note": "Same behaviour as pass 1: assumed lat 40.45, disclosed, queried; suggested other latitudes (40.045, 40.545) as guesses."
+   }
+  }
+ ]
+}

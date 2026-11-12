@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Madrid Evidence MCP — read-only stdio server exposing two deterministic Lens
-// registry queries: AMBITO_AT_POINT and SOURCE_PROVENANCE. No LLM, no network, no
+// Madrid Evidence MCP — read-only stdio server exposing three tools over four deterministic Lens
+// registry query shapes (AMBITO_AT_POINT, AMBITO_PHASES, AMBITO_EDITION_DIFF,
+// SOURCE_PROVENANCE). No LLM, no network, no
 // writes. Set MADRID_LENS_ROOT to a checkout of the pinned Lens commit.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

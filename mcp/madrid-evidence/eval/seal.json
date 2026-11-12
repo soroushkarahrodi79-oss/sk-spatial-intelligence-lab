@@ -1,0 +1,12 @@
+{
+  "algorithm": "sha256",
+  "sealedAt": "2026-11-12T07:50:48.177Z",
+  "lensCommit": "f67cd4709d1319f5685aaa184326330a5d535088",
+  "files": {
+    "mcp/madrid-evidence/eval/cases.json": "85cd8a9e79dfd22f7f8ed001f41d450590288eb7035c54da09739d400230c519",
+    "mcp/madrid-evidence/eval/references.json": "340b01f4b6255ae39f5f7ac1a860e5b7fa2ab3c8d7ba4581b6cbc7738a352c67",
+    "mcp/madrid-evidence/eval/score.mjs": "26431934d4b5db88a9f8611170d62f454eb81472495d3fbcbf010115fe6ed74b",
+    "mcp/madrid-evidence/lens-pin.json": "1e8be057a56255c1e39b32ea57fcd75d9d467878afa5f45c3c297daf9989837b"
+  },
+  "digest": "51a7083ca7373817202fcaf523bb9e94c13f2001cc213d2fb215e4d48871d612"
+}
