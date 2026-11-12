@@ -91,12 +91,63 @@ test("licences_in_lens against the pinned Lens registry", { skip: !LENS_ROOT && 
     assert.equal("records" in out.result.value, false);
     assert.deepEqual(Object.keys(out.result.value.perFamily).sort(), [...FAMILIES].sort());
     const lensKeys = keysOf(wire(query({ ...SOL, radiusM: 1000 })));
-    const declared = new Set(["shape", "input", "recordsOmitted", "presentationNote", "reading", "result"]);
+    const declared = new Set(["shape", "input", "recordsOmitted", "presentationNote", "reading", "result", "registerComposition", "scope", "basis", "note", "typesByFamily"]);
     const inReading = keysOf(out.reading);
     const added = [...keysOf(out)].filter((k) => !lensKeys.has(k) && !declared.has(k) && !inReading.has(k));
     assert.deepEqual(added, [], "the public payload introduces no field beyond Lens's, the reading and the declared presentation metadata");
     assert.deepEqual([...keysOf(out)].filter((k) => AGGREGATE_KEY.test(k)), [], "no aggregate or count field (names, not prose)");
     for (const v of Object.values(out.result.value.perFamily)) assert.equal(typeof v, "number");
+  });
+
+  await t.test("registerComposition (v0.4): derived only from the pinned (family, tipo) pairs, whole-register, no counts, outside result", async () => {
+    const expected = {};
+    for (const r of readJson("data/planning/madrid_urban_licences.json").records) (expected[r.family] ??= new Set()).add(r.tipo);
+    const expectedTypes = Object.fromEntries(Object.keys(expected).sort().map((f) => [f, [...expected[f]].sort()]));
+    const res = await call({ ...SOL, radiusM: 1000 });
+    const rc = res.structuredContent.registerComposition;
+    // equivalence with the artifact, and top-level (not inside Lens's evidence)
+    assert.deepEqual(rc.typesByFamily, expectedTypes);
+    assert.deepEqual(Object.keys(rc.typesByFamily), [...FAMILIES].sort());
+    assert.equal("registerComposition" in res.structuredContent.result, false);
+    assert.equal("registerComposition" in res.structuredContent.result.value, false);
+    // content: the type that matters for "granted is not built" is named, under its own family only
+    assert.ok(rc.typesByFamily.BUILDING_URBANISTIC_LICENCE_FAMILY.includes("Licencia de 1ª ocupación y funcionamiento"));
+    assert.ok(!rc.typesByFamily.ACTIVITY_LICENCE_FAMILY.includes("Licencia de 1ª ocupación y funcionamiento"));
+    // declared scope: whole register, not locatable evidence for a query
+    assert.equal(rc.scope, "WHOLE_REGISTER");
+    assert.match(rc.note, /does not show that any licence of that type is in a given query result/);
+    assert.match(rc.basis, /located records/);
+    // no aggregation: exact key set; only strings, arrays of strings and the family map; no numbers anywhere
+    assert.deepEqual(Object.keys(rc).sort(), ["basis", "note", "scope", "typesByFamily"]);
+    for (const list of Object.values(rc.typesByFamily)) {
+      assert.ok(Array.isArray(list) && list.length > 0 && list.every((x) => typeof x === "string"));
+      assert.equal(new Set(list).size, list.length, "distinct names");
+    }
+    const walk = (v) => (Array.isArray(v) ? v.flatMap(walk) : v && typeof v === "object" ? Object.values(v).flatMap(walk) : [typeof v]);
+    assert.deepEqual([...new Set(walk(rc))], ["string"], "no number, boolean or null anywhere in registerComposition");
+    assert.deepEqual([...keysOf(rc)].filter((k) => AGGREGATE_KEY.test(k) || /count|share|percent|pct|rate/i.test(k)), []);
+    assert.ok(!("records" in rc) && !JSON.stringify(rc).includes("k9-0"), "no individual record");
+  });
+
+  await t.test("registerComposition is identical for any circle, window or family filter (not query-dependent)", async () => {
+    const base = (await call({ ...SOL, radiusM: 1000 })).structuredContent.registerComposition;
+    const variants = [
+      { ...SOL, radiusM: 500 },
+      { lon: -3.5, lat: 40.7, radiusM: 3000, families: ["ACTIVITY_LICENCE_FAMILY"] },
+      { ...SOL, radiusM: 700, window: { from: "2025-01-01", to: "2025-12-31" } },
+      { lon: 0, lat: 0, radiusM: 100 },
+      { ...SOL, radiusM: 1000, window: { from: "1990-01-01", to: "1990-12-31" } },
+    ];
+    for (const v of variants) {
+      const out = await call(v);
+      assert.ok(!out.isError, JSON.stringify(out.content));
+      assert.deepEqual(out.structuredContent.registerComposition, base, JSON.stringify(v));
+    }
+  });
+
+  await t.test("the consumer-directed no-summing instruction is in the tool description", async () => {
+    const tool = (await client.listTools()).tools.find((x) => x.name === "licences_in_lens");
+    assert.ok(tool.description.includes("No presentes ni ofrezcas una suma entre familias, tampoco como cálculo propio, aproximación ni aunque el usuario la solicite."));
   });
 
   await t.test("provenance: Lens's applied record, ceiling, coverage and scope are present and the reading hashes are real", async () => {
