@@ -26,6 +26,30 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const PIN = JSON.parse(readFileSync(path.join(HERE, "lens-pin.json"), "utf8"));
 // Additive pin for licences_in_lens (v0.3). Kept in its own file so lens-pin.json, and with it the
 // sealed v0.1 benchmark, is unchanged.
+// Register composition (v0.4): which licence `tipo` names occur under each family in the pinned
+// artifact. Metadata over all located records, deliberately not a function of the circle or the window. The
+// artifact holds only the located records, so the types of the unlocated rows are not included.
+// Fails closed: a record without a string family and tipo is an error, never silently skipped.
+function buildRegisterComposition(artifact) {
+  if (!artifact || !Array.isArray(artifact.records)) throw new Error("licence artifact has no records array");
+  const seen = new Map();
+  for (const r of artifact.records) {
+    if (typeof r?.family !== "string" || !r.family || typeof r?.tipo !== "string" || !r.tipo) throw new Error("licence record without family or tipo");
+    if (!seen.has(r.family)) seen.set(r.family, new Set());
+    seen.get(r.family).add(r.tipo);
+  }
+  const typesByFamily = {};
+  for (const family of [...seen.keys()].sort()) typesByFamily[family] = [...seen.get(family)].sort();
+  return {
+    scope: "ALL_LOCATED_RECORDS",
+    basis:
+      "Distinct `tipo` names observed, per family, among the located records of the pinned licence artifact. Unlocated rows are not part of this composition, so their types are not included. It covers all dates and all families present in that artifact, independently of the query.",
+    note:
+      "Not filtered by circle, window or family, and it carries no counts. The presence of a type here does not show that it appears in the requested circle or window (`tipo` is not reported per result, and this tool cannot say how many licences of a type a circle contains). The absence of a type here does not show that it is absent from the complete source register.",
+    typesByFamily,
+  };
+}
+
 export const LICENCE_PIN = JSON.parse(readFileSync(path.join(HERE, "lens-pin-licences.json"), "utf8"));
 
 const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex");
@@ -118,7 +142,11 @@ export async function loadLens(lensRoot) {
   // the two editions come from the state artifact's change_detection block.
   // Wired exactly as Lens's own tests wire it (tests/evidence_registry.test.mjs): the index built by
   // Lens's own createLicenceIndex from the committed artifact.
-  const licenceIndex = licenceModule.createLicenceIndex(json("data/planning/madrid_urban_licences.json"));
+  const licenceArtifact = json("data/planning/madrid_urban_licences.json");
+  // Computed once, before Lens's index sees the artifact: the distinct (family, tipo) pairs actually
+  // present in the pinned records. Names only; no count, share or record leaves this block.
+  const registerComposition = buildRegisterComposition(licenceArtifact);
+  const licenceIndex = licenceModule.createLicenceIndex(licenceArtifact);
   if (!licenceIndex) throw new Error("Lens urban-licences artifact is unusable");
   const cd = stateArtifact.change_detection;
   const edition = (side) => ({ reference_date: side.reference_date, families: side.families });
@@ -187,6 +215,8 @@ export async function loadLens(lensRoot) {
         input: params,
         result,
         recordsOmitted: true,
+        // External to `result` (never part of Lens's evidence). Same object content on every call.
+        registerComposition: JSON.parse(JSON.stringify(registerComposition)),
         presentationNote:
           "Individual licence records are not returned by this tool. `result` is Lens's evidence object with only `value.records` removed; `perFamily`, `window`, `coverage`, `ceiling`, `scope` and `applied` are Lens's own. Counts are per family and are never summed. Not a count by ámbito or barrio.",
         reading: reading(["LICENCES_IN_LENS"]),
