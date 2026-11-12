@@ -19,6 +19,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { wilson } from "../../../geoimpact-copilot/evaluation/metrics.mjs";
 import { allowedNumbersFrom, dateAlts, scoreAnswer } from "./score.mjs";
+import { verifyTranscript } from "./verify-transcript.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..", "..", "..");
@@ -237,6 +238,7 @@ async function cmdRun() {
   const out = path.resolve(opt("out", path.join(REPO, "work", "madrid-mcp-eval", "pass-1")));
   const only = opt("only") ? new Set(opt("only").split(",")) : null;
   mkdirSync(out, { recursive: true });
+  if (arms.includes("mcp") && !process.env.MADRID_LENS_ROOT) throw new Error("MADRID_LENS_ROOT must be set for the mcp arm (an unset value would silently resolve to the current directory and the server would fail to start)");
   const lensRoot = path.resolve(process.env.MADRID_LENS_ROOT ?? "");
   const mcpConfig = path.join(out, "mcp.json");
   writeFileSync(mcpConfig, JSON.stringify({ mcpServers: { "madrid-evidence": { command: process.execPath, args: [path.join(REPO, "mcp", "madrid-evidence", "server.mjs")], env: { MADRID_LENS_ROOT: lensRoot } } } }));
@@ -254,16 +256,26 @@ async function cmdRun() {
       args.push("--", c.prompt);
       const env = { ...process.env };
       delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
-      const cwd = mkdtempSync(path.join(tmpdir(), "madrid-eval-"));
-      const stdout = await new Promise((resolve) => {
-        const child = spawn("claude", args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
-        let buf = "";
-        child.stdout.on("data", (d) => (buf += d));
-        const timer = setTimeout(() => child.kill(), 240000);
-        child.on("close", (code) => { clearTimeout(timer); resolve(buf + (code ? `\n{"type":"harness","exit":${code}}\n` : "")); });
-      });
+      // v0.2: an mcp run whose server did not connect is infrastructure, not a model result.
+      // Retry up to twice; keep the last attempt and its stderr so the cause can be read.
+      let stdout = "", stderr = "", attempt = 0, v = null;
+      do {
+        attempt++;
+        const cwd = mkdtempSync(path.join(tmpdir(), "madrid-eval-"));
+        ({ stdout, stderr } = await new Promise((resolve) => {
+          const child = spawn("claude", args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
+          let buf = "", err = "";
+          child.stdout.on("data", (d) => (buf += d));
+          child.stderr.on("data", (d) => (err += d));
+          const timer = setTimeout(() => child.kill(), 240000);
+          child.on("close", (code) => { clearTimeout(timer); resolve({ stdout: buf + (code ? `\n{"type":"harness","exit":${code}}\n` : ""), stderr: err }); });
+        }));
+        v = arm === "mcp" ? verifyTranscript(stdout, { promptText: c.prompt }) : null;
+        if (v?.status === "INFRA_FAILURE") console.log(`INFRA_FAILURE ${arm} ${c.id} attempt ${attempt}: ${v.reason}`);
+      } while (v?.status === "INFRA_FAILURE" && attempt < 3);
       writeFileSync(raw, stdout);
-      console.log(`done ${arm} ${c.id}`);
+      if (stderr.trim()) writeFileSync(path.join(out, `${arm}-${c.id}.stderr.txt`), stderr);
+      console.log(`done ${arm} ${c.id}${v ? ` [${v.status}]` : ""}`);
     }
   }
 }
@@ -305,9 +317,11 @@ function cmdScore() {
       const raw = path.join(dir, `${arm}-${c.id}.jsonl`);
       if (!existsSync(raw)) continue;
       const r = parseRun(raw);
-      const flags = r.answer == null ? [{ kind: "no_answer", detail: `exit=${r.harnessExit} error=${r.resultError}` }]
+      // v0.2: label how the answer is backed; an infrastructure failure is not scored as a model answer.
+      const verification = arm === "mcp" ? verifyTranscript(readFileSync(raw, "utf8"), { promptText: c.prompt }) : null;
+      const flags = verification?.status === "INFRA_FAILURE" ? [{ kind: "infra_failure", detail: verification.reason }] : r.answer == null ? [{ kind: "no_answer", detail: `exit=${r.harnessExit} error=${r.resultError}` }]
         : scoreAnswer({ caseDef: c, reference: refs[c.id], answer: r.answer, toolCalls: r.toolCalls, arm, forbiddenSets: cases.forbiddenSets });
-      rows.push({ arm, id: c.id, category: c.category, expect: c.expect, answer: r.answer, toolCalls: r.toolCalls, turns: r.turns, costUsd: r.cost, rawSha256: sha(readFileSync(raw)), flags, adjudication: adj[`${arm}:${c.id}`] ?? null });
+      rows.push({ arm, id: c.id, category: c.category, expect: c.expect, answer: r.answer, toolCalls: r.toolCalls, turns: r.turns, costUsd: r.cost, rawSha256: sha(readFileSync(raw)), verification, flags, adjudication: adj[`${arm}:${c.id}`] ?? null });
     }
   }
   const outFile = opt("out", path.join(HERE, "results", "results.json"));

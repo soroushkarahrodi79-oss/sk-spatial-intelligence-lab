@@ -44,6 +44,8 @@ jobs:
           MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
       - name: Madrid Evidence MCP evaluation seal (offline)
         run: node mcp/madrid-evidence/eval/eval.mjs verify
+      - name: Madrid Evidence MCP transcript verifier (offline)
+        run: npm run test:madrid-verifier
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
       - run: npm run check:review-record
