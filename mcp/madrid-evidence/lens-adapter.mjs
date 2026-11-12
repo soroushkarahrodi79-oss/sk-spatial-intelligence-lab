@@ -3,7 +3,7 @@
 //
 // It contains NO spatial or provenance logic. It (1) verifies that a local Lens
 // checkout is the pinned one, (2) wires the real Lens modules the way Lens's own
-// tests do, and (3) forwards two registered shapes to `registry.query`. Lens's
+// tests do, and (3) forwards registered shapes to `registry.query`. Lens's
 // result is returned verbatim, so nulls and abstentions are preserved.
 //
 // Only the files listed in lens-pin.json are ever read. No client input is used

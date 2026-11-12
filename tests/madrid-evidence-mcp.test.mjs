@@ -1,6 +1,6 @@
 // Integration test for the Madrid Evidence MCP server (mcp/madrid-evidence).
 //
-// Starts the real stdio server, calls both tools through an MCP client and compares
+// Starts the real stdio server, calls each of the three tools through an MCP client and compares
 // each result with a direct query of the Lens evidence registry, wired here
 // independently of the adapter. Requires a Lens checkout at the pinned commit:
 //

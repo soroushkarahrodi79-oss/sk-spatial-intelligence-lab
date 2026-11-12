@@ -1,6 +1,6 @@
 # Madrid Evidence MCP v0
 
-A **read-only, local, stdio** [MCP](https://modelcontextprotocol.io) server over two queries that
+A **read-only, local, stdio** [MCP](https://modelcontextprotocol.io) server with three tools over four query shapes that
 [Madrid Urban Evidence Lens](https://github.com/soroushkarahrodi79-oss/madrid-tourism-intelligence-lens)
 already resolves in `js/evidence-registry.js`. It has no LLM, network access, API key or write path, and it
 does not reimplement Lens's spatial or provenance logic: it loads Lens's own modules and forwards to
@@ -54,8 +54,10 @@ Or in any client's JSON config: `{"command": "node", "args": ["/abs/path/.../mcp
 MADRID_LENS_ROOT=../lens-pinned npm run test:madrid-mcp
 ```
 
-Starts the real server, calls both tools through an MCP client and compares each result with a direct query of
+Starts the real server, calls each of the three tools through an MCP client and compares each result with a direct query of
 Lens's registry (points with all three answers, with no ámbito, with phases and diff abstentions; known and unknown `sourceId`; hash checks; input rejection). Without `MADRID_LENS_ROOT` the command **fails** (it is never green by omission). It also checks that the server refuses to start with a missing checkout or a modified verified file. It is not part of `npm test`; the PR workflow (`validate.yml`) checks out Lens at the pinned commit and runs it as a step of the job (a failing step fails the workflow).
+
+An exploratory 30-case evaluation of an agent using these tools, with its protocol, limits and sealed references, is in [`eval/`](eval/README.md). It is not part of the test above and is not scientific validation.
 
 ## Limits
 
