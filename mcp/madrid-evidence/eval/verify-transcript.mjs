@@ -6,6 +6,10 @@
 // being presented as verified when no query supports it, and it separates an infrastructure
 // failure (server not connected) from a model decision.
 //
+// BACKED means "a successful Lens query exists in this transcript and no cited ámbito code is
+// missing from its results". It is NOT proof that every statement in the answer is correct or
+// derived from that result; the model's prose can still add or distort claims.
+//
 // Limits: "Lens-dependent" is a lexical heuristic (default-deny: recall is incomplete and a
 // conceptual question that mentions "ámbito" is labelled UNBACKED, which only means "not
 // verified against Lens"). Backing is per answer, not per sentence; only ámbito codes are
@@ -72,6 +76,20 @@ function backingOf(call) {
   try { p = JSON.parse(call.resultText); } catch { return false; }
   const kinds = [p?.result?.kind, p?.ambitoAtPoint?.kind];
   return kinds.some((k) => k === "EVIDENCE" || k === "ABSTENTION");
+}
+
+// Run `attemptFn` (async, returns { stdout, stderr }) until the transcript is not an INFRA_FAILURE or
+// `max` attempts are used. The last attempt is always returned, with its verdict, so a persistent
+// failure stays visible as INFRA_FAILURE and is never turned into a model result.
+export async function retryOnInfraFailure(attemptFn, { max = 3, promptText = "", onFailure = () => {} } = {}) {
+  let last, verdict, attempts = 0;
+  do {
+    attempts++;
+    last = await attemptFn(attempts);
+    verdict = verifyTranscript(last.stdout, { promptText });
+    if (verdict.status === "INFRA_FAILURE") onFailure(attempts, verdict);
+  } while (verdict.status === "INFRA_FAILURE" && attempts < max);
+  return { ...last, verdict, attempts };
 }
 
 export function verifyTranscript(input, { requireServer = true, promptText = "" } = {}) {

@@ -4,7 +4,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { preflight, verifyTranscript, EXPECTED_TOOLS, TOOL_PREFIX } from "../mcp/madrid-evidence/eval/verify-transcript.mjs";
+import { preflight, retryOnInfraFailure, verifyTranscript, EXPECTED_TOOLS, TOOL_PREFIX } from "../mcp/madrid-evidence/eval/verify-transcript.mjs";
 
 const TOOLS = EXPECTED_TOOLS.map((n) => TOOL_PREFIX + n);
 const init = (status = "connected", tools = TOOLS) => ({ type: "system", subtype: "init", mcp_servers: [{ name: "madrid-evidence", status }], tools });
@@ -72,6 +72,30 @@ test("a cited ámbito code absent from tool results and prompt makes the answer 
 test("requireServer:false (baseline arm) skips the preflight", () => {
   assert.equal(verifyTranscript(jsonl(answer("Hola")), { requireServer: false }).status, "NO_LENS_CLAIM");
   assert.equal(verifyTranscript(jsonl(answer("El ámbito es X")), { requireServer: false }).status, "UNBACKED");
+});
+
+test("retry: when every attempt fails the last one is returned as INFRA_FAILURE after max attempts", async () => {
+  const failed = { stdout: jsonl(init("failed", []), answer("No Madrid planning ámbito contains that point.")), stderr: "" };
+  let calls = 0;
+  const seen = [];
+  const r = await retryOnInfraFailure(async () => { calls++; return failed; }, { max: 3, onFailure: (n) => seen.push(n) });
+  assert.equal(calls, 3);
+  assert.equal(r.attempts, 3);
+  assert.equal(r.verdict.status, "INFRA_FAILURE");
+  assert.deepEqual(seen, [1, 2, 3]);
+});
+
+test("retry: stops at the first connected attempt and does not retry an UNBACKED answer", async () => {
+  const bad = { stdout: jsonl(init("failed", []), answer("x")), stderr: "" };
+  const good = { stdout: jsonl(init(), call("a", "ambito_at_point", {}), result("a", ABSTENTION), answer("Ningún ámbito.")), stderr: "" };
+  let n = 0;
+  const r = await retryOnInfraFailure(async () => (++n === 1 ? bad : good), { max: 3 });
+  assert.equal(r.attempts, 2);
+  assert.equal(r.verdict.status, "BACKED");
+  let m = 0;
+  const u = await retryOnInfraFailure(async () => { m++; return { stdout: jsonl(init(), answer("Ningún ámbito contiene ese punto.")), stderr: "" }; }, { max: 3 });
+  assert.equal(m, 1);
+  assert.equal(u.verdict.status, "UNBACKED");
 });
 
 test("malformed lines are ignored", () => {

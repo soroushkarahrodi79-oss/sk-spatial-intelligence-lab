@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { wilson } from "../../../geoimpact-copilot/evaluation/metrics.mjs";
 import { allowedNumbersFrom, dateAlts, scoreAnswer } from "./score.mjs";
-import { verifyTranscript } from "./verify-transcript.mjs";
+import { retryOnInfraFailure, verifyTranscript } from "./verify-transcript.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..", "..", "..");
@@ -248,7 +248,9 @@ async function cmdRun() {
     for (const c of cases.cases) {
       if (only && !only.has(c.id)) continue;
       const raw = path.join(out, `${arm}-${c.id}.jsonl`);
-      if (existsSync(raw) && !flag("force")) { console.log(`skip ${arm} ${c.id} (exists)`); continue; }
+      // A recorded INFRA_FAILURE is not a result: it is re-run instead of skipped.
+      const failedBefore = arm === "mcp" && existsSync(raw) && verifyTranscript(readFileSync(raw, "utf8")).status === "INFRA_FAILURE";
+      if (existsSync(raw) && !failedBefore && !flag("force")) { console.log(`skip ${arm} ${c.id} (exists)`); continue; }
       const args = ["-p", "--model", cases.protocol.model, "--system-prompt", cases.protocol.systemPrompt, "--strict-mcp-config", "--setting-sources", "project",
         "--disable-slash-commands", "--no-session-persistence", "--tools", "", "--permission-prompts", "none", "--max-turns", String(cases.protocol.maxTurns),
         "--output-format", "stream-json", "--verbose"];
@@ -258,23 +260,24 @@ async function cmdRun() {
       delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
       // v0.2: an mcp run whose server did not connect is infrastructure, not a model result.
       // Retry up to twice; keep the last attempt and its stderr so the cause can be read.
-      let stdout = "", stderr = "", attempt = 0, v = null;
-      do {
-        attempt++;
+      const attemptOnce = () => new Promise((resolve) => {
         const cwd = mkdtempSync(path.join(tmpdir(), "madrid-eval-"));
-        ({ stdout, stderr } = await new Promise((resolve) => {
-          const child = spawn("claude", args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
-          let buf = "", err = "";
-          child.stdout.on("data", (d) => (buf += d));
-          child.stderr.on("data", (d) => (err += d));
-          const timer = setTimeout(() => child.kill(), 240000);
-          child.on("close", (code) => { clearTimeout(timer); resolve({ stdout: buf + (code ? `\n{"type":"harness","exit":${code}}\n` : ""), stderr: err }); });
-        }));
-        v = arm === "mcp" ? verifyTranscript(stdout, { promptText: c.prompt }) : null;
-        if (v?.status === "INFRA_FAILURE") console.log(`INFRA_FAILURE ${arm} ${c.id} attempt ${attempt}: ${v.reason}`);
-      } while (v?.status === "INFRA_FAILURE" && attempt < 3);
+        const child = spawn("claude", args, { cwd, env, stdio: ["ignore", "pipe", "pipe"] });
+        let buf = "", err = "";
+        child.stdout.on("data", (d) => (buf += d));
+        child.stderr.on("data", (d) => (err += d));
+        const timer = setTimeout(() => child.kill(), 240000);
+        child.on("close", (code) => { clearTimeout(timer); resolve({ stdout: buf + (code ? `\n{"type":"harness","exit":${code}}\n` : ""), stderr: err }); });
+      });
+      let stdout, stderr, v = null;
+      if (arm === "mcp") {
+        const r = await retryOnInfraFailure(attemptOnce, { promptText: c.prompt, onFailure: (n, vv) => console.log(`INFRA_FAILURE ${arm} ${c.id} attempt ${n}: ${vv.reason}`) });
+        ({ stdout, stderr, verdict: v } = r);
+        if (v.status === "INFRA_FAILURE") process.exitCode = 1; // every attempt failed: the run is incomplete, not a model result
+      } else ({ stdout, stderr } = await attemptOnce());
       writeFileSync(raw, stdout);
-      if (stderr.trim()) writeFileSync(path.join(out, `${arm}-${c.id}.stderr.txt`), stderr);
+      // stderr can hold local paths or tool output: capped, and written only under the gitignored work/ folder by default.
+      if (stderr.trim()) writeFileSync(path.join(out, `${arm}-${c.id}.stderr.txt`), stderr.slice(0, 20000));
       console.log(`done ${arm} ${c.id}${v ? ` [${v.status}]` : ""}`);
     }
   }
@@ -329,7 +332,10 @@ function cmdScore() {
   writeFileSync(outFile, JSON.stringify({ sealDigest: sealed.digest, runDir: path.basename(dir), rows }, null, 1) + "\n");
   const critical = new Set(cases.criticalClasses);
   for (const arm of ["baseline", "mcp"]) {
-    const a = rows.filter((r) => r.arm === arm);
+    // v0.2: an infrastructure failure is not a model answer; it is reported apart and left out of n and the rates.
+    const infra = rows.filter((r) => r.arm === arm && r.verification?.status === "INFRA_FAILURE");
+    if (infra.length) console.log(`\n[${arm}] INFRA_FAILURE, excluded from n and rates: ${infra.map((r) => r.id).join(", ")}`);
+    const a = rows.filter((r) => r.arm === arm && r.verification?.status !== "INFRA_FAILURE");
     if (!a.length) continue;
     const flagged = a.filter((r) => r.flags.length);
     const adjudicated = a.filter((r) => r.adjudication);
