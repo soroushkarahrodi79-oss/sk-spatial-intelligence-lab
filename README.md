@@ -7,7 +7,7 @@
 ![Version](https://img.shields.io/badge/version-0.1.0-informational)
 ![Node](https://img.shields.io/badge/node-%E2%89%A522-339933)
 
-[**Live Space**](https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab) · [Roadmap](docs/architecture-roadmap.md) · [Changelog](CHANGELOG.md) · [Docs](docs/)
+[**Live Space**](https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab) · [Roadmap](docs/architecture-roadmap.md) · [Case Study 01](docs/case-studies/01-mahou-calderon.md) · [Changelog](CHANGELOG.md) · [Docs](docs/)
 
 > *Resumen en español:* laboratorio de investigación geoespacial con enfoque *evidence-first*. Los hechos espaciales salen de cálculos deterministas e inspeccionables; cualquier explicación generada por un modelo se mantiene separada de las observaciones y declara procedencia, alcance, incertidumbre y límites. El sitio público es bilingüe (ES/EN).
 
@@ -25,7 +25,7 @@ SK Spatial Intelligence Lab is a research and engineering project built on one r
 | Evidence Explorer V0.1 | Static search over a fixed 12-record catalog. Plain text search, not AI. |
 | Claim-to-Source Trace V0.1 | Draft. Exact line-range permalinks for three records. |
 | GeoImpact Evidence Copilot V0.1–V0.2.1 | Local, deterministic prototype. Draft. Verdict **HOLD**. |
-| Madrid Evidence MCP v0 | Local, read-only stdio server with three tools over four Madrid Urban Evidence Lens registry query shapes. Draft. Not scientifically validated. |
+| Madrid Evidence MCP | Local, read-only stdio server with four tools over five Madrid Urban Evidence Lens registry query shapes. Integrates no LLM. Draft. Not scientifically validated. [Case Study 01](docs/case-studies/01-mahou-calderon.md) (Spanish). |
 | LLM, agent, EO inference, hosted model | **None implemented.** Roadmap items are plans only. |
 
 Scores in this repository are measured on synthetic data and are not real-world accuracy.
@@ -57,7 +57,7 @@ Details: [V0.1](docs/geoimpact-evidence-copilot-v0.1.md) · [V0.2](docs/geoimpac
 
 
 ### Madrid Evidence MCP v0 (`mcp/madrid-evidence/`)
-A read-only stdio MCP server exposing three tools over four deterministic query shapes that Madrid Urban Evidence Lens already resolves (`AMBITO_AT_POINT`, `AMBITO_PHASES`, `AMBITO_EDITION_DIFF`, `SOURCE_PROVENANCE`). It reuses Lens's registry code at a pinned commit and adds no model. See [its README](mcp/madrid-evidence/README.md).
+A read-only stdio MCP server exposing four tools over five deterministic query shapes that Madrid Urban Evidence Lens already resolves (`AMBITO_AT_POINT`, `AMBITO_PHASES`, `AMBITO_EDITION_DIFF`, `SOURCE_PROVENANCE`, `LICENCES_IN_LENS`). It reuses Lens's registry code at a pinned commit, verifies eleven pinned files before starting, and integrates no LLM. The v0.3 evaluation cases are defined but have not been run in an automated evaluation. See [its README](mcp/madrid-evidence/README.md) and [Case Study 01: Nuevo Mahou-Calderón](docs/case-studies/01-mahou-calderon.md) (Spanish; an unvalidated technical demonstrator).
 
 ## Repository layout
 
