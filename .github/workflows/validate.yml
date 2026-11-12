@@ -50,6 +50,8 @@ jobs:
         run: node mcp/madrid-evidence/eval/eval.mjs verify
       - name: Madrid Evidence MCP transcript verifier (offline)
         run: npm run test:madrid-verifier
+      - name: Madrid Evidence MCP v0.3 evaluation scorer (offline)
+        run: npm run test:madrid-eval-v03
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
       - run: npm run check:review-record
