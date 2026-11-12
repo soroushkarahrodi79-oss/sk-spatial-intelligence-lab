@@ -17,21 +17,21 @@ does not reimplement Lens's spatial or provenance logic: it loads Lens's own mod
 
 *Who rejects what.* The MCP schema rejects (the call never reaches Lens): `radiusM` ≤ 0 or > 3000, a missing `radiusM`, an empty or unknown `families` entry, a `window` without both `from` and `to` or not shaped `YYYY-MM-DD`, and unknown fields. Lens returns an abstention for: a window that matches the shape but is not a real calendar date, e.g. `2025-02-30` (`AMBIGUOUS_SCOPE`), and a window entirely outside the register's coverage (`OUTSIDE_TEMPORAL_COVERAGE`). A window partly outside is clamped and reported with `clamped: true`. The MCP does no calendar logic of its own. **The 3000 m cap is a limit of this MCP tool**, not of the source or of Lens's algorithm (Lens accepts any radius > 0; its own interface offers 100–5000 m).
 
-Licence files are verified through the additive `lens-pin-licences.json` (same Lens commit), so `lens-pin.json` and the sealed v0.1 benchmark are unchanged. The v0.3 agent cases are in `eval/cases-v0.3.json` (defined, not run).
+Licence files are verified through the additive `lens-pin-licences.json` (same Lens commit), so `lens-pin.json` and the sealed v0.1 benchmark are unchanged. The v0.3 agent cases are in `eval/cases-v0.3.json` (defined; no automated evaluation has been run on them).
 
 `ambito_at_point` and `source_provenance` respond with `{ shape, input, result, reading }`; `ambito_snapshot_at_point` with `{ composition, input, queriedCode, ambitoAtPoint, ambitoPhases, ambitoEditionDiff, notQueried, reading }`. An edition difference classifies two published snapshots (here 2025-07-01 and 2026-01-01); it is not progress or a recommendation. `result` is Lens's evidence object or abstention
 **verbatim** (explicit `null`s preserved).
 
 `reading` keeps two lists apart, both with SHA-256 computed by SK Lab (Lens's `source_registry.json` itself declares a hash for only some sources):
 
-- `reading.verifiedAtStartup.files`: the nine pinned files the server verified before it would start. The same list in every response; it says what was loaded, not what a result rests on.
+- `reading.verifiedAtStartup.files`: the eleven pinned files the server verified before it would start. The same list in every response; it says what was loaded, not what a result rests on.
 - `reading.supports[<shape>]`: for each Lens result returned, only the files its resolver consults, each with the hash verified at startup. For example `AMBITO_AT_POINT` is backed by the geometry and the registry but not by the state artifact; `SOURCE_PROVENANCE` by the registry alone among the data files.
 
 ## Pinned Lens checkout
 
 The server needs a local checkout of Lens at the commit in [`lens-pin.json`](lens-pin.json)
 (`f67cd4709d1319f5685aaa184326330a5d535088`). It refuses to start if `git` reports another commit or if any of
-the nine files it reads (six JS modules, `data/source_registry.json`, `data/planning/madrid_ambitos.geojson`, `data/planning/madrid_ambito_state.json`)
+the eleven files it reads (the nine in `lens-pin.json`: six JS modules, `data/source_registry.json`, `data/planning/madrid_ambitos.geojson`, `data/planning/madrid_ambito_state.json`; plus `js/urban-licences.js` and `data/planning/madrid_urban_licences.json` from `lens-pin-licences.json`)
 differs from the pinned SHA-256. Only those fixed paths are read; clients cannot supply paths, SQL or code.
 Inputs are strictly validated (finite coordinates in range, `sourceId` of `[A-Za-z0-9_.-]`, no extra fields).
 
@@ -61,7 +61,7 @@ Or in any client's JSON config: `{"command": "node", "args": ["/abs/path/.../mcp
 MADRID_LENS_ROOT=../lens-pinned npm run test:madrid-mcp
 ```
 
-Starts the real server, calls each of the three tools through an MCP client and compares each result with a direct query of
+Starts the real server, calls the ámbito and provenance tools through an MCP client (the licences tool has its own suite, `npm run test:madrid-licences`) and compares each result with a direct query of
 Lens's registry (points with all three answers, with no ámbito, with phases and diff abstentions; known and unknown `sourceId`; hash checks; input rejection). Without `MADRID_LENS_ROOT` the command **fails** (it is never green by omission). It also checks that the server refuses to start with a missing checkout or a modified verified file. It is not part of `npm test`; the PR workflow (`validate.yml`) checks out Lens at the pinned commit and runs it as a step of the job (a failing step fails the workflow).
 
 An exploratory 30-case evaluation of an agent using these tools, with its protocol, limits and sealed references, is in [`eval/`](eval/README.md). It is not part of the test above and is not scientific validation.
