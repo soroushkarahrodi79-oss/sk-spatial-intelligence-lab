@@ -11,7 +11,8 @@
 | `score.mjs` | Pure scoring rules. They produce candidate flags only |
 | `seal.json` | SHA-256 of cases, references, scorer and Lens pin, written before any model run |
 | `eval.mjs` | `references`, `seal`, `verify`, `spatial`, `run`, `score` |
-| `results/` | Scored output and the hand adjudication of one pass |
+| `verify-transcript.mjs` | v0.2. Pure verifier: labels a transcript `INFRA_FAILURE`, `BACKED`, `UNBACKED` or `NO_LENS_CLAIM` from the MCP `init` status and the tool results, not from the model's prose. It does not make the model call the tool, and `BACKED` is not proof that every statement in the answer is correct (it only says a successful Lens query exists and no cited ámbito code is missing from it). An `INFRA_FAILURE` is excluded from the model's n and rates. Offline test: `npm run test:madrid-verifier` |
+| `results/` | Scored output and the hand adjudication of one pass; [`erratum-v0.2.es.md`](results/erratum-v0.2.es.md) corrects the reading of the MEV-10 repetition (server `failed`, zero tools) |
 
 Reuses `wilson` from `geoimpact-copilot/evaluation/metrics.mjs` (n and a 95% interval on every rate; zero failures is reported as "none in n", not as 100%). Nothing else is shared with GeoImpact.
 
