@@ -99,7 +99,7 @@ test("licences_in_lens against the pinned Lens registry", { skip: !LENS_ROOT && 
     for (const v of Object.values(out.result.value.perFamily)) assert.equal(typeof v, "number");
   });
 
-  await t.test("registerComposition (v0.4): derived only from the pinned (family, tipo) pairs, whole-register, no counts, outside result", async () => {
+  await t.test("registerComposition (v0.4): derived only from the pinned (family, tipo) pairs, all located records, no counts, outside result", async () => {
     const expected = {};
     for (const r of readJson("data/planning/madrid_urban_licences.json").records) (expected[r.family] ??= new Set()).add(r.tipo);
     const expectedTypes = Object.fromEntries(Object.keys(expected).sort().map((f) => [f, [...expected[f]].sort()]));
@@ -114,9 +114,12 @@ test("licences_in_lens against the pinned Lens registry", { skip: !LENS_ROOT && 
     assert.ok(rc.typesByFamily.BUILDING_URBANISTIC_LICENCE_FAMILY.includes("Licencia de 1ª ocupación y funcionamiento"));
     assert.ok(!rc.typesByFamily.ACTIVITY_LICENCE_FAMILY.includes("Licencia de 1ª ocupación y funcionamiento"));
     // declared scope: whole register, not locatable evidence for a query
-    assert.equal(rc.scope, "WHOLE_REGISTER");
-    assert.match(rc.note, /does not show that any licence of that type is in a given query result/);
-    assert.match(rc.basis, /located records/);
+    assert.equal(rc.scope, "ALL_LOCATED_RECORDS");
+    assert.match(rc.basis, /located records of the pinned licence artifact/);
+    assert.match(rc.basis, /Unlocated rows are not part of this composition/);
+    assert.match(rc.basis, /all dates and all families present in that artifact, independently of the query/);
+    assert.match(rc.note, /presence of a type here does not show that it appears in the requested circle or window/);
+    assert.match(rc.note, /absence of a type here does not show that it is absent from the complete source register/);
     // no aggregation: exact key set; only strings, arrays of strings and the family map; no numbers anywhere
     assert.deepEqual(Object.keys(rc).sort(), ["basis", "note", "scope", "typesByFamily"]);
     for (const list of Object.values(rc.typesByFamily)) {
@@ -147,7 +150,8 @@ test("licences_in_lens against the pinned Lens registry", { skip: !LENS_ROOT && 
 
   await t.test("the consumer-directed no-summing instruction is in the tool description", async () => {
     const tool = (await client.listTools()).tools.find((x) => x.name === "licences_in_lens");
-    assert.ok(tool.description.includes("No presentes ni ofrezcas una suma entre familias, tampoco como cálculo propio, aproximación ni aunque el usuario la solicite."));
+    assert.ok(tool.description.includes("Do not calculate, present, or offer a cross-family total, even as your own arithmetic, an approximation, or when explicitly requested by the user."));
+    assert.ok(!tool.description.includes("No presentes ni ofrezcas"));
   });
 
   await t.test("provenance: Lens's applied record, ceiling, coverage and scope are present and the reading hashes are real", async () => {

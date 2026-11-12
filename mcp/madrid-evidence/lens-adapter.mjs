@@ -27,8 +27,8 @@ export const PIN = JSON.parse(readFileSync(path.join(HERE, "lens-pin.json"), "ut
 // Additive pin for licences_in_lens (v0.3). Kept in its own file so lens-pin.json, and with it the
 // sealed v0.1 benchmark, is unchanged.
 // Register composition (v0.4): which licence `tipo` names occur under each family in the pinned
-// artifact. Whole-register metadata, deliberately not a function of the circle or the window. The
-// artifact holds only the located records, so the types of the unlocated rows are not known here.
+// artifact. Metadata over all located records, deliberately not a function of the circle or the window. The
+// artifact holds only the located records, so the types of the unlocated rows are not included.
 // Fails closed: a record without a string family and tipo is an error, never silently skipped.
 function buildRegisterComposition(artifact) {
   if (!artifact || !Array.isArray(artifact.records)) throw new Error("licence artifact has no records array");
@@ -41,11 +41,11 @@ function buildRegisterComposition(artifact) {
   const typesByFamily = {};
   for (const family of [...seen.keys()].sort()) typesByFamily[family] = [...seen.get(family)].sort();
   return {
-    scope: "WHOLE_REGISTER",
+    scope: "ALL_LOCATED_RECORDS",
     basis:
-      "Distinct `tipo` names observed, per family, among the located records of the pinned licence artifact (the unlocated rows are not in it, so their types are not known).",
+      "Distinct `tipo` names observed, per family, among the located records of the pinned licence artifact. Unlocated rows are not part of this composition, so their types are not included. It covers all dates and all families present in that artifact, independently of the query.",
     note:
-      "Whole-register metadata: not filtered by circle or window, and it carries no counts. A type listed here does not show that any licence of that type is in a given query result: `tipo` is not reported per result, and this tool cannot say how many licences of a type a circle contains.",
+      "Not filtered by circle, window or family, and it carries no counts. The presence of a type here does not show that it appears in the requested circle or window (`tipo` is not reported per result, and this tool cannot say how many licences of a type a circle contains). The absence of a type here does not show that it is absent from the complete source register.",
     typesByFamily,
   };
 }
