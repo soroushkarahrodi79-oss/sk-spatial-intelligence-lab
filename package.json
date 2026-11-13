@@ -38,7 +38,9 @@
     "test:madrid-eval-v03": "node --test tests/madrid-evidence-eval-v03.test.mjs",
     "studio": "node studio/server.mjs",
     "test:studio": "node --test tests/studio-evidence-view.test.mjs tests/studio-server.test.mjs",
-    "test:studio-browser": "node scripts/studio-browser-check.mjs"
+    "test:studio-browser": "node scripts/studio-browser-check.mjs",
+    "test:studio-selector": "node --test tests/studio-selector.test.mjs",
+    "eval:studio-selector": "node studio/selector/eval/run.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
