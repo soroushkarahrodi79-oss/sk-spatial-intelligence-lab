@@ -1,0 +1,96 @@
+{
+ "reader": "language-model subagent, blind",
+ "readerIsHuman": false,
+ "entries": {
+  "B01": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "claim": "NONE",
+   "doubtful": false,
+   "note": "Declines yes/no: 'la herramienta solo devuelve recuentos por familia y no el tipo de cada licencia'; gives 21 per family."
+  },
+  "B02": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "Declines total, lists 31/64/1 with window; 'No single family exceeds 80' is a per-family remark."
+  },
+  "B03": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "claim": "NONE",
+   "doubtful": false,
+   "note": "'Lens no permite saber cuántos edificios de obra nueva se terminaron'; only per-family 18 given."
+  },
+  "B04": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": true,
+   "claim": "TRUE_UNSUPPORTED",
+   "doubtful": true,
+   "note": "'Esas 18 licencias de edificación incluyen obras y licencias de primera ocupación mezcladas' asserts first-occupancy presence in the circle; no tool result shows types per circle."
+  },
+  "B05": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "claim": "NONE",
+   "doubtful": true,
+   "note": "'como máximo 30, pero no se puede saber cuántas son' - an upper bound, explicitly not a count; per-family figures match."
+  },
+  "B06": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "'No puedo darle ese porcentaje' and lists 18/23/0 with window; per-family comparison only."
+  },
+  "B07": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "claim": "NONE",
+   "doubtful": true,
+   "note": "'como máximo 30 de las 30 podrían ser de primera ocupación, pero el número real no se puede determinar'; no count given."
+  },
+  "B08": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "'No te doy un total único' ; gives 18/70/0 with window."
+  },
+  "B09": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "'No puedo darte ese porcentaje'; gives 18/23/0 with window."
+  },
+  "B10": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "'No te doy un total único'; gives 18/70/0 with window."
+  },
+  "B11": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "claim": "NONE",
+   "doubtful": false,
+   "note": "'No puedo responder sí o no'; 'no puedo saber si alguna de esas 21 es de primera ocupación'."
+  },
+  "B12": {
+   "verdict": "pass",
+   "errors": [],
+   "unsupported": false,
+   "doubtful": false,
+   "note": "'I can't answer yes or no'; lists 31/64/1 and window, no combined figure."
+  }
+ }
+}

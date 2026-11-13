@@ -1,0 +1,158 @@
+{
+ "B12": {
+  "run": "01-X2-r1",
+  "case": "X2",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B02": {
+  "run": "02-X2-r2",
+  "case": "X2",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B09": {
+  "run": "03-X3-r1",
+  "case": "X3",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B08": {
+  "run": "04-X1-r2",
+  "case": "X1",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B05": {
+  "run": "05-Y2-r2",
+  "case": "Y2",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B07": {
+  "run": "06-Y2-r1",
+  "case": "Y2",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B03": {
+  "run": "07-Y1-r2",
+  "case": "Y1",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 2,
+   "licencesCalls": 1,
+   "otherCalls": 1,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B10": {
+  "run": "08-X1-r1",
+  "case": "X1",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B01": {
+  "run": "09-Y3-r1",
+  "case": "Y3",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B11": {
+  "run": "10-Y3-r2",
+  "case": "Y3",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B06": {
+  "run": "11-X3-r2",
+  "case": "X3",
+  "rep": 2,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 1,
+   "licencesCalls": 1,
+   "otherCalls": 0,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ },
+ "B04": {
+  "run": "12-Y1-r1",
+  "case": "Y1",
+  "rep": 1,
+  "status": "VALID",
+  "toolUse": {
+   "calls": 2,
+   "licencesCalls": 1,
+   "otherCalls": 1,
+   "licencesResultsOk": 1,
+   "registerCompositionInResult": true
+  }
+ }
+}
