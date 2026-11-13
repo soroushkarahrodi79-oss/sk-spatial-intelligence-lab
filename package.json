@@ -35,7 +35,10 @@
     "test:madrid-mcp": "node --test tests/madrid-evidence-mcp.test.mjs",
     "test:madrid-verifier": "node --test tests/madrid-evidence-verifier.test.mjs",
     "test:madrid-licences": "node --test tests/madrid-evidence-licences.test.mjs",
-    "test:madrid-eval-v03": "node --test tests/madrid-evidence-eval-v03.test.mjs"
+    "test:madrid-eval-v03": "node --test tests/madrid-evidence-eval-v03.test.mjs",
+    "studio": "node studio/server.mjs",
+    "test:studio": "node --test tests/studio-evidence-view.test.mjs tests/studio-server.test.mjs",
+    "test:studio-browser": "node scripts/studio-browser-check.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
