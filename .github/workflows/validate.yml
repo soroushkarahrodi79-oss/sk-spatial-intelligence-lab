@@ -57,6 +57,10 @@ jobs:
         run: npm run test:studio
         env:
           MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
+      - name: Spatial Investigation Studio question-driven tests (real MCP)
+        run: npm run test:studio-question
+        env:
+          MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
       - run: npm run check:review-record
@@ -70,5 +74,9 @@ jobs:
       - run: npm run test:browser
       - name: Spatial Investigation Studio browser check (real MCP)
         run: npm run test:studio-browser
+        env:
+          MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
+      - name: Spatial Investigation Studio question-driven browser check (real MCP)
+        run: npm run test:studio-question-browser
         env:
           MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned

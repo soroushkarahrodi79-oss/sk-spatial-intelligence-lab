@@ -9,7 +9,8 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { McpSession, investigate, parseInvestigation } from "./mcp-session.mjs";
+import { McpSession, ask, investigate, parseInvestigation } from "./mcp-session.mjs";
+import { interpretation, questionCatalogue, routeGuided, routeText } from "./question-router.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const LEAFLET = path.join(HERE, "public", "vendor", "leaflet"); // vendored, see VENDOR.json
@@ -44,6 +45,28 @@ async function readJson(req) {
   }
 }
 
+// POST /api/ask: a question (free text or one of the guided ones) plus the spatial controls. The spatial
+// part is validated exactly as for /api/investigate; the question can carry no spatial argument.
+function parseAsk(body) {
+  const errors = [];
+  const allowed = ["mode", "question", "guided", "sourceId", "lon", "lat", "radiusM", "window"];
+  const extra = Object.keys(body || {}).filter((k) => !allowed.includes(k));
+  if (extra.length) errors.push(`campos no admitidos: ${extra.join(", ")}`);
+  const { lon, lat, radiusM, window } = body || {};
+  const spatial = parseInvestigation({ lon, lat, radiusM, ...(window !== undefined ? { window } : {}) });
+  if (spatial.errors) errors.push(...spatial.errors);
+  const mode = body?.mode;
+  if (mode === "text") {
+    if (typeof body.question !== "string") errors.push("question debe ser texto");
+    if (body.guided !== undefined || body.sourceId !== undefined) errors.push("el modo text no admite guided ni sourceId");
+  } else if (mode === "guided") {
+    if (typeof body.guided !== "string") errors.push("guided debe ser el id de una pregunta guiada");
+    if (body.question !== undefined) errors.push("el modo guided no admite question");
+    if (body.sourceId !== undefined && typeof body.sourceId !== "string") errors.push("sourceId debe ser texto");
+  } else errors.push('mode debe ser "text" o "guided"');
+  return errors.length ? { errors } : { value: { mode, question: body.question, guided: body.guided, sourceId: body.sourceId, request: spatial.value } };
+}
+
 export async function createStudio({ lensRoot = process.env.MADRID_LENS_ROOT, serverPath } = {}) {
   const session = new McpSession({ lensRoot, ...(serverPath ? { serverPath } : {}) });
   await session.start();
@@ -58,6 +81,23 @@ export async function createStudio({ lensRoot = process.env.MADRID_LENS_ROOT, se
         // A blocked MCP yields no results at all, only the reason.
         if (session.state !== "READY") return send(res, 503, { error: "MCP no disponible", mcp: session.status() });
         return send(res, 200, await investigate(session, parsed.value));
+      }
+      if (req.method === "GET" && url.pathname === "/api/questions") return send(res, 200, questionCatalogue());
+      if (req.method === "POST" && url.pathname === "/api/ask") {
+        const parsed = parseAsk(await readJson(req));
+        if (parsed.errors) return send(res, 400, { error: "Solicitud no válida", details: parsed.errors });
+        const { mode, question, guided, sourceId, request } = parsed.value;
+        let routing;
+        try {
+          routing = mode === "text" ? routeText(question) : routeGuided({ guided, sourceId });
+        } catch (error) {
+          return send(res, 400, { error: "Solicitud no válida", details: [error.message] });
+        }
+        // A routing abstention executes nothing: no MCP call is made, whatever the MCP state.
+        if (routing.status !== "ROUTED") return send(res, 200, { routing, interpretation: null, request, mcp: session.status(), calls: null, executed: false });
+        if (session.state !== "READY") return send(res, 503, { error: "MCP no disponible", mcp: session.status() });
+        const result = await ask(session, routing, request);
+        return send(res, 200, { routing: { ...routing, executed: true }, interpretation: interpretation(routing, request), executed: true, ...result });
       }
       const entry = req.method === "GET" && STATIC[url.pathname];
       if (entry) return send(res, 200, await readFile(entry[0]), entry[1]);
