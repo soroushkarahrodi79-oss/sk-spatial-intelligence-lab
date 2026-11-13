@@ -53,6 +53,10 @@ jobs:
       - name: Madrid Evidence MCP v0.3 evaluation scorer (offline)
         run: npm run test:madrid-eval-v03
       - run: node --test tests/madrid-evidence-eval-v04cmp.test.mjs
+      - name: Spatial Investigation Studio tests (real MCP)
+        run: npm run test:studio
+        env:
+          MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned
       - run: npm run check:skeletons
       - run: npm run check:review-checklist
       - run: npm run check:review-record
@@ -64,3 +68,7 @@ jobs:
       - run: npm run check:links
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - name: Spatial Investigation Studio browser check (real MCP)
+        run: npm run test:studio-browser
+        env:
+          MADRID_LENS_ROOT: ${{ github.workspace }}/lens-pinned

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spatial Investigation Studio</title>
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Spatial Investigation Studio <span class="version">v0.1</span></h1>
+        <p class="question">¿Qué evidencia urbanística existe alrededor de este punto?</p>
+      </div>
+    </div>
+    <div id="mcp-status" class="mcp-status" role="status" aria-live="polite">
+      <span class="dot"></span><span class="txt">Comprobando MCP…</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="panel controls" aria-label="Consulta">
+      <form id="query" novalidate>
+        <div class="pilot">
+          <p class="eyebrow">Caso piloto</p>
+          <p class="pilot-name">Estación de Nuevos Ministerios, Madrid</p>
+          <p class="pilot-warning"><strong>Punto de referencia: ficha de Renfe (2019)</strong>, lon −3.692207, lat 40.446612. La ficha las etiqueta como <em>UTM</em>, pero están escritas en grados decimales; aquí se usan como lon/lat WGS84 de forma provisional. Su CRS real no está declarado de forma coherente por la fuente. Es la referencia de la estación, no un centroide del complejo ni un límite oficial.</p>
+          <div class="external-ref" role="note" aria-label="Referencia externa al MCP">
+            <p class="eyebrow">Referencia externa al MCP · fuera del alcance del piloto · no verificada por el estudio</p>
+            <p>Existe un Plan Especial aprobado el 26/05/2026 para el Complejo de Nuevos Ministerios (expediente 135/2025/00114), identificado mediante una consulta externa al MCP. No es una fuente del MCP, no se combina con sus resultados y no se ha comprobado su relación con ningún ámbito que el MCP devuelva.</p>
+          </div>
+          <button type="button" id="reset-pilot" class="link-btn">Restablecer punto piloto</button>
+        </div>
+
+        <fieldset class="coords">
+          <legend>Punto WGS84 (EPSG:4326)</legend>
+          <label>Longitud <input id="lon" name="lon" type="number" step="0.000001" min="-180" max="180" required></label>
+          <label>Latitud <input id="lat" name="lat" type="number" step="0.000001" min="-90" max="90" required></label>
+        </fieldset>
+
+        <fieldset class="radius">
+          <legend>Radio del círculo de consulta</legend>
+          <div class="segmented" role="radiogroup">
+            <label><input type="radio" name="radius" value="250"><span>250 m</span></label>
+            <label><input type="radio" name="radius" value="500" checked><span>500 m</span></label>
+            <label><input type="radio" name="radius" value="1000"><span>1000 m</span></label>
+          </div>
+        </fieldset>
+
+        <details class="window">
+          <summary>Ventana de concesión (opcional)</summary>
+          <p class="hint">Sin ventana, Lens aplica los 12 meses que terminan en la última fecha de concesión del registro (no en la fecha de hoy) y la declara en el resultado.</p>
+          <label>Desde <input id="win-from" type="date"></label>
+          <label>Hasta <input id="win-to" type="date"></label>
+        </details>
+
+        <button type="submit" id="run" class="primary">Investigar</button>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+      </form>
+
+      <div class="map-wrap">
+        <div id="map" aria-label="Mapa de localización del punto consultado"></div>
+        <ul class="map-legend">
+          <li><span class="sw sw-point"></span>Punto consultado</li>
+          <li><span class="sw sw-circle"></span>Círculo de consulta — <strong>no es un ámbito urbanístico</strong></li>
+        </ul>
+        <p class="map-note">El círculo es una representación visual aproximada del radio solicitado. El recuento lo calcula Lens. No se dibujan geometrías de ámbitos ni licencias individuales: las herramientas MCP no las devuelven.</p>
+        <p id="tiles-note" class="map-note warn" hidden>Mapa base no disponible (sin conexión a los teselas de OpenStreetMap). El punto y el círculo siguen siendo correctos.</p>
+      </div>
+    </aside>
+
+    <section class="panel results" aria-label="Resultados" aria-live="polite">
+      <div id="empty" class="empty">
+        <p>Selecciona un punto y un radio, y pulsa <strong>Investigar</strong>. Las respuestas proceden del servidor Madrid Evidence MCP real, sobre el commit fijado de Madrid Urban Evidence Lens.</p>
+      </div>
+      <div id="results" hidden>
+        <div class="results-head">
+          <div>
+            <p class="eyebrow">Consulta</p>
+            <p id="query-line" class="query-line"></p>
+          </div>
+          <ul class="kind-legend" aria-label="Tipos de afirmación">
+            <li class="k-FACT">Hecho</li><li class="k-LIMITATION">Limitación</li><li class="k-ABSTENTION">Abstención</li><li class="k-CONTEXT">Contexto fuera de alcance</li><li class="k-ERROR">Error</li><li class="k-NOTE">Nota de interfaz</li>
+          </ul>
+        </div>
+        <ol id="summary" class="summary"></ol>
+        <div id="sections"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="inspector" class="inspector" aria-labelledby="insp-title">
+    <form method="dialog" class="insp-head">
+      <h2 id="insp-title">Origen de la afirmación</h2>
+      <button class="close" aria-label="Cerrar">×</button>
+    </form>
+    <dl id="insp-meta" class="insp-meta"></dl>
+    <h3>Archivos verificados que respaldan este resultado</h3>
+    <ul id="insp-supports" class="insp-supports"></ul>
+    <h3>Respuesta MCP original</h3>
+    <pre id="insp-raw" class="raw" tabindex="0"></pre>
+  </dialog>
+
+  <footer class="foot">
+    Local, solo lectura, sin LLM. Prototipo de ingeniería no validado científicamente. No es una determinación legal ni urbanística.
+  </footer>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
