@@ -114,6 +114,13 @@ details.window label { margin-top: 8px; }
 .card.st-ABSTENTION, .card.st-NOT_QUERIED { border-left-color: var(--abs); }
 .card.st-ERROR, .card.st-NOT_RUN { border-left-color: var(--err); }
 .card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.card-head > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.card-head .status {
+  flex: none;
+}
 .card h2 { font-size: 1.02rem; }
 .scope { margin: 3px 0 0; color: var(--muted); font-size: .82rem; }
 .group { margin-top: 12px; }
