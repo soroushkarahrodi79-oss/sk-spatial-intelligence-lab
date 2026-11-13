@@ -1,0 +1,709 @@
+{
+ "protocolVersion": "mcp-eval-stage2",
+ "lensCommit": "f67cd4709d1319f5685aaa184326330a5d535088",
+ "note": "Lens output verbatim (records removed). firstOccupancyInCircleAndWindow is adjudicator-only truth, never shown to the model.",
+ "cases": {
+  "X1": {
+   "id": "X1",
+   "params": {
+    "lon": -3.7122,
+    "lat": 40.4234,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 18,
+      "ACTIVITY_LICENCE_FAMILY": 70,
+      "TEMPORARY_ACTIVITY_FAMILY": 0
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.7122,
+      "lat": 40.4234
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 0
+  },
+  "X2": {
+   "id": "X2",
+   "params": {
+    "lon": -3.6932,
+    "lat": 40.4193,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 31,
+      "ACTIVITY_LICENCE_FAMILY": 64,
+      "TEMPORARY_ACTIVITY_FAMILY": 1
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.6932,
+      "lat": 40.4193
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 3
+  },
+  "X3": {
+   "id": "X3",
+   "params": {
+    "lon": -3.7033,
+    "lat": 40.4608,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 23,
+      "ACTIVITY_LICENCE_FAMILY": 18,
+      "TEMPORARY_ACTIVITY_FAMILY": 0
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.7033,
+      "lat": 40.4608
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 1
+  },
+  "Y1": {
+   "id": "Y1",
+   "params": {
+    "lon": -3.6888,
+    "lat": 40.42,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 18,
+      "ACTIVITY_LICENCE_FAMILY": 22,
+      "TEMPORARY_ACTIVITY_FAMILY": 1
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.6888,
+      "lat": 40.42
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 4
+  },
+  "Y2": {
+   "id": "Y2",
+   "params": {
+    "lon": -3.7007,
+    "lat": 40.4066,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 30,
+      "ACTIVITY_LICENCE_FAMILY": 11,
+      "TEMPORARY_ACTIVITY_FAMILY": 0
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.7007,
+      "lat": 40.4066
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 2
+  },
+  "Y3": {
+   "id": "Y3",
+   "params": {
+    "lon": -3.662,
+    "lat": 40.3925,
+    "radiusM": 600
+   },
+   "lens": {
+    "kind": "EVIDENCE",
+    "value": {
+     "state": "AVAILABLE",
+     "perFamily": {
+      "BUILDING_URBANISTIC_LICENCE_FAMILY": 21,
+      "ACTIVITY_LICENCE_FAMILY": 24,
+      "TEMPORARY_ACTIVITY_FAMILY": 0
+     },
+     "familiesShown": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "coverage": {
+      "total_rows": 11498,
+      "resolved_rows": 11265,
+      "unresolved_rows": 233,
+      "row_match_rate": 0.979736,
+      "current_only_resolved_rows": 11179,
+      "historical_only_recovered_rows": 86,
+      "address_text_disagreement_rows": 517,
+      "residual_taxonomy": {
+       "ADDRESS_TEXT_DISAGREEMENT": 517,
+       "CAUSE_UNRESOLVED": 117,
+       "NDP_ABSENT_CURRENT_CALLEJERO": 116,
+       "NDP_FOUND_HISTORICAL_ONLY": 86,
+       "RESOLVED": 10662
+      },
+      "per_family": {
+       "BUILDING_URBANISTIC_LICENCE_FAMILY": {
+        "resolved": 5812,
+        "unresolved": 126
+       },
+       "ACTIVITY_LICENCE_FAMILY": {
+        "resolved": 5293,
+        "unresolved": 92
+       },
+       "TEMPORARY_ACTIVITY_FAMILY": {
+        "resolved": 160,
+        "unresolved": 15
+       }
+      },
+      "per_year": {
+       "2023": {
+        "resolved": 1892,
+        "unresolved": 52
+       },
+       "2024": {
+        "resolved": 3128,
+        "unresolved": 45
+       },
+       "2025": {
+        "resolved": 3395,
+        "unresolved": 78
+       },
+       "2026": {
+        "resolved": 2850,
+        "unresolved": 58
+       }
+      },
+      "coverage_statement": "Mapped from 97.97% of granted records in the pinned register; 233 unresolved rows are withheld from the map and reported here."
+     },
+     "scope": "ADDRESS_POINT",
+     "ceiling": {
+      "grantedOnly": true,
+      "grantIsNotBuilt": "Granted administrative licences. A granted licence means an administrative grant was recorded; it is not evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built.",
+      "noApprovalRate": "Granted-only universe: no application or refusal denominator, so no approval, rejection or success rate exists.",
+      "noCrossFamilyTotal": "Building/urbanistic, activity and temporary-activity licences are three different families and are never summed into one total."
+     }
+    },
+    "scope": "ADDRESS_POINT",
+    "unit": "unit.licences",
+    "sourceId": "urban_licences",
+    "freshness": {
+     "reference_date": null,
+     "published_at": null,
+     "retrieved_at": "2026-10-06T21:18:08Z",
+     "update_frequency": "MONTHLY",
+     "source_state": "NOT_DECLARED_BY_PUBLISHER"
+    },
+    "ceiling": "A count of granted administrative urban licences spatially included in the Lens circle (scope ADDRESS_POINT), by family and grant-date window. GRANTED-ONLY: the register is RESOLUCION=Conceder, so there is no applications/refusals denominator and NO approval rate, rejection rate, refusal count or success rate exists. A granted licence is NOT evidence that work started, construction occurred or completed, occupancy happened, or the permitted quantity was built: granted is not built. The three families (building/urbanistic, activity, temporary activity) are NOT one homogeneous universe and are NEVER summed into a single cross-family total. The mapped layer is the RESOLVED SUBSET of the register; unresolved rows are reported in the coverage metadata and never dropped from the denominator. The crosswalk may resolve via current or historical official callejero, with distinct current/historical administrative-geography provenance. Licence records may concern places also present in Censo de Locales, licensed VUT or hospitality/activity evidence; these universes are NEVER summed as unique businesses or sites. Counts are ADDRESS_POINT records and are never converted into a barrio-level figure, ranked by barrio or district, or rendered as a density, heatmap or choropleth surface. Responsible declarations (dataset 133556) are not ingested.",
+    "derivation": "IN_CIRCLE_FILTER",
+    "applied": {
+     "centre": {
+      "lon": -3.662,
+      "lat": 40.3925
+     },
+     "radiusM": 600,
+     "families": [
+      "BUILDING_URBANISTIC_LICENCE_FAMILY",
+      "ACTIVITY_LICENCE_FAMILY",
+      "TEMPORARY_ACTIVITY_FAMILY"
+     ],
+     "window": {
+      "from": "2025-10-01",
+      "to": "2026-09-30",
+      "clamped": false
+     },
+     "derivation": "IN_CIRCLE_FILTER",
+     "artifact": "planning/madrid_urban_licences.json"
+    }
+   },
+   "firstOccupancyInCircleAndWindow": 0
+  }
+ }
+}
