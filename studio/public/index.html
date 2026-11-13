@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#results-panel">Saltar a los resultados</a>
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
@@ -26,13 +27,13 @@
       <form id="ask-form" novalidate>
         <label for="question" class="eyebrow">Pregunta</label>
         <div class="ask-row">
-          <input id="question" name="question" type="text" maxlength="200" autocomplete="off" placeholder="Escribe una pregunta o elige una de las guiadas">
+          <input id="question" name="question" type="text" maxlength="200" autocomplete="off" placeholder="Escribe o elige una pregunta guiada">
           <button type="submit" id="ask-run" class="primary">Preguntar</button>
         </div>
-        <div class="guided" aria-label="Preguntas guiadas">
+        <div class="guided" role="group" aria-label="Preguntas guiadas">
           <p class="eyebrow">Preguntas guiadas</p>
           <div id="guided-list" class="guided-list"></div>
-          <label class="source-pick" for="source">Fuente (obligatoria en la pregunta de procedencia)
+          <label class="source-pick">Fuente (obligatoria en la pregunta de procedencia)
             <select id="source"><option value="">— elige una fuente —</option></select>
           </label>
         </div>
@@ -92,9 +93,10 @@
       </div>
     </aside>
 
-    <section class="panel results" aria-label="Resultados" aria-live="polite">
+    <section class="panel results" id="results-panel" tabindex="-1" aria-label="Resultados">
+      <p id="sr-status" class="sr-only" role="status" aria-live="polite"></p>
       <div id="empty" class="empty">
-        <p>Selecciona un punto y un radio, y pulsa <strong>Investigar</strong>. Las respuestas proceden del servidor Madrid Evidence MCP real, sobre el commit fijado de Madrid Urban Evidence Lens.</p>
+        <p>Elige una pregunta guiada o escribe la tuya y pulsa <strong>Preguntar</strong>; el punto y el radio se toman de los controles. <strong>Investigar</strong> ejecuta la investigación completa de v0.1. Las respuestas proceden del servidor Madrid Evidence MCP real, sobre el commit fijado de Madrid Urban Evidence Lens.</p>
       </div>
       <div id="results" hidden>
         <div id="interpretation"></div>

@@ -18,6 +18,13 @@ const el = (tag, cls, text) => {
 
 let lastResponse = null;
 
+// Concise announcement for screen readers; the results container itself is not a live region.
+function announce(text) {
+  const box = $("sr-status");
+  box.textContent = "";
+  setTimeout(() => (box.textContent = text), 60);
+}
+
 // ---- Map --------------------------------------------------------------------------------------
 let map = null;
 let marker = null;
@@ -188,6 +195,7 @@ function render(response) {
   container.replaceChildren(...view.sections.map((s) => renderSection(s, response)));
   $("empty").hidden = true;
   $("results").hidden = false;
+  announce(`Resultados actualizados: ${view.sections.length} secciones.`);
 }
 
 function renderFailure(title, message, details) {
@@ -208,6 +216,7 @@ function renderFailure(title, message, details) {
   }
   card.append(el("p", "scope", "No se muestra ningún resultado: no hay evidencia verificada para esta consulta."));
   $("sections").replaceChildren(card);
+  announce(`Error: ${title}. No se muestra ningún resultado.`);
 }
 
 // ---- Inspector --------------------------------------------------------------------------------
@@ -290,10 +299,8 @@ let guidedChoice = null; // { id, sourceId? } while the field still holds that g
 
 function renderInterpretation(i) {
   const card = el("article", "card interp");
-  const head = el("header", "card-head");
-  const t = el("div");
-  t.append(el("h2", null, "Interpretación de la pregunta"), el("p", "scope", "Así se ha entendido la pregunta antes de consultar el MCP. Un enrutador determinista, sin LLM."));
-  head.append(t, el("span", "status s-EVIDENCE", "Enrutada"));
+  const head = el("header", "card-head interp-head");
+  head.append(el("h2", null, "Interpretación de la pregunta"), el("span", "status s-EVIDENCE", "Enrutada"), el("p", "scope", "Cómo se ha entendido la pregunta, antes de consultar el MCP (enrutador determinista, sin LLM)."));
   const dl = el("dl");
   const row = (k, v) => {
     dl.append(el("dt", null, k));
@@ -303,14 +310,21 @@ function renderInterpretation(i) {
     dl.append(dd);
   };
   row("Pregunta", i.question);
-  row("Vía", i.via === "guided" ? "pregunta guiada (intención estructurada, validada por el servidor)" : "texto libre (léxico español cerrado)");
   row("Intención", i.intentLabel);
   row("Herramienta MCP", el("code", null, i.tool));
-  const args = el("code", null, JSON.stringify(i.arguments));
+  const args = el("code", null, JSON.stringify(i.arguments).replace(/,/g, ", ")); // same JSON, with spaces so it wraps at word boundaries
   row("Argumentos", args);
-  row("Origen de los argumentos", [...new Set(Object.values(i.argumentOrigin))].join(" · "));
-  if (i.recognized?.length) row("Palabras reconocidas", i.recognized.join(", "));
+  row("Origen", [...new Set(Object.values(i.argumentOrigin))].join(" · "));
   card.append(head, dl);
+  // Routing detail (how the question was matched) is one click away, not removed.
+  const more = el("details", "interp-more");
+  more.append(el("summary", null, "Detalle del enrutamiento"));
+  const dl2 = el("dl");
+  const row2 = (k, v) => dl2.append(el("dt", null, k), el("dd", null, v));
+  row2("Vía", i.via === "guided" ? "pregunta guiada (intención estructurada, validada por el servidor)" : "texto libre (léxico español cerrado)");
+  if (i.recognized?.length) row2("Palabras reconocidas", i.recognized.join(", "));
+  more.append(dl2);
+  card.append(more);
   if (i.notes?.length) {
     const ul = el("ul");
     i.notes.forEach((n) => ul.append(el("li", null, n)));
@@ -349,6 +363,7 @@ function renderRoutingAbstention(data) {
     card.append(ul);
   }
   $("sections").replaceChildren(card);
+  announce(`Pregunta no admitida, motivo ${r.reason}. No se ha consultado el MCP.`);
 }
 
 async function postAsk(payload) {

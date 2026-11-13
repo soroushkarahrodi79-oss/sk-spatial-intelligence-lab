@@ -206,3 +206,39 @@ details.window label { margin-top: 8px; }
 .alts .chip { width: 100%; }
 .alts .partial { display: block; font-size: .8rem; color: var(--lim); margin-top: 2px; }
 @media (max-width: 900px) { .ask-row { flex-direction: column; } .interp dl { grid-template-columns: 1fr; } }
+
+/* ---- v0.2 UX review (measured fixes; no visual redesign) ---- */
+/* Skip link (WCAG 2.4.1) and screen-reader-only text. */
+.skip-link { position: absolute; left: 12px; top: -48px; z-index: 10; padding: 8px 12px; background: var(--ink); color: var(--panel); border-radius: 6px; text-decoration: none; font-weight: 600; }
+.skip-link:focus { top: 8px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+#results-panel:focus { outline: none; }
+/* Dark mode: white text on the light accent measured 2.4:1; use dark ink on it (>= 4.5:1). */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .segmented input:checked + span { color: #0b1220; } }
+/* Smallest kind labels were 10.6px; align them with the existing 11.5px label size. */
+.badge { font-size: .72rem; }
+/* Targets below the 24px WCAG 2.5.8 minimum. */
+.link-btn { padding: 6px 0; min-height: 32px; }
+details.window summary { padding: 6px 0; min-height: 32px; box-sizing: border-box; }
+/* The interpretation card must not push the answer off screen: keep the head full width, fold the routing detail. */
+.interp-head { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 2px 12px; }
+.interp-head .scope { grid-column: 1 / -1; margin: 0; }
+.interp dl { gap: 2px 12px; }
+.interp-more { margin-top: 8px; }
+.interp-more summary { cursor: pointer; font-size: .85rem; font-weight: 600; padding: 6px 0; min-height: 32px; box-sizing: border-box; }
+.interp-more dl { margin-top: 4px; }
+/* Result summary cards: let the status chip wrap under a long source id instead of breaking the id mid-word. */
+.summary li { flex-wrap: wrap; }
+.summary a { flex: 1 1 8rem; }
+@media (max-width: 900px) {
+  .chip { min-height: 44px; }
+  .source-pick select { min-height: 40px; }
+  /* Answer first on a narrow screen: two-column interpretation, and no redundant legend or 1-2 item index. */
+  .interp dl { gap: 0; }
+  .interp dt { font-size: .78rem; margin-top: 8px; }
+  .interp dd { margin-bottom: 0; }
+  .interp ul { margin-top: 8px; }
+  .kind-legend { display: none; }
+  .summary:not(:has(li:nth-child(3))) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
