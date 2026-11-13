@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { planCalls } from "./question-router.mjs";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -184,4 +185,37 @@ export async function investigate(session, request) {
   const abstained = snapshot.status === "OK" && snapshot.structuredContent?.ambitoAtPoint?.kind === "ABSTENTION";
   const consultedLayer = abstained ? await session.call("source_provenance", { sourceId: CONSULTED_AMBITO_LAYER }) : null;
   return { request, mcp: session.status(), calls: { snapshot, licences, provenance, consultedLayer } };
+}
+
+// ---- v0.2 question-driven investigation ----------------------------------------------------------
+// Runs the calls a ROUTED question needs (planCalls) and nothing else. A routing abstention never reaches
+// here: the caller must not invoke it (and this refuses). Only the ámbito identity and, for edition
+// questions, the edition difference cite sources that are looked up; the phases result is not displayed, so
+// its source is not queried.
+function citedFrom(sc, keys) {
+  const ids = [];
+  for (const k of keys) {
+    const r = k === "result" ? sc?.result : sc?.[k];
+    if (r?.kind === "EVIDENCE" && typeof r.sourceId === "string" && !ids.includes(r.sourceId)) ids.push(r.sourceId);
+  }
+  return ids;
+}
+
+export async function ask(session, route, request) {
+  if (route.status !== "ROUTED") throw new Error("a routing abstention must not execute MCP calls");
+  const calls = { snapshot: null, licences: null, provenance: [], consultedLayer: null };
+  const [step] = planCalls(route, request);
+  const record = await session.call(step.tool, step.arguments);
+  if (step.tool === "ambito_snapshot_at_point") {
+    calls.snapshot = record;
+    const sc = record.status === "OK" ? record.structuredContent : null;
+    const keys = route.intent === "EDITION_CHANGE" ? ["ambitoAtPoint", "ambitoEditionDiff"] : ["ambitoAtPoint"];
+    for (const sourceId of citedFrom(sc, keys)) calls.provenance.push(await session.call("source_provenance", { sourceId }));
+    if (sc?.ambitoAtPoint?.kind === "ABSTENTION") calls.consultedLayer = await session.call("source_provenance", { sourceId: CONSULTED_AMBITO_LAYER });
+  } else if (step.tool === "licences_in_lens") {
+    calls.licences = record;
+    const sc = record.status === "OK" ? record.structuredContent : null;
+    for (const sourceId of citedFrom(sc, ["result"])) calls.provenance.push(await session.call("source_provenance", { sourceId }));
+  } else calls.provenance.push(record);
+  return { request, mcp: session.status(), calls };
 }

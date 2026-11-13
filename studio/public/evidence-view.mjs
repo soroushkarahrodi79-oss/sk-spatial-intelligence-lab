@@ -251,12 +251,14 @@ function licenceSection(record, request) {
   return [section];
 }
 
-function provenanceSections(records) {
+function provenanceSections(records, asked = false) {
   return records.map((record, i) => {
     const callKey = `provenance/${i}`;
     const sourceId = record.arguments?.sourceId;
     const title = `Procedencia · ${sourceId}`;
-    const scope = "Metadatos de la fuente registrada en Lens (citada por un resultado de esta investigación)";
+    const scope = asked
+      ? "Metadatos de la fuente registrada en Lens que se ha pedido explícitamente (no está citada por ningún resultado de esta consulta)"
+      : "Metadatos de la fuente registrada en Lens (citada por un resultado de esta investigación)";
     if (record.status !== "OK") return errorSection(`prov-${sourceId}`, title, scope, callKey, record);
     const at = binder(callKey, record);
     const R = "/structuredContent/result";
@@ -315,9 +317,18 @@ function consultedLayerSection(response) {
   return [section];
 }
 
-export function buildView(response) {
+// `include` (optional, v0.2 question-driven): section ids to keep, a trailing `*` meaning "starts with". Calls
+// that were not made (null) produce no section. Without `include` the view is exactly the v0.1 one.
+const matchesInclude = (id, include) => include.some((p) => (p.endsWith("*") ? id.startsWith(p.slice(0, -1)) : id === p));
+
+export function buildView(response, { include } = {}) {
   const { request, calls, mcp } = response;
-  const sections = [...ambitoSections(calls.snapshot), ...consultedLayerSection(response), ...licenceSection(calls.licences, request), ...provenanceSections(calls.provenance || [])];
+  const sections = [
+    ...(calls.snapshot ? ambitoSections(calls.snapshot) : []),
+    ...consultedLayerSection(response),
+    ...(calls.licences ? licenceSection(calls.licences, request) : []),
+    ...provenanceSections(calls.provenance || [], response.routing?.intent === "SOURCE_PROVENANCE"),
+  ];
   if (!(calls.provenance || []).length)
     sections.push({
       id: "prov-none",
@@ -326,7 +337,7 @@ export function buildView(response) {
       status: "NOT_QUERIED",
       items: [note("Ningún resultado con evidencia citó un sourceId; no se ha consultado procedencia de fuentes citadas. Las abstenciones no citan fuente.")],
     });
-  return { request, mcp, sections };
+  return { request, mcp, sections: include ? sections.filter((x) => matchesInclude(x.id, include)) : sections };
 }
 
 // Every item of a view, including per-family items.

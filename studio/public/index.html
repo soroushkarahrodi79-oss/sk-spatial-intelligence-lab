@@ -12,7 +12,7 @@
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
       <div>
-        <h1>Spatial Investigation Studio <span class="version">v0.1</span></h1>
+        <h1>Spatial Investigation Studio <span class="version">v0.2</span></h1>
         <p class="question">¿Qué evidencia urbanística existe alrededor de este punto?</p>
       </div>
     </div>
@@ -22,6 +22,25 @@
   </header>
 
   <main class="layout">
+    <section class="panel ask" aria-label="Pregunta">
+      <form id="ask-form" novalidate>
+        <label for="question" class="eyebrow">Pregunta</label>
+        <div class="ask-row">
+          <input id="question" name="question" type="text" maxlength="200" autocomplete="off" placeholder="Escribe una pregunta o elige una de las guiadas">
+          <button type="submit" id="ask-run" class="primary">Preguntar</button>
+        </div>
+        <div class="guided" aria-label="Preguntas guiadas">
+          <p class="eyebrow">Preguntas guiadas</p>
+          <div id="guided-list" class="guided-list"></div>
+          <label class="source-pick" for="source">Fuente (obligatoria en la pregunta de procedencia)
+            <select id="source"><option value="">— elige una fuente —</option></select>
+          </label>
+        </div>
+        <p class="hint">El punto, el radio y la ventana se toman solo de los controles; el texto no puede cambiarlos. Un enrutador determinista, sin LLM, asigna la pregunta a una consulta del MCP o se abstiene.</p>
+        <p id="ask-error" class="form-error" role="alert" hidden></p>
+      </form>
+    </section>
+
     <aside class="panel controls" aria-label="Consulta">
       <form id="query" novalidate>
         <div class="pilot">
@@ -57,6 +76,7 @@
           <label>Hasta <input id="win-to" type="date"></label>
         </details>
 
+        <p class="eyebrow full-run-label">Investigación completa (v0.1)</p>
         <button type="submit" id="run" class="primary">Investigar</button>
         <p id="form-error" class="form-error" role="alert" hidden></p>
       </form>
@@ -77,6 +97,7 @@
         <p>Selecciona un punto y un radio, y pulsa <strong>Investigar</strong>. Las respuestas proceden del servidor Madrid Evidence MCP real, sobre el commit fijado de Madrid Urban Evidence Lens.</p>
       </div>
       <div id="results" hidden>
+        <div id="interpretation"></div>
         <div class="results-head">
           <div>
             <p class="eyebrow">Consulta</p>
@@ -105,7 +126,7 @@
   </dialog>
 
   <footer class="foot">
-    Local, solo lectura, sin LLM. Prototipo de ingeniería no validado científicamente. No es una determinación legal ni urbanística.
+    Local, solo lectura, sin LLM (enrutador determinista). Prototipo de ingeniería no validado científicamente. No es una determinación legal ni urbanística.
   </footer>
 
   <script src="/vendor/leaflet/leaflet.js"></script>

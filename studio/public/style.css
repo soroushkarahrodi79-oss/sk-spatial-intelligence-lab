@@ -182,3 +182,27 @@ details.window label { margin-top: 8px; }
   #map { height: 260px; }
   .insp-meta { grid-template-columns: 1fr; }
 }
+
+/* ---- v0.2 question-driven ---- */
+.ask { grid-column: 1 / -1; padding: 16px 18px; min-width: 0; }
+.ask-row { display: flex; gap: 10px; margin: 6px 0 10px; }
+.ask-row .primary { width: auto; flex: none; }
+.ask-row input { flex: 1; min-width: 0; font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.guided-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+.chip { font: inherit; font-size: .9rem; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--note-bg); color: var(--ink); cursor: pointer; text-align: left; max-width: 100%; }
+.chip:hover, .chip[aria-pressed="true"] { border-color: var(--accent); }
+.chip[aria-pressed="true"] { outline: 2px solid var(--accent); }
+.source-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); }
+.source-pick select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); max-width: 100%; }
+.full-run-label { margin: 12px 0 4px; }
+.interp { border-left-color: var(--accent); }
+.interp dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0 0; }
+.interp dt { color: var(--muted); font-size: .85rem; }
+.interp dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.interp code { font-family: var(--mono); font-size: .85rem; overflow-wrap: anywhere; }
+.interp ul { margin: 8px 0 0; padding-left: 18px; color: var(--note); font-size: .9rem; }
+.abstain-card { border-left-color: var(--abs); background: var(--abs-bg); }
+.alts { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.alts .chip { width: 100%; }
+.alts .partial { display: block; font-size: .8rem; color: var(--lim); margin-top: 2px; }
+@media (max-width: 900px) { .ask-row { flex-direction: column; } .interp dl { grid-template-columns: 1fr; } }

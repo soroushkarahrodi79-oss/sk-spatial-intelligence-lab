@@ -74,6 +74,7 @@ function showStatus(st) {
   box.querySelector(".txt").textContent =
     st.state === "READY" ? `MCP verificado · Lens ${commit}` : `MCP ${st.state}${st.error ? ` — ${st.error}` : ""}`;
   $("run").disabled = st.state !== "READY";
+  $("ask-run").disabled = st.state !== "READY";
 }
 async function loadStatus() {
   try {
@@ -170,9 +171,10 @@ function renderSection(section, response) {
 
 function render(response) {
   lastResponse = response;
-  const view = buildView(response);
+  const view = buildView(response, { include: response.routing?.show });
   const r = response.request;
-  $("query-line").textContent = `lon ${r.lon} · lat ${r.lat} · radio ${r.radiusM} m${r.window ? ` · ventana ${r.window.from} → ${r.window.to}` : " · ventana por defecto de Lens"}`;
+  $("interpretation").replaceChildren(...(response.interpretation ? [renderInterpretation(response.interpretation)] : []));
+  $("query-line").textContent = response.routing?.intent === "SOURCE_PROVENANCE" ? `fuente ${response.routing.sourceId} (sin punto)` : `lon ${r.lon} · lat ${r.lat} · radio ${r.radiusM} m${r.window ? ` · ventana ${r.window.from} → ${r.window.to}` : " · ventana por defecto de Lens"}`;
   const summary = $("summary");
   summary.replaceChildren();
   for (const s of view.sections) {
@@ -194,6 +196,7 @@ function renderFailure(title, message, details) {
   $("results").hidden = false;
   $("query-line").textContent = "—";
   $("summary").replaceChildren();
+  $("interpretation").replaceChildren();
   const card = el("article", "card st-ERROR");
   const head = el("header", "card-head");
   head.append(el("h2", null, title), el("span", "status s-ERROR", "Error"));
@@ -238,26 +241,29 @@ function setPilot() {
   drawQuery();
 }
 
-async function submit(e) {
-  e.preventDefault();
-  const err = $("form-error");
-  err.hidden = true;
+// Reads and validates the controls (shared by the full investigation and by questions).
+function readControls() {
   const lon = Number($("lon").value);
   const lat = Number($("lat").value);
   const radiusM = Number(document.querySelector("input[name=radius]:checked").value);
   const from = $("win-from").value;
   const to = $("win-to").value;
-  if ($("lon").value === "" || $("lat").value === "" || !Number.isFinite(lon) || !Number.isFinite(lat)) {
-    err.textContent = "Introduce una longitud y una latitud numéricas.";
+  if ($("lon").value === "" || $("lat").value === "" || !Number.isFinite(lon) || !Number.isFinite(lat)) return { error: "Introduce una longitud y una latitud numéricas." };
+  if ((from && !to) || (!from && to)) return { error: "La ventana necesita ambas fechas, o ninguna." };
+  return { body: { lon, lat, radiusM, ...(from && to ? { window: { from, to } } : {}) } };
+}
+
+async function submit(e) {
+  e.preventDefault();
+  const err = $("form-error");
+  err.hidden = true;
+  const controls = readControls();
+  if (controls.error) {
+    err.textContent = controls.error;
     err.hidden = false;
     return;
   }
-  if ((from && !to) || (!from && to)) {
-    err.textContent = "La ventana necesita ambas fechas, o ninguna.";
-    err.hidden = false;
-    return;
-  }
-  const body = { lon, lat, radiusM, ...(from && to ? { window: { from, to } } : {}) };
+  const body = controls.body;
   drawQuery();
   const btn = $("run");
   btn.disabled = true;
@@ -278,10 +284,169 @@ async function submit(e) {
   }
 }
 
+// ---- Questions (v0.2) -------------------------------------------------------------------------
+let catalogue = null;
+let guidedChoice = null; // { id, sourceId? } while the field still holds that guided question's text
+
+function renderInterpretation(i) {
+  const card = el("article", "card interp");
+  const head = el("header", "card-head");
+  const t = el("div");
+  t.append(el("h2", null, "Interpretación de la pregunta"), el("p", "scope", "Así se ha entendido la pregunta antes de consultar el MCP. Un enrutador determinista, sin LLM."));
+  head.append(t, el("span", "status s-EVIDENCE", "Enrutada"));
+  const dl = el("dl");
+  const row = (k, v) => {
+    dl.append(el("dt", null, k));
+    const dd = el("dd");
+    if (v instanceof Node) dd.append(v);
+    else dd.textContent = v;
+    dl.append(dd);
+  };
+  row("Pregunta", i.question);
+  row("Vía", i.via === "guided" ? "pregunta guiada (intención estructurada, validada por el servidor)" : "texto libre (léxico español cerrado)");
+  row("Intención", i.intentLabel);
+  row("Herramienta MCP", el("code", null, i.tool));
+  const args = el("code", null, JSON.stringify(i.arguments));
+  row("Argumentos", args);
+  row("Origen de los argumentos", [...new Set(Object.values(i.argumentOrigin))].join(" · "));
+  if (i.recognized?.length) row("Palabras reconocidas", i.recognized.join(", "));
+  card.append(head, dl);
+  if (i.notes?.length) {
+    const ul = el("ul");
+    i.notes.forEach((n) => ul.append(el("li", null, n)));
+    card.append(ul);
+  }
+  return card;
+}
+
+function renderRoutingAbstention(data) {
+  lastResponse = null;
+  const r = data.routing;
+  $("empty").hidden = true;
+  $("results").hidden = false;
+  $("query-line").textContent = "—";
+  $("summary").replaceChildren();
+  $("interpretation").replaceChildren();
+  const card = el("article", "card abstain-card");
+  card.id = "sec-routing-abstention";
+  const head = el("header", "card-head");
+  const t = el("div");
+  t.append(el("h2", null, "Pregunta no admitida: no se ha consultado el MCP"), el("p", "scope", `Pregunta: ${r.question || "(vacía)"}`));
+  head.append(t, el("span", "status s-ABSTENTION", "Abstención"));
+  card.append(head, el("p", "reason-code", `Motivo: ${r.reason}`), el("p", "fail-msg", r.message));
+  card.append(el("p", "scope", "No se ha ejecutado ninguna consulta y no se muestra ninguna evidencia. Nada se responde parcialmente sin que lo pidas: elige una alternativa."));
+  if (r.alternatives?.length) {
+    const ul = el("ul", "alts");
+    for (const a of r.alternatives) {
+      const li = el("li");
+      const b = el("button", "chip", a.text);
+      b.type = "button";
+      b.append(el("span", "partial", a.answersOnlyPart ? `${a.why} · responde solo a una parte de tu pregunta` : a.why));
+      b.addEventListener("click", () => runGuided(a.guided, a.sourceId));
+      li.append(b);
+      ul.append(li);
+    }
+    card.append(ul);
+  }
+  $("sections").replaceChildren(card);
+}
+
+async function postAsk(payload) {
+  const controls = readControls();
+  const err = $("ask-error");
+  err.hidden = true;
+  if (controls.error) {
+    err.textContent = controls.error;
+    err.hidden = false;
+    return;
+  }
+  drawQuery();
+  const btn = $("ask-run");
+  btn.disabled = true;
+  btn.textContent = "Consultando…";
+  try {
+    const res = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...payload, ...controls.body }) });
+    const data = await res.json();
+    if (!res.ok) {
+      renderFailure(data.error || "Error", data.mcp?.error || "La pregunta no se ejecutó.", data.details);
+      if (data.mcp) showStatus(data.mcp);
+    } else if (data.routing.status === "ABSTAIN") renderRoutingAbstention(data);
+    else render(data);
+    if (res.ok) $("results").scrollIntoView({ block: "start" }); // on narrow screens the answer sits below the controls
+  } catch (error) {
+    renderFailure("Servidor local no disponible", error.message);
+  } finally {
+    btn.textContent = "Preguntar";
+    await loadStatus();
+  }
+}
+
+function setGuided(id, sourceId) {
+  const g = catalogue.guided.find((x) => x.id === id);
+  guidedChoice = { id, ...(sourceId ? { sourceId } : {}) };
+  $("question").value = g.needsSource ? (sourceId ? catalogue.sources.find((s) => s.id === sourceId).question : "¿De dónde proceden los datos de la fuente elegida y qué límites tienen?") : g.text;
+  if (sourceId) $("source").value = sourceId;
+  $("question").dataset.guidedText = $("question").value;
+  for (const b of document.querySelectorAll("#guided-list .chip")) b.setAttribute("aria-pressed", String(b.dataset.id === id));
+}
+function runGuided(id, sourceId) {
+  setGuided(id, sourceId);
+  return postAsk({ mode: "guided", guided: id, ...(sourceId ? { sourceId } : {}) });
+}
+function askSubmit(e) {
+  e.preventDefault();
+  if (guidedChoice && $("question").dataset.guidedText === $("question").value) {
+    const sourceId = guidedChoice.id === "procedencia" ? $("source").value || undefined : undefined;
+    return postAsk({ mode: "guided", guided: guidedChoice.id, ...(sourceId ? { sourceId } : {}) });
+  }
+  return postAsk({ mode: "text", question: $("question").value });
+}
+
+async function loadCatalogue() {
+  try {
+    catalogue = await (await fetch("/api/questions")).json();
+  } catch {
+    $("ask-error").textContent = "No se pudo cargar el catálogo de preguntas guiadas; el campo de texto sigue disponible.";
+    $("ask-error").hidden = false;
+    return;
+  }
+  const list = $("guided-list");
+  for (const g of catalogue.guided) {
+    const b = el("button", "chip", g.needsSource ? "¿De dónde proceden los datos de una fuente y qué límites tienen?" : g.text);
+    b.type = "button";
+    b.dataset.id = g.id;
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      setGuided(g.id, g.needsSource ? $("source").value || undefined : undefined);
+    });
+    list.append(b);
+  }
+  for (const s of catalogue.sources) {
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = s.short;
+    $("source").append(o);
+  }
+  $("source").addEventListener("change", () => {
+    if (guidedChoice?.id === "procedencia") {
+      setGuided("procedencia", $("source").value || undefined);
+    }
+  });
+  // Editing the text turns a guided question into free text: the lexicon router then decides.
+  $("question").addEventListener("input", () => {
+    if ($("question").dataset.guidedText !== $("question").value) {
+      guidedChoice = null;
+      for (const b of document.querySelectorAll("#guided-list .chip")) b.setAttribute("aria-pressed", "false");
+    }
+  });
+}
+
 initMap();
 setPilot();
 $("reset-pilot").addEventListener("click", setPilot);
 $("query").addEventListener("submit", submit);
+$("ask-form").addEventListener("submit", askSubmit);
+loadCatalogue();
 for (const r of document.querySelectorAll("input[name=radius]")) r.addEventListener("change", drawQuery);
 for (const id of ["lon", "lat"]) $(id).addEventListener("change", drawQuery);
 loadStatus();
