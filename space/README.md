@@ -10,13 +10,14 @@ pinned: true
 
 # SK Spatial Intelligence Lab
 
-Independent, reproducible geospatial research and spatial evidence systems.
+Reproducible Geospatial Research & Trustworthy Spatial AI: geospatial evidence systems connecting GIS analysis, source provenance and responsible AI, with explicit limits on what the data can support.
 
 ## Current release
 
 **Static showcase only. No LLM, agent, Earth observation inference pipeline, or hosted model is deployed.**
 
 - Madrid Urban Evidence Lens: a live, separate Web GIS application.
+- Research & technology section: Madrid Evidence MCP and Spatial Investigation Studio v0.2 are **local prototypes** (documentation links only, no online demo); agent evaluations are exploratory, not peer-reviewed or independently validated; the Nuevo Mahou-Calderón case study is a Spanish technical demonstrator.
 - GeoImpact-CI: the official deterministic spatial validation engine and its reproducible artifacts.
 - Salmas Flood Spatial Forensics: research source and limitations; satellite-derived flood extent is **ON HOLD**.
 

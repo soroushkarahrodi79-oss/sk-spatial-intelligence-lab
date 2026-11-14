@@ -1,6 +1,8 @@
 # SK Spatial Intelligence Lab
 
-**Independent, reproducible geospatial research and spatial evidence systems.**
+**Reproducible Geospatial Research & Trustworthy Spatial AI.**
+
+Reproducible geospatial evidence systems connecting GIS analysis, source provenance and responsible AI, with explicit limits on what the data can support.
 
 [![Validate](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/workflows/validate.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/workflows/validate.yml)
 [![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Space-blue)](https://huggingface.co/spaces/soroushkararodi/sk-spatial-intelligence-lab)
@@ -25,7 +27,11 @@ SK Spatial Intelligence Lab is a research and engineering project built on one r
 | Evidence Explorer V0.1 | Static search over a fixed 12-record catalog. Plain text search, not AI. |
 | Claim-to-Source Trace V0.1 | Draft. Exact line-range permalinks for three records. |
 | GeoImpact Evidence Copilot V0.1–V0.2.1 | Local, deterministic prototype. Draft. Verdict **HOLD**. |
-| Madrid Evidence MCP | Local, read-only stdio server with four tools over five Madrid Urban Evidence Lens registry query shapes. Integrates no LLM. Draft. Not scientifically validated. [Case Study 01](docs/case-studies/01-mahou-calderon.md) (Spanish). |
+| Madrid Urban Evidence Lens | Separate, independent public web application (own repository, not hosted in this Space). Canonical source of the spatial analysis and evidence registry used below. |
+| Madrid Evidence MCP (v0.4) | Local, read-only stdio server with four tools over five Lens registry query shapes, over pinned and hash-verified artifacts. Integrates no LLM. Merged (PRs #9, #12, #15). Engineering prototype, not independently validated, not hosted. |
+| Spatial Investigation Studio v0.2 | Local web interface over the real MCP: guided questions, deterministic Spanish text routing, JSON-pointer evidence tracing, explicit abstention. No LLM, geocoding, hosting or public demo. Merged (PRs #18, #19). Not validated. |
+| MCP agent evaluation | Exploratory and author-adjudicated: v0.1 (30 cases, sealed), v0.3 licences pass (10 cases, one pass, verdict **MODIFY**, 2 critical errors), v0.4 changes implemented, paired v0.3 vs v0.4 comparison **preregistered only (no results on `main`)**. Not peer-reviewed or independently validated; v0.4 is not shown to be better. A Stage 2 single-arm study (PR #17) is an **open, unmerged draft** with provisional model-assisted adjudication; it is not part of this status. |
+| Case Study 01 | [Nuevo Mahou-Calderón](docs/case-studies/01-mahou-calderon.md) (Spanish): technical demonstrator of source-to-claim traceability; not checked against the official portal, not scientifically validated. |
 | LLM, agent, EO inference, hosted model | **None implemented.** Roadmap items are plans only. |
 
 Scores in this repository are measured on synthetic data and are not real-world accuracy.
@@ -56,8 +62,17 @@ npm run copilot -- --report geoimpact-copilot/fixtures/block-v5.json --question 
 Details: [V0.1](docs/geoimpact-evidence-copilot-v0.1.md) · [V0.2](docs/geoimpact-evidence-copilot-v0.2.md) · [V0.2.1 review readiness](docs/geoimpact-v0.2.1-independent-review-readiness.md) · [V0.3 design and release gate](docs/geoimpact-v0.3-claude-integration-design.md).
 
 
-### Madrid Evidence MCP v0 (`mcp/madrid-evidence/`)
-A read-only stdio MCP server exposing four tools over five deterministic query shapes that Madrid Urban Evidence Lens already resolves (`AMBITO_AT_POINT`, `AMBITO_PHASES`, `AMBITO_EDITION_DIFF`, `SOURCE_PROVENANCE`, `LICENCES_IN_LENS`). It reuses Lens's registry code at a pinned commit, verifies eleven pinned files before starting, and integrates no LLM. The v0.3 evaluation cases are defined but have not been run in an automated evaluation. See [its README](mcp/madrid-evidence/README.md) and [Case Study 01: Nuevo Mahou-Calderón](docs/case-studies/01-mahou-calderon.md) (Spanish; an unvalidated technical demonstrator).
+### Madrid Evidence MCP (`mcp/madrid-evidence/`)
+A read-only stdio MCP server exposing four tools over five deterministic query shapes that Madrid Urban Evidence Lens already resolves (`AMBITO_AT_POINT`, `AMBITO_PHASES`, `AMBITO_EDITION_DIFF`, `SOURCE_PROVENANCE`, `LICENCES_IN_LENS`). It reuses Lens's registry code at a pinned commit, verifies eleven pinned files before starting, and integrates no LLM. Exploratory evaluations of an agent using these tools (v0.1, v0.3) are described in the status table above and in [`eval/`](mcp/madrid-evidence/eval/README.md); none is scientific validation. See [its README](mcp/madrid-evidence/README.md) and [Case Study 01: Nuevo Mahou-Calderón](docs/case-studies/01-mahou-calderon.md) (Spanish; an unvalidated technical demonstrator).
+
+### Spatial Investigation Studio (`studio/`)
+A local, read-only interface that starts the real MCP over stdio and shows what it returns, with each displayed value mapped to a JSON pointer in the raw response. v0.2 adds guided questions and a deterministic, Spanish-only router that abstains (running no MCP call) when it cannot assign a question with certainty. No LLM, no geocoding, no hosting. See [its README](studio/README.md).
+
+```text
+Official sources -> Madrid Urban Evidence Lens (public app) -> Madrid Evidence MCP (local) -> Studio (local)
+Agent evaluation studies how a model behaves with the MCP tools; it is not part of the data path.
+```
+This is a conceptual diagram, not a deployment diagram.
 
 ## Repository layout
 
@@ -65,7 +80,8 @@ A read-only stdio MCP server exposing four tools over five deterministic query s
 space/                 Hugging Face Space root (static site)
 data/                  Evidence catalog, JSON schema, claim excerpts
 geoimpact-copilot/     Deterministic report parser and evidence-linked Q&A prototype
-mcp/madrid-evidence/   Local read-only MCP server over the Madrid Lens evidence registry
+mcp/madrid-evidence/   Local read-only MCP server over the Madrid Lens evidence registry (+ eval/ protocols and results)
+studio/                Local Spatial Investigation Studio over the MCP
 scripts/               Content checks, link checks, deploy planner, browser checks
 tests/                 Test suites
 docs/                  Roadmap, ADRs, deployment, security, release and review records
