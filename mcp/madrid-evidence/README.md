@@ -66,7 +66,7 @@ MADRID_LENS_ROOT=../lens-pinned npm run test:madrid-mcp
 Starts the real server, calls the ámbito and provenance tools through an MCP client (the licences tool has its own suite, `npm run test:madrid-licences`) and compares each result with a direct query of
 Lens's registry (points with all three answers, with no ámbito, with phases and diff abstentions; known and unknown `sourceId`; hash checks; input rejection). Without `MADRID_LENS_ROOT` the command **fails** (it is never green by omission). It also checks that the server refuses to start with a missing checkout or a modified verified file. It is not part of `npm test`; the PR workflow (`validate.yml`) checks out Lens at the pinned commit and runs it as a step of the job (a failing step fails the workflow).
 
-An exploratory 30-case evaluation of an agent using these tools, with its protocol, limits and sealed references, is in [`eval/`](eval/README.md). It is not part of the test above and is not scientific validation.
+Exploratory agent-behaviour studies are indexed in [`eval/`](eval/README.md), including the original sealed 30-case study, the v0.3 licences pass and [Stage 2](eval/results-stage2/informe-stage2.es.md) (merged PR #17; provisional MODIFY on a single v0.4 arm). These studies are separate from the integration tests above and do not establish scientific validation, safety or v0.4 superiority.
 
 ## Limits
 
