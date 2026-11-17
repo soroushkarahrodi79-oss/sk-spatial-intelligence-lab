@@ -1,0 +1,114 @@
+{
+  "protocolVersion": "mcp-eval-stage2",
+  "status": "LOCKED BEFORE THE RUN",
+  "lockedAt": "2026-11-13T15:31:06.684Z",
+  "seed": "madrid-mcp-stage2-prereg-2026-11-13",
+  "lens": {
+    "commit": "f67cd4709d1319f5685aaa184326330a5d535088"
+  },
+  "arm": {
+    "server": "2803b22170533c5d5721798e25b186a544a8e1330f669a8aeba18de0aa4a45a4",
+    "adapter": "0bd6ee87658079ef520d3c73f161501c511c133d4476d4a765b5adfb7acbba7a"
+  },
+  "files": {
+    "mcp/madrid-evidence/eval/cases-stage2.json": "86d69d1f10d58d4eb4924345733ad1ce48b4f3063b12b2dd31afa6656fdc09e6",
+    "mcp/madrid-evidence/eval/references-stage2.json": "fe438500ee0fefefb39c0fabba16835c46221a019999f277935b2174febb9724",
+    "mcp/madrid-evidence/eval/eval-stage2.mjs": "422a5dd6bcc92823a8e38ced4956982c06bfa9b76ab012b97a8e0daa005f9009",
+    "mcp/madrid-evidence/eval/eval-v04cmp.mjs": "872c18a807c926cc098dc16926dcabfd4891974c5f6b23a49955f09687097415",
+    "mcp/madrid-evidence/eval/verify-transcript.mjs": "ffc70270ec5dcf224cb7b5fdfbcdbc445ca494759f0d1749fea78bf5cc4464a6",
+    "mcp/madrid-evidence/eval/score.mjs": "26431934d4b5db88a9f8611170d62f454eb81472495d3fbcbf010115fe6ed74b",
+    "geoimpact-copilot/evaluation/metrics.mjs": "89f32b859fbf763182f5d41817a2b7ca8792b3e32b074c3c98b901a641a91866",
+    "mcp/madrid-evidence/server.mjs": "2803b22170533c5d5721798e25b186a544a8e1330f669a8aeba18de0aa4a45a4",
+    "mcp/madrid-evidence/lens-adapter.mjs": "0bd6ee87658079ef520d3c73f161501c511c133d4476d4a765b5adfb7acbba7a",
+    "mcp/madrid-evidence/lens-pin.json": "1e8be057a56255c1e39b32ea57fcd75d9d467878afa5f45c3c297daf9989837b",
+    "mcp/madrid-evidence/lens-pin-licences.json": "2d17f559c12cc8e3b7e3ff29c091929f5aee63ccaba25a04f8091e2469939602",
+    "package-lock.json": "f35b018088d658f245145164c05d59353847da79b5181dae3bcf71e52e26539d"
+  },
+  "model": "claude-sonnet-5-5",
+  "systemPrompt": "You are an assistant for an urban analyst working with Madrid planning data. Answer in the language of the question, in at most 150 words.",
+  "maxTurns": 8,
+  "claudeCli": "2.1.323 (Claude Code)",
+  "node": "v22.23.4",
+  "mcpSdk": "1.32.2",
+  "schedule": [
+    {
+      "seq": 1,
+      "case": "X2",
+      "rep": 1,
+      "key": "01-X2-r1"
+    },
+    {
+      "seq": 2,
+      "case": "X2",
+      "rep": 2,
+      "key": "02-X2-r2"
+    },
+    {
+      "seq": 3,
+      "case": "X3",
+      "rep": 1,
+      "key": "03-X3-r1"
+    },
+    {
+      "seq": 4,
+      "case": "X1",
+      "rep": 2,
+      "key": "04-X1-r2"
+    },
+    {
+      "seq": 5,
+      "case": "Y2",
+      "rep": 2,
+      "key": "05-Y2-r2"
+    },
+    {
+      "seq": 6,
+      "case": "Y2",
+      "rep": 1,
+      "key": "06-Y2-r1"
+    },
+    {
+      "seq": 7,
+      "case": "Y1",
+      "rep": 2,
+      "key": "07-Y1-r2"
+    },
+    {
+      "seq": 8,
+      "case": "X1",
+      "rep": 1,
+      "key": "08-X1-r1"
+    },
+    {
+      "seq": 9,
+      "case": "Y3",
+      "rep": 1,
+      "key": "09-Y3-r1"
+    },
+    {
+      "seq": 10,
+      "case": "Y3",
+      "rep": 2,
+      "key": "10-Y3-r2"
+    },
+    {
+      "seq": 11,
+      "case": "X3",
+      "rep": 2,
+      "key": "11-X3-r2"
+    },
+    {
+      "seq": 12,
+      "case": "Y1",
+      "rep": 1,
+      "key": "12-Y1-r1"
+    }
+  ],
+  "howToRepeat": "export MADRID_LENS_ROOT=<Lens at the pinned commit>; node eval-stage2.mjs check; node eval-stage2.mjs preflight; node eval-stage2.mjs run",
+  "environmentVsV04cmp": {
+    "claudeCli": {
+      "v04cmp": "2.1.322 (Claude Code)",
+      "stage2": "2.1.323 (Claude Code)"
+    }
+  }
+}

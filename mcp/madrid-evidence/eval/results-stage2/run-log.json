@@ -1,0 +1,80 @@
+{
+  "lockSha256": "1fbb3e6ebe9ff61b55cfa59701fe5da0b37e073b3613d1b7ab98f75202351627",
+  "startedAt": "2026-11-13T15:31:13.857Z",
+  "runs": {
+    "01-X2-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "5e84487fa1801760ebec1c4b6099c090f5d43ebd21abaa98f7ee179bd4534e11"
+    },
+    "02-X2-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "563de3b07b15cd0febc602faf007662a831a7f3b9d904ba5888e51e0b5a229b6"
+    },
+    "03-X3-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "2a319dbd28d85a75071121f5649f0ec90dd131009375185f895801eaf7d05cf9"
+    },
+    "04-X1-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "d2a4b6e366a5b331c85967483bb58129f1f929098ac4d4360dfd3963def71b72"
+    },
+    "05-Y2-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "4f76ad9f140df04b764be204cb163c5b22f18171bbdc0612b55266478a79a911"
+    },
+    "06-Y2-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "56fbcc7d03af452479528fc1b32bee27c69106024742576b6f7dd2c5d5ffeb57"
+    },
+    "07-Y1-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "e99c06ec9c276dc6d110ecf937834f63cb7811c5710b107cf54d1547e01a987c"
+    },
+    "08-X1-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "16a04f4dbeafc357cdaf54b4e7957527b60848fb9f621d1f4fb304c9ccdcaf21"
+    },
+    "09-Y3-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "0943de9db298f400ec11adb47d6b05f946567257b892dd6421351353b8f1839d"
+    },
+    "10-Y3-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "fbc0bca45ad8e687f0eca63787d9a567379e363bdca290b23138fe4296a8df2c"
+    },
+    "11-X3-r2": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "0b0ef1c70662d79808ec5472332e3d40948ff3441a4f08f7c43226bea65a0be8"
+    },
+    "12-Y1-r1": {
+      "status": "BACKED",
+      "attempts": 1,
+      "systemFaults": [],
+      "rawSha256": "aacf440a41a52f7dde3e6e7720cc1bf8bcefa7c4c9840ab769f5b961b450f4fc"
+    }
+  },
+  "preflight": "passed",
+  "finishedAt": "2026-11-13T15:33:26.058Z"
+}
