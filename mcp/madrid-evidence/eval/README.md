@@ -1,6 +1,19 @@
-# Madrid Evidence MCP exploratory evaluation v0.1
+# Madrid Evidence MCP — exploratory evaluations
 
-**Exploratory. Measures consistency with the pinned Lens and tool-use behaviour of one model on 30 cases. It is not scientific validation of Lens's data and not a benchmark of the MCP.** No success rate may be quoted without n, the interval and this sentence.
+**These are exploratory agent-behaviour studies, not scientific validation of Lens data or an MCP safety benchmark.** The original v0.1 protocol below examines 30 cases per arm. Do not quote rates without their n, uncertainty interval and study-specific limitations.
+
+## Study index (17 November 2026)
+
+| Study | Recorded status | Interpretation |
+|---|---|---|
+| [v0.1](results/informe-v0.1.es.md) | Sealed 30-case evaluation with baseline and MCP arms; original method documented below. | Author-adjudicated exploration, not independent validation. |
+| [v0.3 licences](results-v0.3/informe-v0.3.es.md) | 10 cases, one MCP-arm pass; 2 critical errors; **MODIFY**. | A separate pass, not a direct measure of improvement. |
+| v0.3 vs v0.4 comparison (`cases-v0.4cmp.json`) | Preregistered; **no comparison run/results stored on `main`**. | Do not claim v0.4 outperforms v0.3. |
+| [Stage 2](results-stage2/informe-stage2.es.md) | **Merged PR #17**; 6 new adversarial cases × 2 runs on unchanged v0.4; 0/12 critical errors, 1/12 unsupported local claim; **MODIFY (provisional)**. | One model, single arm, model-assisted blind adjudication (not independent human review). E1 upper-bound interpretation is ambiguous: alternative classification implies HOLD. |
+
+Stage 2 reproducibility artifacts: [cases](cases-stage2.json), [preregistered lock](protocol-lock-stage2.json), [adjudication](results-stage2/adjudication.json), [results](results-stage2/results.json) and [corrected report](results-stage2/informe-stage2.es.md). The original result files and rubric are unchanged by the later documentary review. Zero critical errors in 12 runs has a Wilson 95% upper bound of 24.25%; these adversarial-case counts are not field rates or evidence of safety.
+
+The following sections retain the original v0.1 and v0.3 protocols without rewriting their historical records.
 
 ## What is here
 
