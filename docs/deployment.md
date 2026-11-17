@@ -24,6 +24,14 @@ The official action mirrors files and can delete destination files when `delete_
 
 The `approve_inventory` input is an explicit dispatch acknowledgement; the protected GitHub environment adds a separate reviewer gate. If the first run should only create a preview, leave mode at `plan`. Pushes to GitHub never deploy to production.
 
+## Troubleshooting a deployment waiting for approval
+
+A successful `plan` job **does not publish** the Space. For a manual `deploy` dispatch with `approve_inventory=true`, the `deploy` job waits at the protected `huggingface-production` environment until an authorized reviewer approves it. Open the workflow run in **Actions**, choose **Review deployments**, select `huggingface-production` and **Approve and deploy** after reviewing the plan artifact. Do not cancel a run simply because this gate is waiting.
+
+If approval is unavailable, inspect **Settings → Environments → huggingface-production** and check whether **Prevent self-review** is enabled. GitHub does not allow the triggering actor to approve their own run when that setting is enabled; arrange an authorized separate reviewer rather than silently bypassing the production gate. Approval policy is intentionally not changed by a content update.
+
+On 2026-11-14, [run #12](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/runs/43594504857) and [run #13](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/runs/43594914764) passed `plan` but their `deploy` jobs were cancelled before executing `hub-sync`. The last confirmed successful `hub-sync` in the inspected history was [run #10](https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/actions/runs/40313484685) on 2026-10-26. Merging GitHub documentation or `space/` content alone never republishes Hugging Face.
+
 ## Change and deletion policy
 
 The workflow is configured so the synchronization action cannot delete destination files. Preflight still reports the paths a mirroring configuration would remove. It accepts `.gitattributes` as a specifically preserved, unmanaged file only when its content matches the verified snapshot. Any other destination-only path stops the run until the inventory and safeguards are reviewed in a code change. Do not enable `delete_removed: true` as a routine setting.
