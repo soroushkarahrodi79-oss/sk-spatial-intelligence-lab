@@ -26,6 +26,8 @@ jobs:
       - run: npm run validate
       - run: npm run check:evidence
       - run: npm run test:source-card-schema
+      - run: npm run check:source-cards
+      - run: npm run test:source-cards
       - run: npm run check:trace:online
       - run: npm run test:trace
       - run: npm run test:copilot
