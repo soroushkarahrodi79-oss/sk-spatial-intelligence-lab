@@ -21,9 +21,6 @@ export const DEFAULT_DIR = path.join(ROOT, "data", "sources");
 export const SCHEMA_PATH = path.join(ROOT, "data", "source-card.schema.json");
 export const CATALOG_PATH = path.join(ROOT, "data", "evidence-catalog.json");
 
-// First commit of this repository. A consultation made for this project cannot predate it.
-export const EARLIEST_CONSULTATION = "2026-10-24";
-
 // ---- wording rules -------------------------------------------------------------------------------
 // Unicode-aware word boundaries: \b would treat accented letters as non-word characters.
 const phrase = (alternatives) => new RegExp(`(?<![\\p{L}\\p{N}_])(?:${alternatives})(?![\\p{L}\\p{N}_])`, "iu");
@@ -152,7 +149,6 @@ export function checkCards(entries, { validate, evidenceIds = new Set(), today, 
         }
         if (!isRealDate(node.consultedOn)) fail(file, `${p}.consultedOn`, `not a real calendar date: ${node.consultedOn}`);
         else if (node.consultedOn > today) fail(file, `${p}.consultedOn`, `consultation date ${node.consultedOn} is in the future (today is ${today})`);
-        else if (node.consultedOn < EARLIEST_CONSULTATION) fail(file, `${p}.consultedOn`, `consultation date ${node.consultedOn} predates this repository (${EARLIEST_CONSULTATION})`);
       } else if (node.status === "pending") {
         counts.pending += 1;
         stats.pending += 1;

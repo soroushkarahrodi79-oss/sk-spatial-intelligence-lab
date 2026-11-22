@@ -8,7 +8,7 @@ import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync }
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { checkCards, checkOnline, checkedUrls, compileValidator, describeSchemaErrors, EARLIEST_CONSULTATION, hostAllowed, isRealDate, isRealMonth, loadCards, loadEvidenceIds, loadSchema, wordingProblems } from "../scripts/source-cards.mjs";
+import { checkCards, checkOnline, checkedUrls, compileValidator, describeSchemaErrors, hostAllowed, isRealDate, isRealMonth, loadCards, loadEvidenceIds, loadSchema, wordingProblems } from "../scripts/source-cards.mjs";
 import { checkedCard, consulted, FIXTURE_HOST, text } from "./fixtures/source-card.mjs";
 
 const validate = compileValidator(await loadSchema());
@@ -91,23 +91,24 @@ test("checked statements: every kind of block is host-checked (breaks, review, l
   }
 });
 
-test("consultation dates: real, not in the future, not before the repository existed", () => {
+test("consultation dates: real and not in the future; an earlier date is not an error", () => {
   assert.ok(isRealDate("2026-11-22") && isRealDate("2028-02-29"));
   for (const bad of ["2026-02-30", "2026-13-01", "2026-00-10", "2027-02-29", "26-11-22", "2026-1-2"]) assert.ok(!isRealDate(bad), bad);
   const cases = {
     "not a calendar date": ["2026-02-30", /not a real calendar date/],
     "future date": ["2026-11-23", /in the future/],
-    "before the repository existed": ["2026-10-23", /predates this repository/],
   };
   for (const [label, [date, pattern]] of Object.entries(cases)) {
     const card = checkedCard();
     card.officialTitle.consultedOn = date;
     assert.match(problemsOf(card).join("\n"), pattern, label);
   }
-  for (const ok of [EARLIEST_CONSULTATION, TODAY]) {
+  // No lower bound other than a real calendar date: a consultation made before this repository
+  // existed is as valid as any other, and the owner never has to re-consult only to satisfy the tool.
+  for (const ok of ["2019-03-01", "2026-10-23", TODAY]) {
     const card = checkedCard();
     card.officialTitle.consultedOn = ok;
-    assert.deepEqual(problemsOf(card), [], `${ok} is a valid boundary`);
+    assert.deepEqual(problemsOf(card), [], `${ok} is a real, non-future date`);
   }
 });
 
