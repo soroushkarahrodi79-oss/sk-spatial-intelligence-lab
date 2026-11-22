@@ -1,6 +1,6 @@
 # Tourism Data Guard v0.1 — diseño
 
-**Estado:** propuesta, pendiente de aprobación. No hay código implementado. 2026-11-22, sobre `main` en `d0b7742`.
+**Estado:** aprobada con modificaciones el 2026-11-22 (ver §9, que prevalece sobre el resto donde haya conflicto). Sobre `main` en `d0b7742`. Se implementa paso a paso, una PR por paso.
 
 **Qué es:** fichas de *límites de interpretación* de estadísticas turísticas públicas (qué mide cada fuente, qué no, dónde se rompe la serie, bajo qué licencia se reutiliza, hasta qué tipo de afirmación llega), consultables desde la web estática y desde un MCP local.
 
@@ -26,7 +26,7 @@ Cinco entregas, **una PR por paso**, en este orden: A → B → (C, D) → E.
 
 | Paso | Entrega | Depende de |
 |---|---|---|
-| A | `data/source-card.schema.json` + `data/sources/*.yaml` (máx. 8 fuentes) | — |
+| A | `data/source-card.schema.json` + `data/sources/*.json` (máx. 8 fuentes) | — |
 | B | `scripts/source-cards.mjs` + `check:source-cards` en `npm test` y en `validate.yml` | A |
 | C | Sección `#sources` en `space/index.html` (buscador, ficha, comparador), ES/EN | A, B |
 | D | `mcp/tourism-data-guard/` con `get_source_card`, `compare_sources`, `list_method_breaks` | A, B |
@@ -49,24 +49,24 @@ Fuentes iniciales (7, tope 8): MITMS estudios básicos, MITMS estudios completos
 
 ## 4. Esquema de la ficha (paso A)
 
-Un fichero YAML por fuente, validado por `data/source-card.schema.json` (JSON Schema 2020-12, `additionalProperties:false`, mismo Ajv *strict* que el catálogo). Campos de texto libre como `{es, en}`; los campos estructurados (enums, fechas, URLs) no llevan idioma.
+Un fichero JSON por fuente (§9: se descartó YAML), validado por `data/source-card.schema.json` (JSON Schema 2020-12, `additionalProperties:false`, mismo Ajv *strict* que el catálogo). Campos de texto libre como `{es, en}`; los campos estructurados (enums, fechas, URLs) no llevan idioma.
 
 ### 4.1 Unidad de afirmación citada
 
 Toda afirmación sobre el mundo (qué mide, qué no mide, cobertura, licencia, cada ruptura) es un objeto con una de dos formas, y no hay una tercera:
 
-```yaml
-# Forma comprobada
-- text: { es: "…", en: "…" }
-  url: https://…            # https, host dentro de producer.officialHosts
-  consultedOn: 2026-11-22   # fecha real en que se leyó esa URL
-  status: checked
+```json
+// Forma comprobada
+{ "status": "checked", "text": { "es": "…", "en": "…" },
+  "url": "https://…",          // https, host dentro de producer.officialHosts
+  "consultedOn": "2026-11-22" } // fecha real en que se leyó esa URL
 
-# Forma pendiente
-- text: "[X]"
-  status: pending
-  pendingReason: "URL oficial no localizada / no accesible desde el entorno"
+// Forma pendiente
+{ "status": "pending", "text": "[X]",
+  "pendingReason": "URL oficial no localizada / extracto no aportado" }
 ```
+
+Los campos estructurados (cobertura, método, licencia, rupturas) siguen el mismo patrón por bloque: o todos sus campos están comprobados y comparten `url` + `consultedOn`, o todos son `[X]` con `pendingReason`. (Los comentarios `//` son solo ilustrativos; JSON no los admite.)
 
 `pending` solo admite el literal `[X]`. No existe «valor aproximado a confirmar».
 
@@ -100,7 +100,7 @@ El campo se llama `consultedOn`. Significa «alguien leyó esa URL ese día y la
 Modos: por defecto (estructura), `--release` (puerta de publicación), `--online` (red), `--write` (regenera lo embebido en C).
 
 Falla si:
-1. el YAML no valida contra el esquema;
+1. el JSON no valida contra el esquema;
 2. alguna ruptura o afirmación `checked` carece de `url` o `consultedOn`; la URL no es `https`, o su host no está en `producer.officialHosts`; la fecha no es real, es futura o es anterior a la creación del repositorio;
 3. un `pending` no es exactamente `[X]` o no tiene `pendingReason`;
 4. hay `id` duplicados, o `doesNotMeasure`/`methodBreaks` no existen como claves;
@@ -135,7 +135,7 @@ Servidor **separado** de `madrid-evidence`. Tocar `server.mjs` o `lens-adapter.m
 | `list_method_breaks` | `source` | rupturas con fecha, efecto documentado, URL y `consultedOn`; las `[X]` se devuelven como pendientes, nunca omitidas |
 | `compare_sources` | `a`, `b`, `period`, `claimLevel?` | veredicto (§5.2), razones, techo común, citas |
 
-Todas: `readOnlyHint`, `z.strictObject`, `structuredContent` + texto idéntico, y siempre fuente, `consultedOn` y techo. Al arrancar valida todas las fichas con el mismo código que B y **no arranca** si alguna falla (fail-closed, como el adaptador de Lens). Lee los YAML directamente (§6, punto 5).
+Todas: `readOnlyHint`, `z.strictObject`, `structuredContent` + texto idéntico, y siempre fuente, `consultedOn` y techo. Al arrancar valida todas las fichas con el mismo código que B y **no arranca** si alguna falla (fail-closed, como el adaptador de Lens). Lee los JSON de `data/sources/` directamente (§9).
 
 **Rehusar por encima del techo.** El encargo pide rehusar «si se le pide una inferencia por encima del techo», pero `compare_sources(a, b, period)` no tiene dónde expresarla. Clasificar texto libre sería heurística, y el repositorio abstiene antes que adivinar. Propuesta: parámetro opcional `claimLevel` ∈ {`descriptive`, `associative`, `causal`}, por defecto `descriptive`. Si supera el techo mínimo de las dos fuentes, la respuesta es una abstención (`kind: "ABSTENTION"`, `reason: "ABOVE_CLAIM_CEILING"`, vocabulario de Lens) con el techo y lo que sí se puede afirmar. `causal` se rehúsa siempre en v0.1. Limitación explícita: el servidor no puede impedir que el agente haga la inferencia después, con los datos que ya tiene. Solo se niega a avalarla.
 
@@ -155,7 +155,7 @@ Sección `#sources` dentro de `space/index.html`, con las fichas embebidas como 
 2. **La ruptura del 1-jul-2025 en MITMS es una premisa tuya que no puedo confirmar.** Entra en la ficha solo si existe URL oficial que la documente; hasta entonces es `[X]`. Lo mismo para cualquier otra ruptura. El efecto lo tiene que documentar el productor; no lo estimamos nosotros.
 3. **«SIT Madrid (Flujo de Visitantes)» es ambiguo.** No sé si es el Sistema de Información Turística de la Comunidad o un producto del Ayuntamiento, ni qué mide exactamente. ¿URL o nombre completo del producto? Hasta entonces, `[X]`.
 4. **La página va dentro de `index.html`, no como fichero nuevo.** `scripts/space-plan.mjs` exige que `space/` contenga exactamente `README.md`, `index.html`, `style.css` (y `.gitattributes`) y el despliegue tiene una lista blanca de tres ficheros. Una página nueva exigiría cambiar esa política de despliegue, que es tu decisión de seguridad, no un detalle de la PR C. El coste de embeber: `index.html` crece y ya es denso.
-5. **`yaml` hoy es `devDependency`.** El MCP lo necesita en ejecución. Mover `yaml` a `dependencies` no añade paquete nuevo pero cambia qué instala quien consume el MCP. La alternativa (generar JSON y que el MCP lea JSON) incumple tu «lea los mismos YAML». Propongo mover `yaml` a `dependencies`.
+5. **(Resuelto en §9: JSON, sin `yaml`.) `yaml` hoy es `devDependency`.** El MCP lo necesita en ejecución. Mover `yaml` a `dependencies` no añade paquete nuevo pero cambia qué instala quien consume el MCP. La alternativa (generar JSON y que el MCP lea JSON) incumple tu «lea los mismos YAML». Propongo mover `yaml` a `dependencies`.
 6. **Vocabulario.** El repositorio bloquea «verified/validated» en el catálogo, y «fichas de fiabilidad» promete una calificación que ninguna ficha hace. Propongo mantener el nombre «Tourism Data Guard» y subtitularlo «fichas de límites de interpretación», y usar `consultedOn` («fecha de consulta»).
 7. **Techo de afirmación: tus tres valores no están en el mismo eje.** «Causal no soportado» no es un nivel por encima de «asociativo»: es la negativa. Propongo `level` ∈ {`descriptive`, `associative`} y causal rehusado siempre. Más duro: ¿qué fuente de las siete justificaría `associative`? Las siete son agregadas y observacionales; el riesgo de falacia ecológica es real. Mi propuesta es que todas salgan `descriptive` salvo que justifiques `associative` con una razón citada en `rationale`.
 8. **`not-evaluable` y `claimLevel`** (§5.2, §5.3) amplían el contrato que describiste. Requieren tu visto bueno.
@@ -164,8 +164,8 @@ Sección `#sources` dentro de `space/index.html`, con las fichas embebidas como 
 
 ## 7. Efectos sobre el repositorio
 
-- Archivos nuevos: `data/source-card.schema.json`, `data/sources/*.yaml`, `scripts/source-cards.mjs`, `scripts/lib/compare-sources.mjs`, `mcp/tourism-data-guard/`, tests, `docs/claim-ceiling-badge.md`, esquema y generador de la insignia.
-- Archivos modificados: `package.json` (scripts, `yaml` a `dependencies`), `.github/workflows/validate.yml` (pasos nuevos), `space/index.html` (C), `README.md` y `CHANGELOG.md` (estado honesto del componente, sin venderlo como validado).
+- Archivos nuevos: `data/source-card.schema.json`, `data/sources/*.json`, `scripts/source-cards.mjs`, `scripts/lib/compare-sources.mjs`, `mcp/tourism-data-guard/`, tests, `docs/claim-ceiling-badge.md`, esquema y generador de la insignia.
+- Archivos modificados: `package.json` (scripts; sin dependencias nuevas ni cambios de dependencias), `.github/workflows/validate.yml` (pasos nuevos), `space/index.html` (C), `README.md` y `CHANGELOG.md` (estado honesto del componente, sin venderlo como validado).
 - Intactos: `data/evidence-catalog*`, `data/claim-excerpts.json`, `mcp/madrid-evidence/**` (incluidos `eval/` y el sello), `backups/`, `space/README.md`, `space/style.css`, `deploy-space.yml`.
 
 ## 8. Qué demuestra y qué no cada entrega (plantilla de cada PR)
@@ -177,3 +177,14 @@ Sección `#sources` dentro de `space/index.html`, con las fichas embebidas como 
 | C | Que un lector llega a límites y rupturas en dos interacciones, en ES y EN, accesible | Que el veredicto del comparador sea estadísticamente cierto |
 | D | Que un agente recibe fuente, consulta y techo, y que se le rehúsa por encima del techo | Que el agente no cometa la inferencia por su cuenta; sin evaluación independiente |
 | E | Que el techo declarado se expresa de forma consistente | Que el repositorio o su contenido estén certificados |
+
+## 9. Decisiones del titular (2026-11-22)
+
+Estas decisiones responden a §6 y prevalecen sobre el texto anterior.
+
+1. **Acceso (opción c + b).** Armazón con `[X]`. v0.1 solo se considera completo con **2 fichas rellenadas, MITMS y SIT**, a partir de extractos que pegará el titular. No se piden más hosts.
+2. **Aprobado:** sección embebida en `index.html`; `claimLevel` y `not-evaluable`; todas las fichas en `descriptive` salvo razón citada; campo `consultedOn`; subtítulo «fichas de límites de interpretación»; modos normal y `--release`.
+3. **Rechazado:** `yaml` como dependencia. Las fichas son **JSON** (`data/sources/*.json`), validadas con Ajv, sin dependencias nuevas. *Pendiente para D:* Ajv también es `devDependency`. Si el servidor MCP ha de validar fichas al arrancar con Ajv, o se acepta que ese servidor se ejecute desde el repositorio tras `npm ci` (como el MCP de Madrid), o hace falta una validación sin Ajv. Se decide en D, no antes.
+4. **SIT.** Lo publica Madrid Destino (Ayuntamiento de Madrid), `https://www.esmadrid.com/sit`, módulo «Turismo en cifras: Flujos de movimiento», botón «FLUJO DE VISITANTES»; fuente declarada: «datos procedentes de las redes de comunicación móviles». **Todo ello es dato aportado por el titular, no leído por el agente**: en la ficha queda como `[X]` con esa información en `pendingReason`, hasta que haya extracto y fecha de consulta. Condiciones de uso: `[X]`.
+5. **Ruptura MITMS (1-jul-2025) y toda cifra asociada:** `[X]` hasta que se pegue el extracto oficial.
+6. **Una rama, una PR por paso.** El titular fusiona cada una antes de que empiece la siguiente. Insignia (E) solo en este repositorio.
