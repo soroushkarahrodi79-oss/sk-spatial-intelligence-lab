@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "mitms-estudios-basicos",
+  "label": {
+    "es": "MITMS · estudios básicos",
+    "en": "MITMS · basic studies"
+  },
+  "officialTitle": {
+    "status": "pending",
+    "text": "[X]",
+    "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+  },
+  "producer": {
+    "name": {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    },
+    "officialHosts": []
+  },
+  "measures": {
+    "status": "pending",
+    "population": "[X]",
+    "unit": "[X]",
+    "unitClass": "[X]",
+    "method": "[X]",
+    "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+  },
+  "doesNotMeasure": [
+    {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    }
+  ],
+  "coverage": {
+    "temporal": {
+      "status": "pending",
+      "from": "[X]",
+      "to": "[X]",
+      "resolution": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    },
+    "spatial": {
+      "status": "pending",
+      "extent": "[X]",
+      "granularity": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    }
+  },
+  "methodBreaks": {
+    "review": {
+      "status": "pending",
+      "outcome": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    },
+    "items": [
+      {
+        "id": "brk-01",
+        "status": "pending",
+        "date": "[X]",
+        "description": "[X]",
+        "documentedEffect": "[X]",
+        "pendingReason": "Premisa del titular: una ruptura metodológica en torno al 2025-07-01, sin extracto oficial. Se ignora qué documenta el productor sobre ella, su efecto, y si afecta a los estudios básicos. No se registra fecha ni cifra hasta que se aporte el extracto."
+      }
+    ]
+  },
+  "license": {
+    "status": "pending",
+    "name": "[X]",
+    "reuseConditions": "[X]",
+    "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+  },
+  "claimCeiling": {
+    "level": "descriptive",
+    "basis": "default-v0.1",
+    "causalInference": "not-supported"
+  }
+}

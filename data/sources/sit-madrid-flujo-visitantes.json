@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "sit-madrid-flujo-visitantes",
+  "label": {
+    "es": "SIT Madrid · Flujo de Visitantes",
+    "en": "SIT Madrid · Visitor Flow"
+  },
+  "officialTitle": {
+    "status": "pending",
+    "text": "[X]",
+    "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+  },
+  "producer": {
+    "name": {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Dato aportado por el titular el 2026-11-22, no leído por el agente: lo publica Madrid Destino (Ayuntamiento de Madrid) en https://www.esmadrid.com/sit. Falta extracto y fecha de consulta."
+    },
+    "officialHosts": [
+      "esmadrid.com"
+    ]
+  },
+  "measures": {
+    "status": "pending",
+    "population": "[X]",
+    "unit": "[X]",
+    "unitClass": "[X]",
+    "method": "[X]",
+    "pendingReason": "Dato aportado por el titular el 2026-11-22, no leído por el agente: módulo «Turismo en cifras: Flujos de movimiento», botón «FLUJO DE VISITANTES»; fuente declarada «datos procedentes de las redes de comunicación móviles». Falta extracto, URL de la página y fecha de consulta; población y unidad medidas: sin dato."
+  },
+  "doesNotMeasure": [
+    {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    }
+  ],
+  "coverage": {
+    "temporal": {
+      "status": "pending",
+      "from": "[X]",
+      "to": "[X]",
+      "resolution": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    },
+    "spatial": {
+      "status": "pending",
+      "extent": "[X]",
+      "granularity": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    }
+  },
+  "methodBreaks": {
+    "review": {
+      "status": "pending",
+      "outcome": "[X]",
+      "pendingReason": "Pendiente de extracto oficial que aportará el titular; v0.1 exige esta ficha completa. Nada se ha leído en su fuente oficial."
+    },
+    "items": []
+  },
+  "license": {
+    "status": "pending",
+    "name": "[X]",
+    "reuseConditions": "[X]",
+    "pendingReason": "Condiciones de uso: [X] hasta que el titular pegue el texto. Regla del proyecto mientras tanto: citar y enlazar, no copiar tablas."
+  },
+  "claimCeiling": {
+    "level": "descriptive",
+    "basis": "default-v0.1",
+    "causalInference": "not-supported"
+  }
+}

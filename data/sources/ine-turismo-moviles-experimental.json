@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "ine-turismo-moviles-experimental",
+  "label": {
+    "es": "INE · estadística experimental de turismo con móviles",
+    "en": "INE · experimental tourism statistics from mobile phones"
+  },
+  "officialTitle": {
+    "status": "pending",
+    "text": "[X]",
+    "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+  },
+  "producer": {
+    "name": {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+    },
+    "officialHosts": [
+      "ine.es"
+    ]
+  },
+  "measures": {
+    "status": "pending",
+    "population": "[X]",
+    "unit": "[X]",
+    "unitClass": "[X]",
+    "method": "[X]",
+    "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+  },
+  "doesNotMeasure": [
+    {
+      "status": "pending",
+      "text": "[X]",
+      "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+    }
+  ],
+  "coverage": {
+    "temporal": {
+      "status": "pending",
+      "from": "[X]",
+      "to": "[X]",
+      "resolution": "[X]",
+      "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+    },
+    "spatial": {
+      "status": "pending",
+      "extent": "[X]",
+      "granularity": "[X]",
+      "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+    }
+  },
+  "methodBreaks": {
+    "review": {
+      "status": "pending",
+      "outcome": "[X]",
+      "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+    },
+    "items": []
+  },
+  "license": {
+    "status": "pending",
+    "name": "[X]",
+    "reuseConditions": "[X]",
+    "pendingReason": "Fuera del mínimo de v0.1 (MITMS y SIT): pendiente de URL oficial y extracto. Nada de esta ficha se ha leído en su fuente oficial."
+  },
+  "claimCeiling": {
+    "level": "descriptive",
+    "basis": "default-v0.1",
+    "causalInference": "not-supported"
+  }
+}
