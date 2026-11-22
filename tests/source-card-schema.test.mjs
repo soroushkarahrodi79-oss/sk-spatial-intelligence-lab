@@ -1,11 +1,12 @@
 // Tests for data/source-card.schema.json and the shipped cards in data/sources/.
 // They check SHAPE only. Host membership, calendar validity of dates, cross-references and
-// wording are the job of scripts/source-cards.mjs (a later step).
+// wording are the job of scripts/source-cards.mjs (tests/source-cards.test.mjs).
 
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
+import { checkedCard, consulted, FIXTURE_URL as FIXTURE, text } from "./fixtures/source-card.mjs";
 
 const schema = JSON.parse(await readFile("data/source-card.schema.json", "utf8"));
 const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
@@ -13,32 +14,6 @@ const files = (await readdir("data/sources")).filter((name) => name.endsWith(".j
 const cards = await Promise.all(files.map(async (name) => ({ name, card: JSON.parse(await readFile(`data/sources/${name}`, "utf8")) })));
 const clone = (value) => structuredClone(value);
 const errorsOf = (card) => (validate(card) ? [] : validate.errors);
-
-// A fully "checked" card. The host is reserved (.invalid), so it can never be mistaken for a real
-// source, and the card is built here and never written to data/sources/.
-const FIXTURE = "https://example.invalid/fixture";
-// A fresh object per use: mutating one field in a negative case must never alter another.
-const text = () => ({ es: "Texto de prueba", en: "Test text" });
-const consulted = () => ({ url: FIXTURE, consultedOn: "2026-01-02" });
-const checkedCard = () => ({
-  schemaVersion: 1,
-  id: "test-fixture",
-  label: { es: "Ficha de prueba", en: "Test fixture" },
-  officialTitle: { status: "checked", text: text(), ...consulted() },
-  producer: { name: { status: "checked", text: text(), ...consulted() }, officialHosts: ["example.invalid"] },
-  measures: { status: "checked", population: text(), unit: text(), unitClass: "site-visits", method: "sensor-count", ...consulted() },
-  doesNotMeasure: [{ status: "checked", text: text(), ...consulted() }],
-  coverage: {
-    temporal: { status: "checked", from: "2020-01", to: "ongoing", resolution: "month", ...consulted() },
-    spatial: { status: "checked", extent: text(), granularity: "site", ...consulted() },
-  },
-  methodBreaks: {
-    review: { status: "checked", outcome: "breaks-documented", ...consulted() },
-    items: [{ id: "brk-01", status: "checked", date: "2024-05-01", description: text(), documentedEffect: { kind: "not-documented" }, ...consulted() }],
-  },
-  license: { status: "checked", name: text(), reuseConditions: text(), ...consulted() },
-  claimCeiling: { level: "descriptive", basis: "default-v0.1", causalInference: "not-supported" },
-});
 
 test("the shipped cards: at most 8, one file per id, all valid", () => {
   assert.ok(cards.length >= 1 && cards.length <= 8, `expected 1..8 cards, found ${cards.length}`);

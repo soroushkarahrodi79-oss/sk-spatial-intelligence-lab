@@ -101,7 +101,7 @@ Modos: por defecto (estructura), `--release` (puerta de publicación), `--online
 
 Falla si:
 1. el JSON no valida contra el esquema;
-2. alguna ruptura o afirmación `checked` carece de `url` o `consultedOn`; la URL no es `https`, o su host no está en `producer.officialHosts`; la fecha no es real, es futura o es anterior a la creación del repositorio;
+2. alguna ruptura o afirmación `checked` carece de `url` o `consultedOn`; la URL no es `https`, o su host no está en `producer.officialHosts`; la fecha no es una fecha de calendario real o es futura (no hay límite inferior: una consulta anterior a la creación del repositorio es válida);
 3. un `pending` no es exactamente `[X]` o no tiene `pendingReason`;
 4. hay `id` duplicados, o `doesNotMeasure`/`methodBreaks` no existen como claves;
 5. el texto contiene lenguaje de causalidad, validación o resiliencia afirmativo (lista ES/EN, reutilizando el patrón del catálogo). Es un detector de tropiezos, no una garantía: no puede demostrar que un texto no contiene causalidad. Se testea con casos positivos y negativos («no soporta inferencia causal» debe pasar).
@@ -182,9 +182,20 @@ Sección `#sources` dentro de `space/index.html`, con las fichas embebidas como 
 
 Estas decisiones responden a §6 y prevalecen sobre el texto anterior.
 
-1. **Acceso (opción c + b).** Armazón con `[X]`. v0.1 solo se considera completo con **2 fichas rellenadas, MITMS y SIT**, a partir de extractos que pegará el titular. No se piden más hosts.
+1. **Acceso (opción c + b).** Armazón con `[X]`. v0.1 solo se considera completo con **2 fichas rellenadas, MITMS y SIT**, a partir de extractos que pegará el titular (precisado en §10: SIT y *un* producto MITMS elegido de forma explícita). No se piden más hosts.
 2. **Aprobado:** sección embebida en `index.html`; `claimLevel` y `not-evaluable`; todas las fichas en `descriptive` salvo razón citada; campo `consultedOn`; subtítulo «fichas de límites de interpretación»; modos normal y `--release`.
 3. **Rechazado:** `yaml` como dependencia. Las fichas son **JSON** (`data/sources/*.json`), validadas con Ajv, sin dependencias nuevas. *Pendiente para D:* Ajv también es `devDependency`. Si el servidor MCP ha de validar fichas al arrancar con Ajv, o se acepta que ese servidor se ejecute desde el repositorio tras `npm ci` (como el MCP de Madrid), o hace falta una validación sin Ajv. Se decide en D, no antes.
 4. **SIT.** Lo publica Madrid Destino (Ayuntamiento de Madrid), `https://www.esmadrid.com/sit`, módulo «Turismo en cifras: Flujos de movimiento», botón «FLUJO DE VISITANTES»; fuente declarada: «datos procedentes de las redes de comunicación móviles». **Todo ello es dato aportado por el titular, no leído por el agente**: en la ficha queda como `[X]` con esa información en `pendingReason`, hasta que haya extracto y fecha de consulta. Condiciones de uso: `[X]`.
 5. **Ruptura MITMS (1-jul-2025) y toda cifra asociada:** `[X]` hasta que se pegue el extracto oficial.
 6. **Una rama, una PR por paso.** El titular fusiona cada una antes de que empiece la siguiente. Insignia (E) solo en este repositorio.
+
+## 10. Criterio de completitud de v0.1 (precisado 2026-11-22)
+
+1. v0.1 solo se considera completa cuando están rellenadas, **a partir de extractos aportados por el titular**: **(a)** la ficha SIT (`sit-madrid-flujo-visitantes`) y **(b)** **un único producto MITMS, seleccionado de forma explícita por el titular**: `mitms-estudios-basicos` o `mitms-estudios-completos`.
+2. **La selección del producto MITMS no está hecha.** Mientras no la haga el titular, v0.1 no está completa y no se describe como tal.
+3. **Sin suposiciones.** Ninguna ficha se rellena por inferencia:
+   - la ficha del producto MITMS no seleccionado, las tres de INE y la del PN Sierra de Guadarrama permanecen en `[X]` y se muestran como pendientes;
+   - no se copia contenido de una ficha MITMS a la otra ni se infiere de un producto lo que corresponde al otro;
+   - la premisa de ruptura en torno al 2025-07-01 sigue siendo `[X]` en ambas fichas MITMS hasta que un extracto oficial diga qué productos afecta.
+4. **Puerta de publicación.** Cuando exista la selección, la comprobación es `node scripts/source-cards.mjs --release --cards sit-madrid-flujo-visitantes,<id-mitms-seleccionado>`. `--release` sin `--cards` exigiría las 7 fichas y no es la puerta de v0.1. Hasta entonces ningún paso de CI ejecuta `--release`.
+5. **Límite.** Pasar esa puerta demuestra que esas dos fichas no tienen `[X]` y que cada afirmación tiene URL de host declarado y fecha de consulta real. No demuestra que lo rellenado coincida con la fuente ni que la fuente sea correcta.
