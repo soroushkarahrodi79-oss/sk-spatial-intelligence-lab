@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/soroushkarahrodi79-oss/sk-spatial-intelligence-lab/data/source-card.schema.json",
+  "title": "Tourism Data Guard source card",
+  "description": "Interpretation limits of one public tourism statistic. A card documents what the producer declares and where; it is not a reliability rating. Every statement about the world is either 'checked' (official https URL plus the date it was consulted) or 'pending' (the literal [X] plus a reason). There is no third form, and no value for 'validated', 'verified' or a causal claim ceiling. This schema checks shape only: host membership, calendar validity of dates, cross-references and wording are checked by scripts/source-cards.mjs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "label", "officialTitle", "producer", "measures", "doesNotMeasure", "coverage", "methodBreaks", "license", "claimCeiling"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 64 },
+    "label": { "$ref": "#/$defs/text", "description": "The card's own short name, chosen by this project. It is a label, not the producer's official title (see officialTitle)." },
+    "officialTitle": { "$ref": "#/$defs/statement" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "officialHosts"],
+      "properties": {
+        "name": { "$ref": "#/$defs/statement" },
+        "officialHosts": {
+          "description": "Host names accepted for this card's URLs (exact match or subdomain, checked by scripts/source-cards.mjs). Empty means no statement of this card can be 'checked' yet.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$" }
+        }
+      }
+    },
+    "measures": { "$ref": "#/$defs/measures" },
+    "doesNotMeasure": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/statement" } },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["temporal", "spatial"],
+      "properties": { "temporal": { "$ref": "#/$defs/coverageTemporal" }, "spatial": { "$ref": "#/$defs/coverageSpatial" } }
+    },
+    "methodBreaks": { "$ref": "#/$defs/methodBreaks" },
+    "license": { "$ref": "#/$defs/license" },
+    "claimCeiling": { "$ref": "#/$defs/claimCeiling" },
+    "evidenceLinks": {
+      "description": "Optional read-only links to records of data/evidence-catalog.json. They never change any status.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^EV-(GIC|MUL|SAL|LAB)-\\d{3}$" }
+    }
+  },
+  "$defs": {
+    "x": { "const": "[X]", "description": "The only accepted placeholder for a statement that has not been read at its official source." },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["es", "en"],
+      "properties": {
+        "es": { "type": "string", "minLength": 3, "maxLength": 800 },
+        "en": { "type": "string", "minLength": 3, "maxLength": 700 }
+      }
+    },
+    "url": { "type": "string", "pattern": "^https://[^\\s]+$", "maxLength": 500 },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "month": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+    "pendingReason": { "type": "string", "minLength": 15, "maxLength": 700 },
+
+    "unitClass": {
+      "description": "Provisional v0.1 taxonomy of what a source counts, used only by the comparator. It classifies what the producer declares; it is revisable once the first cards are filled from official excerpts. person-arrivals: persons arriving at a destination or border. overnight-stays: nights spent in accommodation. establishment-activity: activity indicators of accommodation establishments (occupancy, rates). device-presence: mobile devices or persons present in an area. device-trips: mobile-derived origin-destination movements. site-visits: visits counted at a defined site.",
+      "enum": ["person-arrivals", "overnight-stays", "establishment-activity", "device-presence", "device-trips", "site-visits"]
+    },
+    "method": {
+      "description": "Provisional v0.1 taxonomy of how the producer obtains the figures.",
+      "enum": ["survey", "administrative-record", "mobile-network-data", "sensor-count", "mixed"]
+    },
+    "granularity": { "enum": ["country", "region", "province", "municipality", "district", "grid-cell", "site"] },
+    "resolution": { "enum": ["day", "week", "month", "quarter", "year"] },
+
+    "statement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "text", "url", "consultedOn"],
+          "properties": {
+            "status": { "const": "checked" },
+            "text": { "$ref": "#/$defs/text" },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "text", "pendingReason"],
+          "properties": {
+            "status": { "const": "pending" },
+            "text": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "measures": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "population", "unit", "unitClass", "method", "url", "consultedOn"],
+          "properties": {
+            "status": { "const": "checked" },
+            "population": { "$ref": "#/$defs/text" },
+            "unit": { "$ref": "#/$defs/text" },
+            "unitClass": { "$ref": "#/$defs/unitClass" },
+            "method": { "$ref": "#/$defs/method" },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "population", "unit", "unitClass", "method", "pendingReason"],
+          "properties": {
+            "status": { "const": "pending" },
+            "population": { "$ref": "#/$defs/x" },
+            "unit": { "$ref": "#/$defs/x" },
+            "unitClass": { "$ref": "#/$defs/x" },
+            "method": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "coverageTemporal": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "from", "to", "resolution", "url", "consultedOn"],
+          "properties": {
+            "status": { "const": "checked" },
+            "from": { "$ref": "#/$defs/month" },
+            "to": { "oneOf": [{ "$ref": "#/$defs/month" }, { "const": "ongoing" }] },
+            "resolution": { "$ref": "#/$defs/resolution" },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "from", "to", "resolution", "pendingReason"],
+          "properties": {
+            "status": { "const": "pending" },
+            "from": { "$ref": "#/$defs/x" },
+            "to": { "$ref": "#/$defs/x" },
+            "resolution": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "coverageSpatial": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "extent", "granularity", "url", "consultedOn"],
+          "properties": {
+            "status": { "const": "checked" },
+            "extent": { "$ref": "#/$defs/text" },
+            "granularity": { "$ref": "#/$defs/granularity" },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "extent", "granularity", "pendingReason"],
+          "properties": {
+            "status": { "const": "pending" },
+            "extent": { "$ref": "#/$defs/x" },
+            "granularity": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "break": {
+      "description": "One methodological break. documentedEffect is what the producer documents; when it documents none, the kind is 'not-documented' and no estimate of ours is ever stored.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "status", "date", "description", "documentedEffect", "url", "consultedOn"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^brk-\\d{2}$" },
+            "status": { "const": "checked" },
+            "date": { "$ref": "#/$defs/date" },
+            "description": { "$ref": "#/$defs/text" },
+            "documentedEffect": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "text"],
+                  "properties": { "kind": { "const": "documented" }, "text": { "$ref": "#/$defs/text" } }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind"],
+                  "properties": { "kind": { "const": "not-documented" } }
+                }
+              ]
+            },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "status", "date", "description", "documentedEffect", "pendingReason"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^brk-\\d{2}$" },
+            "status": { "const": "pending" },
+            "date": { "$ref": "#/$defs/x" },
+            "description": { "$ref": "#/$defs/x" },
+            "documentedEffect": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "methodBreaks": {
+      "description": "An empty list must never be read as 'no breaks'. 'review' records whether the producer's methodological documentation was read: none-documented requires an empty list, breaks-documented a non-empty one, and a pending review leaves the list as a partial, unreviewed set.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["review", "items"],
+          "properties": {
+            "review": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "outcome", "url", "consultedOn"],
+              "properties": {
+                "status": { "const": "checked" },
+                "outcome": { "const": "none-documented" },
+                "url": { "$ref": "#/$defs/url" },
+                "consultedOn": { "$ref": "#/$defs/date" }
+              }
+            },
+            "items": { "type": "array", "maxItems": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["review", "items"],
+          "properties": {
+            "review": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "outcome", "url", "consultedOn"],
+              "properties": {
+                "status": { "const": "checked" },
+                "outcome": { "const": "breaks-documented" },
+                "url": { "$ref": "#/$defs/url" },
+                "consultedOn": { "$ref": "#/$defs/date" }
+              }
+            },
+            "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/break" } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["review", "items"],
+          "properties": {
+            "review": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "outcome", "pendingReason"],
+              "properties": {
+                "status": { "const": "pending" },
+                "outcome": { "$ref": "#/$defs/x" },
+                "pendingReason": { "$ref": "#/$defs/pendingReason" }
+              }
+            },
+            "items": { "type": "array", "items": { "$ref": "#/$defs/break" } }
+          }
+        }
+      ]
+    },
+
+    "license": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "name", "reuseConditions", "url", "consultedOn"],
+          "properties": {
+            "status": { "const": "checked" },
+            "name": { "$ref": "#/$defs/text" },
+            "reuseConditions": { "$ref": "#/$defs/text" },
+            "url": { "$ref": "#/$defs/url" },
+            "consultedOn": { "$ref": "#/$defs/date" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "name", "reuseConditions", "pendingReason"],
+          "properties": {
+            "status": { "const": "pending" },
+            "name": { "$ref": "#/$defs/x" },
+            "reuseConditions": { "$ref": "#/$defs/x" },
+            "pendingReason": { "$ref": "#/$defs/pendingReason" }
+          }
+        }
+      ]
+    },
+
+    "claimCeiling": {
+      "description": "The most that may be asserted from this source. 'descriptive' is the default in v0.1; 'associative' needs a checked rationale. A causal level does not exist: causalInference is the constant 'not-supported' and requests for causal claims are always refused.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "basis", "causalInference"],
+          "properties": {
+            "level": { "const": "descriptive" },
+            "basis": { "const": "default-v0.1" },
+            "causalInference": { "const": "not-supported" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "basis", "causalInference", "rationale"],
+          "properties": {
+            "level": { "const": "associative" },
+            "basis": { "const": "cited" },
+            "causalInference": { "const": "not-supported" },
+            "rationale": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "text", "url", "consultedOn"],
+              "properties": {
+                "status": { "const": "checked" },
+                "text": { "$ref": "#/$defs/text" },
+                "url": { "$ref": "#/$defs/url" },
+                "consultedOn": { "$ref": "#/$defs/date" }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
